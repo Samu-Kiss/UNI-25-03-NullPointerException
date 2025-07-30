@@ -19,6 +19,7 @@
 
 * Las **reuniones de progreso se realizarán los lunes a las 7:00 p.m.**
 * La asistencia es **obligatoria** y se llevará registro.
+* Además de la asistencia, es necesaria la **participación activa** en cada una de las reuniones.
 * Solo se justifican ausencias avisadas con anticipación y por causas válidas.
 * La **ausencia injustificada a dos reuniones consecutivas** será considerada falta grave.
 
@@ -29,6 +30,7 @@
 * El canal oficial del equipo es **WhatsApp**, para temas generales, coordinaciones y recordatorios.
 * Los temas técnicos y relacionados con el desarrollo deben centralizarse en los **issues del repositorio**.
 * Todos los miembros deben responder mensajes importantes en un **máximo de 24 horas hábiles**.
+* En caso de incurrir en faltas graves, se notificará mediante correo al miembro con copia a los demás integrantes del equipo, de modo que exista trazabilidad de las comunicaciones.
 
 ---
 
@@ -41,14 +43,14 @@ Se exige un uso organizado, ético y profesional del repositorio y su gestión.
 
 * Crear una **rama por cada issue asignado**, con nombre descriptivo.
 * Asociar los **commits a issues activos**, dando prioridad a los de **alta prioridad**.
-* Utilizar **conventional commits** (`feat:`, `fix:`, `docs:`...) para claridad en el historial.
-* **Todo PR debe tener al menos una revisión (code review)** antes de hacer merge.
+* Utilizar [**conventional commits**](https://cheatsheets.zip/conventional-commits) (`feat:`, `fix:`, `docs:`...) para claridad en el historial.
+* **Todo PR debe tener al menos una revisión (code review)** por al menos una persona del equipo y por copilot antes de hacer merge.
 * Está **prohibido el uso de `--force push` o merge forzado sin aprobación** del equipo.
-* Mantener la rama `main` o `develop` limpia, funcional y siempre desplegable.
+* Mantener la rama `main` limpia, funcional y siempre desplegable.
 * Usar el **proyecto de GitHub** asociado al repositorio para:
 
   * Visualizar tareas (Kanban o tabla).
-  * Asignar responsables.
+  * Asignar responsabilidades.
   * Dar seguimiento al progreso general.
 
 ---
@@ -117,7 +119,7 @@ Un **commit de calidad** debe:
 Se considera bajo desempeño si un miembro:
 
 * No realiza commits relevantes durante dos semanas consecutivas.
-* No participa en reuniones ni colabora con el equipo.
+* No participa en reuniones ni colabora con el equipo. (Ver sección 2, sobre reuniones)
 * Incumple tareas sin justificación.
 
 ##### Proceso:
@@ -130,7 +132,19 @@ Se considera bajo desempeño si un miembro:
 
 #### 11. 🔄 Reorganización por Salida de Miembro
 
-En caso de retiro voluntario o expulsión:
+En caso de retiro voluntario o expulsión de alguno de los miembros, las tareas serán redistribuidas de forma equitativa.
 
-* El equipo podrá solicitar al docente el ingreso de un nuevo miembro (si aplica).
-* Las tareas serán redistribuidas de forma equitativa.
+#### 12. 👥 Miembros y Roles
+
+| **Miembro**               | **Rol Principal**       | **Responsabilidades**                                | **GitHub**                                             |
+|---------------------------|-------------------------|------------------------------------------------------|--------------------------------------------------------|
+| Maria Alejandra García ✨ | QA / Testing            | Pruebas, documentación, control de calidad           | [@MalejaGS](https://github.com/MalejaGS)               |
+| Thomas Leal 🧩            | Backend Developer       | Desarrollo de lógica de negocio, APIs                | [@GlaTress](https://github.com/GlaTress)               |
+| Juan David Ortiz ☕       | Data Base Administrator | Desarrollo de APIs, lógica de negocio, base de datos | [@JDOG-JuanDORtiz](https://github.com/JDOG-JuanDORtiz) |
+| Samuel Pico ✒️            | Frontend Developer      | Desarrollo de interfaz de usuario, UX/UI             | [@Samu-Kiss](https://github.com/Samu-Kiss)             |
+| Nicolas Torres 🏢         | Backend Developer       | Desarrollo de lógica de negocio, APIs, UML           | [@N-Torresito](https://github.com/N-Torresito)         |
+| Santiago Hernandez 💀     |                         |                                                      | [@](https://github.com/)                               |
+
+> **Nota:** Los roles son flexibles y todos los miembros pueden contribuir en diferentes áreas según las necesidades del proyecto.
+
+
