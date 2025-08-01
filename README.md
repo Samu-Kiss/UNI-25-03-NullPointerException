@@ -143,7 +143,7 @@ En caso de retiro voluntario o expulsión de alguno de los miembros, las tareas 
 | Juan David Ortiz ☕       | Data Base Administrator | Desarrollo de APIs, lógica de negocio, base de datos | [@JDOG-JuanDORtiz](https://github.com/JDOG-JuanDORtiz) |
 | Samuel Pico ✒️            | Frontend Developer      | Desarrollo de interfaz de usuario, UX/UI             | [@Samu-Kiss](https://github.com/Samu-Kiss)             |
 | Nicolas Torres 🏢         | Backend Developer       | Desarrollo de lógica de negocio, APIs, UML           | [@N-Torresito](https://github.com/N-Torresito)         |
-| Santiago Hernandez 💀     |                         |                                                      | [@](https://github.com/)                               |
+| Santiago Mendez 💀        |                         |                                                      | [@santiagom27](https://github.com/santiagom27)         |
 
 > **Nota:** Los roles son flexibles y todos los miembros pueden contribuir en diferentes áreas según las necesidades del proyecto.
 
