@@ -32,7 +32,7 @@ Scene Factory: class com.almasb.fxgl.app.scene.SceneFactory
 23:00:00.823 [JavaFX Application Thread] DEBUG PrimaryStageWindow   - Scene size: 800.0 x 600.0
 23:00:00.823 [JavaFX Application Thread] DEBUG PrimaryStageWindow   - Stage size: 816.0 x 639.0
 23:00:00.829 [FXGL Background Thread 1 ] DEBUG Engine               - Initializing environment variables
-23:00:00.874 [FXGL Background Thread 1 ] DEBUG FXGLAssetLoaderServi - User app class for loading assets: class com.lapuj.demo.DemoGame3d
+23:00:00.874 [FXGL Background Thread 1 ] DEBUG FXGLAssetLoaderServi - User app class for loading assets: class com.lapuj.demo.fxgl.FXG3D
 23:00:00.874 [FXGL Background Thread 1 ] DEBUG GameApplicationServi - Applying CSS: fxgl_dark.css
 23:00:00.875 [FXGL Background Thread 1 ] DEBUG FXGLAssetLoaderServi - Loading from file system: jar:file:///C:/Users/Glatr/.m2/repository/com/github/almasb/fxgl/11.17/fxgl-11.17.jar!/fxglassets/ui/css/fxgl_dark.css
 23:00:00.914 [FXGL Background Thread 1 ] DEBUG GameApplicationServi - Initializing application scenes
