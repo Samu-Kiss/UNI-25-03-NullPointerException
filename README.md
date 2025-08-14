@@ -136,15 +136,16 @@ En caso de retiro voluntario o expulsión de alguno de los miembros, las tareas 
 
 #### 12. 👥 Miembros y Roles
 
-| **Miembro**               | **Rol Principal**       | **Responsabilidades**                                | **GitHub**                                             |
-|---------------------------|-------------------------|------------------------------------------------------|--------------------------------------------------------|
-| Maria Alejandra García ✨ | QA / Testing            | Pruebas, documentación, control de calidad           | [@MalejaGS](https://github.com/MalejaGS)               |
-| Thomas Leal 🧩            | Backend Developer       | Desarrollo de lógica de negocio, APIs                | [@GlaTress](https://github.com/GlaTress)               |
-| Juan David Ortiz ☕       | Data Base Administrator | Desarrollo de APIs, lógica de negocio, base de datos | [@JDOG-JuanDORtiz](https://github.com/JDOG-JuanDORtiz) |
-| Samuel Pico ✒️            | Frontend Developer      | Desarrollo de interfaz de usuario, UX/UI             | [@Samu-Kiss](https://github.com/Samu-Kiss)             |
-| Nicolas Torres 🏢         | Backend Developer       | Desarrollo de lógica de negocio, APIs, UML           | [@N-Torresito](https://github.com/N-Torresito)         |
-| Santiago Mendez 💀        |                         |                                                      | [@santiagom27](https://github.com/santiagom27)         |
+| **Rol**                 | **Descripción**                                                                                  | **Miembro**                                                                                                 |
+|-------------------------|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| PM                      | Gestiona las reuniones y los miembros, por medio de métricas de cumplimiento. Y gasta el helado. | [Maria Alejandra García ✨](https://github.com/MalejaGS)                                                    |
+| QA / Testing            | Pruebas, documentación y control de calidad.                                                     | [Maria Alejandra García ✨](https://github.com/MalejaGS)                                                    |
+| Backend Developer       | Desarrollo de lógica de negocio y APIs.                                                          | [Thomas Leal 🧩](https://github.com/GlaTress) [Nicolas Torres 🏢 ](https://github.com/N-Torresito)         |
+| Data Base Administrator | Desarrollo de APIs, lógica de negocio y administración de bases de datos.                        | [Juan David Ortiz ☕](https://github.com/JDOG-JuanDORtiz)                                                  |
+| Frontend Developer      | Desarrollo de interfaz de usuario y experiencia UX/UI.                                           | [Samuel Pico ✒️](https://github.com/Samu-Kiss)                                                             |
+| Escritor Técnico UML    | Diseño y corrección de diagramas UML.                                                            | [Nicolas Torres 🏢](https://github.com/N-Torresito) [Santiago Mendez 💀](https://github.com/santiagom27)   |
+| Diseñador               | Conceptualización y diseño de las interfaces de usuario.                                         | [Samuel Pico ✒️](https://github.com/Samu-Kiss)                                                             |
 
-> **Nota:** Los roles son flexibles y todos los miembros pueden contribuir en diferentes áreas según las necesidades del proyecto.
+> **Nota:** Todos los miembros están encargados de hacer revisión cruzada de los PR's. Los roles son flexibles y todos los miembros pueden contribuir en diferentes áreas según las necesidades del proyecto.
 
 
