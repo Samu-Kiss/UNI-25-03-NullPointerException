@@ -22,7 +22,7 @@
 * Además de la asistencia, es necesaria la **participación activa** en cada una de las reuniones.
 * Solo se justifican ausencias avisadas con anticipación y por causas válidas.
 * La **ausencia injustificada a dos reuniones consecutivas** será considerada falta grave.
-* Las reuniones pueden ser canceladas únicamente por desición mayoritaria.
+* Las reuniones pueden ser canceladas únicamente por decisión mayoritaria.
 
 ---
 
@@ -44,7 +44,7 @@ Se exige un uso organizado, ético y profesional del repositorio y su gestión.
 
 * Crear una **rama por cada issue asignado**, con nombre descriptivo.
 * Asociar los **commits a issues activos**, dando prioridad a los de **alta prioridad**.
-* Utilizar [**GitFlow**](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) a la hora de crear ramas (`main`,`develop`,`hotfix`,`feature/`)
+* Utilizar [**GitFlow**](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) a la hora de crear ramas (`main`,`develop`,`hotfix`,`feature/{nombreDelFeature}`)
 * Utilizar [**conventional commits**](https://cheatsheets.zip/conventional-commits) (`feat:`, `fix:`, `docs:`...) para claridad en el historial.
 * **Todo PR debe tener al menos una revisión (code review)** por al menos una persona del equipo y por copilot antes de hacer merge.
 * Está **prohibido el uso de `--force push` o merge forzado sin aprobación** del equipo.
@@ -127,7 +127,7 @@ Se considera bajo desempeño si un miembro:
 
 ##### Proceso:
 
-1. **Primera falta:** Advertencia formal, enviada por el encargado del proyecto en el moemnto a la persona con copia a los demás miembros.
+1. **Primera falta:** Advertencia formal, enviada por el encargado del proyecto en el momento a la persona con copia a los demás miembros.
 2. **Segunda falta:** Restricción en decisiones técnicas.
 3. **Tercera falta:** Solicitud de expulsión justificada ante el docente, con evidencias (asistencia, commits, PRs, evaluaciones internas, etc.).
 
