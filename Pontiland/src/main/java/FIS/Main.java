@@ -20,12 +20,12 @@ import com.jme3.post.filters.ToneMapFilter;
 
 /**
  * Aplicación principal de jMonkeyEngine que:
- *   Carga un modelo OBJ (tablero) desde los recursos del proyecto.
- *   Configura iluminación direccional y ambiental básica.
- *   Configura un cielo HDRI y aplica mapeo de tonos para rango dinámico alto.
- *   Mejora la calidad de texturas (anisotrópico y filtrado trilineal).
- *   Ajusta la cámara para navegación con flyCam.
- * 
+ * Carga un modelo OBJ (tablero) desde los recursos del proyecto.
+ * Configura iluminación direccional y ambiental básica.
+ * Configura un cielo HDRI y aplica mapeo de tonos para rango dinámico alto.
+ * Mejora la calidad de texturas (anisotrópico y filtrado trilineal).
+ * Ajusta la cámara para navegación con flyCam.
+ * <p>
  * Pensado como punto de partida para un entorno 3D con iluminación física moderada.
  */
 public class Main extends SimpleApplication {
@@ -38,12 +38,11 @@ public class Main extends SimpleApplication {
      * Punto de entrada de la aplicación.
      * <p>
      * Configura:
-     * 
-     *   Resolución (mitad de la pantalla con mínimos razonables).
-     *   Título de la ventana.
-     *   VSync y corrección gamma para flujo HDR.
-     *   Evita el diálogo de configuración inicial.
-     * 
+     * <p>
+     * Resolución (mitad de la pantalla con mínimos razonables).
+     * Título de la ventana.
+     * VSync y corrección gamma para flujo HDR.
+     * Evita el diálogo de configuración inicial.
      *
      * @param args argumentos de línea de comandos (no utilizados).
      */
@@ -69,15 +68,14 @@ public class Main extends SimpleApplication {
      * Inicialización principal de la escena.
      * Se ejecuta una vez al iniciar el contexto gráfico.
      * Realiza:
-     * <ol>
-     *   Registro de loaders para OBJ y HDR.
-     *   Carga y centra el modelo del tablero.
-     *   Ajuste de calidad de texturas.
-     *   Configuración de luces (direccional + ambiental).
-     *   Creación de un cielo HDRI con mapeo equirectangular.
-     *   Inserción de un filtro de tone mapping para comprimir rango dinámico.
-     *   Ajustes de cámara y planos de recorte.
-     * </ol>
+     * <p>
+     * Registro de loaders para OBJ y HDR.
+     * Carga y centra el modelo del tablero.
+     * Ajuste de calidad de texturas.
+     * Configuración de luces (direccional + ambiental).
+     * Creación de un cielo HDRI con mapeo equirectangular.
+     * Inserción de un filtro de tone mapping para comprimir rango dinámico.
+     * Ajustes de cámara y planos de recorte.
      */
     @Override
     public void simpleInitApp() {
@@ -135,12 +133,11 @@ public class Main extends SimpleApplication {
     /**
      * Recorre el grafo de escena y mejora la calidad de todas las texturas encontradas.
      * Acciones aplicadas:
-     * 
-     *   Establece filtrado anisotrópico (valor configurable).
-     *   Activa filtrado trilineal para minificación.
-     *   Usa filtrado bilineal para magnificación.
-     *   Emite trazas en consola para depuración de cada textura ajustada.
-     * 
+     * <p>
+     * Establece filtrado anisotrópico (valor configurable).
+     * Activa filtrado trilineal para minificación.
+     * Usa filtrado bilineal para magnificación.
+     * Emite trazas en consola para depuración de cada textura ajustada.
      *
      * @param root nodo raíz (o subárbol) desde el cual iniciar la búsqueda.
      */
@@ -161,9 +158,7 @@ public class Main extends SimpleApplication {
                             // Filtrado bilineal para magnificación (suficiente en la mayoría de casos)
                             tex.setMagFilter(Texture.MagFilter.Bilinear);
                             // Salida de depuración (nombre y dimensiones)
-                            System.out.println("Textura ajustada: " + tex.getName() +
-                                    " size=" + tex.getImage().getWidth() + "x" + tex.getImage().getHeight() +
-                                    " aniso=" + tex.getAnisotropicFilter());
+                            System.out.println("Textura ajustada: " + tex.getName() + " size=" + tex.getImage().getWidth() + "x" + tex.getImage().getHeight() + " aniso=" + tex.getAnisotropicFilter());
                         }
                     }
                 }
