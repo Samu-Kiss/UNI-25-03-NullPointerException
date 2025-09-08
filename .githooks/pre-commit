@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Pre-commit hook to auto-format Java sources using Spotless before committing.
+# Falls back gracefully if mvn not present.
+
+# Stash unstaged changes (keep index) to avoid formatting unrelated files
+STASH_NAME=pre-commit-format-$(date +%s)
+
+# Only stash if there are unstaged changes
+git diff --quiet || git stash push -k -u -m "$STASH_NAME" > /dev/null 2>&1
+
+FORMAT_OK=true
+if command -v mvn >/dev/null 2>&1; then
+  echo "[pre-commit] Running Spotless apply..."
+  mvn -q -pl Pontiland -am spotless:apply || FORMAT_OK=false
+else
+  echo "[pre-commit] Maven not found. Skipping formatting." >&2
+fi
+
+# Reapply stash if it exists
+if git stash list | grep -q "$STASH_NAME"; then
+  git stash pop >/dev/null 2>&1 || true
+fi
+
+if [ "$FORMAT_OK" = false ]; then
+  echo "[pre-commit] Formatting failed. Aborting commit." >&2
+  exit 1
+fi
+
+# Add any re-formatted files
+CHANGED=$(git diff --name-only)
+if [ -n "$CHANGED" ]; then
+  echo "$CHANGED" | xargs git add
+  echo "[pre-commit] Added formatted files to commit." 
+fi
+
+# Final check to avoid committing unformatted code
+if command -v mvn >/dev/null 2>&1; then
+  mvn -q -pl Pontiland -am spotless:check || {
+    echo "[pre-commit] Code not properly formatted after apply. Aborting." >&2
+    exit 1
+  }
+fi
+
+exit 0
