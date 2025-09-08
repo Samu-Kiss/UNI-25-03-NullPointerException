@@ -14,6 +14,7 @@ import com.jme3.material.MatParamTexture;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.texture.Texture;
+import com.jme3.util.SkyFactory;
 
 public class Main extends SimpleApplication {
     private Spatial board;
@@ -38,6 +39,8 @@ public class Main extends SimpleApplication {
     public void simpleInitApp() {
         // Ensure OBJ loader is registered (often automatic via jme3-plugins)
         assetManager.registerLoader(OBJLoader.class, "obj");
+        // Register HDR loader (Radiance .hdr). jME does not have a built‑in EXR loader.
+        assetManager.registerLoader(com.jme3.texture.plugins.HDRLoader.class, "hdr");
 
         // Load model from classpath resources (current structure: src/main/resources/assets/3DModels/...)
         board = assetManager.loadModel("assets/3DModels/board/Tablero.obj");
@@ -60,6 +63,18 @@ public class Main extends SimpleApplication {
         AmbientLight ambient = new AmbientLight();
         ambient.setColor(ColorRGBA.White.mult(0.35f));
         rootNode.addLight(ambient);
+
+        // Remove flat background color and add HDRI sky
+        // viewPort.setBackgroundColor(new ColorRGBA(0.08f, 0.1f, 0.12f, 1f));
+        try {
+            // Prefer a .hdr version (convert the EXR externally and place it alongside).
+            com.jme3.texture.Texture hdr = assetManager.loadTexture("assets/HDRI/citrus_orchard_road_puresky_4k.hdr");
+            Spatial sky = SkyFactory.createSky(assetManager, hdr, SkyFactory.EnvMapType.EquirectMap);
+            rootNode.attachChild(sky);
+        } catch (Exception e) {
+            System.err.println("HDR sky load failed. Error: " + e.getMessage());
+            viewPort.setBackgroundColor(ColorRGBA.DarkGray); // fallback
+        }
 
         // Camera
         cam.setLocation(new Vector3f(0, 4f, 10f));
