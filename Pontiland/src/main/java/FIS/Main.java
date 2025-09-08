@@ -1,6 +1,7 @@
 package FIS;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.system.AppSettings;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.ColorRGBA;
@@ -13,6 +14,17 @@ public class Main extends SimpleApplication {
 
     public static void main(String[] args) {
         Main app = new Main();
+        // Configure window to be half of current screen size
+        java.awt.Dimension screen = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+        int width = Math.max(640, screen.width / 2); // enforce a sensible minimum
+        int height = Math.max(360, screen.height / 2);
+        AppSettings settings = new AppSettings(true);
+        settings.setResolution(width, height);
+        settings.setTitle("Pontiland");
+        settings.setVSync(true);
+        settings.setFullscreen(false);
+        app.setShowSettings(false); // skip default settings dialog
+        app.setSettings(settings);
         app.start();
     }
 
