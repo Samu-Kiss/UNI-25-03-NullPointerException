@@ -36,7 +36,6 @@
             <artifactId>jme3-plugins</artifactId>
             <version>${jme.version}</version>
         </dependency>
-        <!-- Added: post-processing filters (ToneMapFilter, Bloom, etc.) -->
         <dependency>
             <groupId>org.jmonkeyengine</groupId>
             <artifactId>jme3-effects</artifactId>
