@@ -151,4 +151,77 @@ En caso de retiro voluntario o expulsión de alguno de los miembros, las tareas 
 
 > **Nota:** Todos los miembros están encargados de hacer revisión cruzada de los PR's. Los roles son flexibles y todos los miembros pueden contribuir en diferentes áreas según las necesidades del proyecto.
 
+---
+
+## 🧹 Formato de Código Automático (Pre-commit)
+
+Se configuró [Spotless](https://github.com/diffplug/spotless) con `google-java-format` para formatear el código Java automáticamente.
+
+### Instalación local del hook
+
+Ejecuta una vez:
+
+```
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit
+```
+
+(En Windows PowerShell puedes usar: `git config core.hooksPath .githooks` y si fuera necesario: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` temporalmente.)
+
+### Flujo
+1. Al hacer `git commit` el hook ejecuta `mvn spotless:apply` sobre el módulo `Pontiland`.
+2. Si re-formatea archivos, los añade de nuevo al commit automáticamente.
+3. Luego corre `mvn spotless:check` para asegurar consistencia.
+4. Si falla el formateo, el commit se cancela.
+
+
+---
+
+## ✅ Convenciones de Commits (Formato Personalizado)
+
+Se añadió un hook `commit-msg` que valida que el mensaje siga el formato exacto:
+
+```
+[Type]: Descripción corta
+```
+
+Tipos permitidos (respetar mayúsculas): `Feat`, `Fix`, `Docs`, `Style`, `Refactor`, `Perf`, `Test`, `Build`, `CI`, `Chore`, `Revert`.
+
+Reglas:
+1. Corchetes obligatorios.
+2. Tipo capitalizado exactamente como en la lista.
+3. Dos puntos y un espacio después del corchete de cierre.
+4. Debe existir una descripción (no vacía).
+
+Ejemplos válidos:
+```
+[Feat]: add board 3D model loader
+[Fix]: handle null texture reference
+[Refactor]: simplify scene bootstrap
+```
+Ejemplos inválidos (serán rechazados):
+```
+feat: add board            # falta formato y mayúscula
+[feat]: add board           # tipo en minúscula
+[Feat] add board            # falta ": "
+[Feat]:                     # sin descripción
+[Feat]:  add board          # doble espacio antes de descripción
+```
+
+### Activación de los hooks
+
+Si aún no lo has hecho:
+```
+git config core.hooksPath .githooks
+```
+
+Si un commit es rechazado, corrige el mensaje con:
+```
+git commit --amend
+```
+O si ya hiciste push (evitarlo si hay revisiones abiertas):
+```
+git commit --amend && git push --force-with-lease
+```
+
 
