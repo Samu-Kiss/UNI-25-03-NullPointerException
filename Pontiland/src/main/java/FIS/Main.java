@@ -15,6 +15,9 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.SceneGraphVisitorAdapter;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
+// Added for tone mapping
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.ToneMapFilter;
 
 public class Main extends SimpleApplication {
     private Spatial board;
@@ -29,6 +32,8 @@ public class Main extends SimpleApplication {
         settings.setResolution(width, height);
         settings.setTitle("Pontiland");
         settings.setVSync(true);
+        // Enable sRGB framebuffer + gamma correction so HDR + tone mapping behaves correctly
+        settings.setGammaCorrection(true);
         settings.setFullscreen(false);
         app.setShowSettings(false); // skip default settings dialog
         app.setSettings(settings);
@@ -48,20 +53,20 @@ public class Main extends SimpleApplication {
         rootNode.attachChild(board);
 
         // Optional: adjust scale or position if model is too large/small
-        // board.scale(0.5f);
+        //board.scale(2f);
         board.center();
 
         // Apply improved texture filtering to combat low-res appearance
         applyTextureQualitySettings(rootNode);
 
-        // Lighting
+        // Lighting (reduced intensities to compensate HDR environment)
         DirectionalLight sun = new DirectionalLight();
         sun.setDirection(new Vector3f(-1f, -2f, -1f).normalizeLocal());
-        sun.setColor(ColorRGBA.White);
+        sun.setColor(ColorRGBA.White.mult(0.6f));
         rootNode.addLight(sun);
 
         AmbientLight ambient = new AmbientLight();
-        ambient.setColor(ColorRGBA.White.mult(0.35f));
+        ambient.setColor(ColorRGBA.White.mult(0.15f));
         rootNode.addLight(ambient);
 
         // Remove flat background color and add HDRI sky
@@ -75,6 +80,12 @@ public class Main extends SimpleApplication {
             System.err.println("HDR sky load failed. Error: " + e.getMessage());
             viewPort.setBackgroundColor(ColorRGBA.DarkGray); // fallback
         }
+
+        // Add tone mapping post processor (compress HDR range) after sky setup
+        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+        ToneMapFilter tone = new ToneMapFilter(); // default white point; adjust if still bright
+        fpp.addFilter(tone);
+        viewPort.addProcessor(fpp);
 
         // Camera
         cam.setLocation(new Vector3f(0, 4f, 10f));

@@ -15,28 +15,34 @@
         <jme.version>3.8.1-stable</jme.version>
     </properties>
 
-<dependencies>
-    <dependency>
-        <groupId>org.jmonkeyengine</groupId>
-        <artifactId>jme3-core</artifactId>
-        <version>${jme.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>org.jmonkeyengine</groupId>
-        <artifactId>jme3-desktop</artifactId>
-        <version>${jme.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>org.jmonkeyengine</groupId>
-        <artifactId>jme3-lwjgl3</artifactId>
-        <version>${jme.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>org.jmonkeyengine</groupId>
-        <artifactId>jme3-plugins</artifactId>
-        <version>${jme.version}</version>
-    </dependency>
-</dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>org.jmonkeyengine</groupId>
+            <artifactId>jme3-core</artifactId>
+            <version>${jme.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jmonkeyengine</groupId>
+            <artifactId>jme3-desktop</artifactId>
+            <version>${jme.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jmonkeyengine</groupId>
+            <artifactId>jme3-lwjgl3</artifactId>
+            <version>${jme.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jmonkeyengine</groupId>
+            <artifactId>jme3-plugins</artifactId>
+            <version>${jme.version}</version>
+        </dependency>
+        <!-- Added: post-processing filters (ToneMapFilter, Bloom, etc.) -->
+        <dependency>
+            <groupId>org.jmonkeyengine</groupId>
+            <artifactId>jme3-effects</artifactId>
+            <version>${jme.version}</version>
+        </dependency>
+    </dependencies>
 
 </project>
 
