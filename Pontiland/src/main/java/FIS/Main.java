@@ -8,6 +8,12 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.plugins.OBJLoader;
+import com.jme3.material.Material;
+import com.jme3.material.MatParam;
+import com.jme3.material.MatParamTexture;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.SceneGraphVisitorAdapter;
+import com.jme3.texture.Texture;
 
 public class Main extends SimpleApplication {
     private Spatial board;
@@ -42,6 +48,9 @@ public class Main extends SimpleApplication {
         // board.scale(0.5f);
         board.center();
 
+        // Apply improved texture filtering to combat low-res appearance
+        applyTextureQualitySettings(rootNode);
+
         // Lighting
         DirectionalLight sun = new DirectionalLight();
         sun.setDirection(new Vector3f(-1f, -2f, -1f).normalizeLocal());
@@ -56,5 +65,31 @@ public class Main extends SimpleApplication {
         cam.setLocation(new Vector3f(0, 4f, 10f));
         cam.lookAt(board.getWorldTranslation(), Vector3f.UNIT_Y);
         flyCam.setMoveSpeed(15f);
+    }
+
+    private void applyTextureQualitySettings(Spatial root) {
+        root.depthFirstTraversal(new SceneGraphVisitorAdapter() {
+            @Override
+            public void visit(Geometry geom) {
+                Material mat = geom.getMaterial();
+                if (mat == null) return;
+                for (MatParam param : mat.getParams()) {
+                    if (param instanceof MatParamTexture) {
+                        Texture tex = ((MatParamTexture) param).getTextureValue();
+                        if (tex != null) {
+                            // Increase anisotropic filtering for sharper angled textures
+                            tex.setAnisotropicFilter(8); // can raise to 16 if performance allows
+                            // Use trilinear minification filtering and bilinear magnification
+                            tex.setMinFilter(Texture.MinFilter.Trilinear);
+                            tex.setMagFilter(Texture.MagFilter.Bilinear);
+                            // Simple debug output (once per texture ref hash)
+                            System.out.println("Adjusted texture: " + tex.getName() +
+                                    " size=" + tex.getImage().getWidth() + "x" + tex.getImage().getHeight() +
+                                    " aniso=" + tex.getAnisotropicFilter());
+                        }
+                    }
+                }
+            }
+        });
     }
 }
