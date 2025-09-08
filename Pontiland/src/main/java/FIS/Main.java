@@ -64,6 +64,8 @@ public class Main extends SimpleApplication {
         // Camera
         cam.setLocation(new Vector3f(0, 4f, 10f));
         cam.lookAt(board.getWorldTranslation(), Vector3f.UNIT_Y);
+        // Reduce near clipping plane so geometry is not clipped when camera is very close
+        cam.setFrustumPerspective(45f, (float) cam.getWidth() / cam.getHeight(), 0.05f, 2000f);
         flyCam.setMoveSpeed(15f);
     }
 
