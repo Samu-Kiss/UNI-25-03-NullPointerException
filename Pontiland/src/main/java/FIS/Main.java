@@ -36,7 +36,7 @@ public class Main extends SimpleApplication {
         setUpSkyAndEnvironment();
         setUpLight();
 
-        Spatial object = assetManager.loadModel("3DModels/TM/Calle 45.glb");
+        Spatial object = assetManager.loadModel("3DModels/Board.glb");
         object.setLocalTranslation(-1f, -1f, -1f);
         rootNode.attachChild(object);
     }
