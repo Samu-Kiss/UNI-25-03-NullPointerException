@@ -11,14 +11,30 @@ import com.jme3.environment.EnvironmentCamera;
 import com.jme3.environment.LightProbeFactory;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.ToneMapFilter;
 import com.jme3.scene.Spatial;
 import com.jme3.texture.Texture;
+import com.jme3.system.AppSettings;
 import com.jme3.util.SkyFactory;
+import com.jme3.input.KeyInput;
+import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.KeyTrigger;
 
 public class Main extends SimpleApplication {
 
+    // Tone mapping filter reference so it can be tweaked later if desired
+    private ToneMapFilter toneMap;
+    private float whitePointScalar = 1f; // runtime adjustable
+    private LightProbe sceneProbe; // keep reference to scale intensity if needed
+
     public static void main(String[] args) {
         Main app = new Main();
+        // Enable gamma correction so HDR values are mapped properly for display
+        AppSettings settings = new AppSettings(true);
+        settings.setGammaCorrection(true);
+        settings.setTitle("Pontiland");
+        app.setSettings(settings);
         app.start();
     }
 
@@ -27,18 +43,45 @@ public class Main extends SimpleApplication {
         // Make resources under src/main/resources/assets available via classpath
         assetManager.registerLocator("assets", ClasspathLocator.class);
 
-    // Reduce near clipping so geometry doesn't disappear when the camera gets very close
-    cam.setFrustumNear(0.05f);
-    // Set a normal vertical FOV (in degrees) to avoid the ultra-wide look
-    float aspect = (float) cam.getWidth() / (float) cam.getHeight();
-    cam.setFrustumPerspective(45f, aspect, cam.getFrustumNear(), cam.getFrustumFar());
+        // Reduce near clipping so geometry doesn't disappear when the camera gets very close
+        cam.setFrustumNear(0.05f);
+        // Set a normal vertical FOV (in degrees) to avoid the ultra-wide look
+        float aspect = (float) cam.getWidth() / (float) cam.getHeight();
+        cam.setFrustumPerspective(45f, aspect, cam.getFrustumNear(), cam.getFrustumFar());
 
         setUpSkyAndEnvironment();
         setUpLight();
+        setUpPost(); // tone mapping / exposure control
 
-        Spatial object = assetManager.loadModel("3DModels/Board.glb");
+        Spatial object = assetManager.loadModel("3DModels/Calle 45.glb");
         object.setLocalTranslation(-1f, -1f, -1f);
         rootNode.attachChild(object);
+
+        initExposureControls();
+    }
+
+    private void initExposureControls() {
+        inputManager.addMapping("ExposureUp", new KeyTrigger(KeyInput.KEY_ADD), new KeyTrigger(KeyInput.KEY_EQUALS));
+        inputManager.addMapping("ExposureDown", new KeyTrigger(KeyInput.KEY_SUBTRACT), new KeyTrigger(KeyInput.KEY_MINUS));
+        inputManager.addListener(exposureListener, "ExposureUp", "ExposureDown");
+    }
+
+    private final ActionListener exposureListener = (name, isPressed, tpf) -> {
+        if (isPressed) return; // act on key release to avoid rapid repeats
+        if ("ExposureUp".equals(name)) {
+            whitePointScalar = Math.min(whitePointScalar + 0.1f, 4f);
+            updateToneMap();
+        } else if ("ExposureDown".equals(name)) {
+            whitePointScalar = Math.max(whitePointScalar - 0.1f, 0.1f);
+            updateToneMap();
+        }
+        System.out.println("WhitePoint=" + whitePointScalar);
+    };
+
+    private void updateToneMap() {
+        if (toneMap != null) {
+            toneMap.setWhitePoint(new Vector3f(whitePointScalar, whitePointScalar, whitePointScalar));
+        }
     }
 
     private void setUpSkyAndEnvironment() {
@@ -48,8 +91,6 @@ public class Main extends SimpleApplication {
         rootNode.attachChild(sky);
 
         // Generate a light probe for PBR image-based lighting.
-        // We attach an EnvironmentCamera and a tiny AppState that waits until the camera is initialized,
-        // then creates the probe (avoids NPE from calling too early).
         EnvironmentCamera envCam = new EnvironmentCamera(256, Vector3f.ZERO);
         stateManager.attach(envCam);
         stateManager.attach(new ProbeInitState(envCam));
@@ -76,6 +117,9 @@ public class Main extends SimpleApplication {
             SimpleApplication sapp = (SimpleApplication) getApplication();
             LightProbe probe = LightProbeFactory.makeProbe(envCam, sapp.getRootNode());
             probe.getArea().setRadius(100f);
+            // Scale probe intensity to reduce indirect over-brightness
+            probe.setColor(ColorRGBA.White.mult(0.6f));
+            ((Main) sapp).sceneProbe = probe;
             sapp.getRootNode().addLight(probe);
             getStateManager().detach(this);
         }
@@ -91,14 +135,21 @@ public class Main extends SimpleApplication {
     }
 
     private void setUpLight() {
-        // Basic ambient + directional so the model is visible
+        // Lower intensities to avoid wash-out when combined with HDR sky light probe
         AmbientLight al = new AmbientLight();
-        al.setColor(ColorRGBA.White.mult(1.3f));
+        al.setColor(ColorRGBA.White.mult(0.18f)); // lowered again
         rootNode.addLight(al);
 
         DirectionalLight dl = new DirectionalLight();
-        dl.setColor(ColorRGBA.White);
+        dl.setColor(ColorRGBA.White.mult(0.65f)); // lowered
         dl.setDirection(new Vector3f(2.8f, -2.8f, -2.8f).normalizeLocal());
         rootNode.addLight(dl);
+    }
+
+    private void setUpPost() {
+        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+        toneMap = new ToneMapFilter(new Vector3f(whitePointScalar, whitePointScalar, whitePointScalar));
+        fpp.addFilter(toneMap);
+        viewPort.addProcessor(fpp);
     }
 }
