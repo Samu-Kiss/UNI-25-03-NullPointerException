@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>FIS</groupId>
+    <groupId>Pontiland</groupId>
     <artifactId>Pontiland</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -43,5 +43,39 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <!-- Code formatting & style enforcement (similar to IntelliJ Ctrl+Alt+L) -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
+                <configuration>
+                    <java>
+                        <!-- Google Java Format is close to IntelliJ default; adjust if you later add a custom style -->
+                        <googleJavaFormat>
+                            <version>1.17.0</version>
+                        </googleJavaFormat>
+                        <removeUnusedImports/>
+                        <importOrder/>
+                        <target>src/main/java/**/*.java,src/test/java/**/*.java</target>
+                    </java>
+                    <pom>
+                        <sortPom/>
+                        <encoding>UTF-8</encoding>
+                    </pom>
+                </configuration>
+                <executions>
+                    <!-- Runs formatting check during 'mvn verify' (CI / local) -->
+                    <execution>
+                        <id>spotless-check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
-
