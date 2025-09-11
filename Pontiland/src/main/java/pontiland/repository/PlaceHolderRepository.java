@@ -1,4 +1,4 @@
-package pontiland.repositoy;
+package pontiland.repository;
 
 public class PlaceHolderRepository {
 }
