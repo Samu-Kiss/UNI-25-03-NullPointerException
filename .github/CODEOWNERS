@@ -8,19 +8,18 @@ README.md @MalejaGS @Samu-Kiss
 Pontiland/pom.xml @GlaTress @N-Torresito @JDOG-JuanDORtiz @Samu-Kiss
 
 # Backend — controllers/services
-Pontiland/src/main/java/pontiland/controllers/** @GlaTress @N-Torresito
-Pontiland/src/main/java/pontiland/services/** @GlaTress @N-Torresito
+Pontiland/src/main/java/com/NullPtr/Pontiland/controllers/** @GlaTress @N-Torresito
+Pontiland/src/main/java/com/NullPtr/Pontiland/services/** @GlaTress @N-Torresito
 
 # Persistence and data model — backend + DBA
-Pontiland/src/main/java/pontiland/repository/** @GlaTress @N-Torresito @JDOG-JuanDORtiz
-Pontiland/src/main/java/pontiland/entities/** @GlaTress @N-Torresito @JDOG-JuanDORtiz
-Pontiland/src/main/java/pontiland/utils/** @JDOG-JuanDORtiz @MalejaGS
+Pontiland/src/main/java/com/NullPtr/Pontiland/repository/** @GlaTress @N-Torresito @JDOG-JuanDORtiz
+Pontiland/src/main/java/com/NullPtr/Pontiland/entities/** @GlaTress @N-Torresito @JDOG-JuanDORtiz
+Pontiland/src/main/java/com/NullPtr/Pontiland/utils/** @JDOG-JuanDORtiz @MalejaGS
 Pontiland/src/main/resources/SQL/** @JDOG-JuanDORtiz @MalejaGS
 
 # UI/View — frontend + designer
-Pontiland/src/main/java/pontiland/view/** @Samu-Kiss @GlaTress @santiagom27
+Pontiland/src/main/java/com/NullPtr/Pontiland/view/** @Samu-Kiss @GlaTress @santiagom27
 Pontiland/src/main/resources/graphics/** @Samu-Kiss @GlaTress @santiagom27
-
 
 # Tests — QA
 Pontiland/src/test/** @MalejaGS 
