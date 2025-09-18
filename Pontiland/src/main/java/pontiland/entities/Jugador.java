@@ -3,16 +3,20 @@ package pontiland.entities;
 import java.util.ArrayList;
 import java.util.List;
 
+enum Estado{
+    MOVIMIENTO, CARCEL, BANCARROTA
+}
+
 /**
     * Clase que representa a un jugador en el juego.
     * Contiene atributos como ID, nombre, icono, posicion, estado en la carcel, dinero y propiedades
  */
 public class Jugador {
-    private byte jugadorId;
+    private byte jugadorId = -1;
     private String nombreJugador = "";
     private Icono iconoJugador = null;
     private byte posicion = 1;
-    private boolean enCarcel = false;
+    private Estado estado = Estado.MOVIMIENTO;
     private Double dinero = 0.0;
     private List<Propiedad> propiedades;
 
@@ -52,11 +56,11 @@ public class Jugador {
      * @param jugadorId Identificador único del jugador
      * @param posicion Posicion del jugador en el tablero
      * @param propiedades Lista de propiedades que posee el jugador
-     * @param enCarcel Estado del jugador (si está en la carcel o no)
+     * @param estado Estado actual del jugador (en movimiento, en la carcel, en bancarrota)
      * @throws IllegalArgumentException si el dinero es negativo, los IDs son negativos,
      * el nombre está vacío, si la posicion es inválida
      */
-    public Jugador(Double dinero, Icono iconoJugador, String nombreJugador, byte jugadorId, byte posicion, boolean enCarcel, List<Propiedad> propiedades) {
+    public Jugador(Double dinero, Icono iconoJugador, String nombreJugador, byte jugadorId, Estado estado,byte posicion, List<Propiedad> propiedades) {
         if (dinero < 0) {
             throw new IllegalArgumentException("El dinero no puede ser negativo");
         }
@@ -75,7 +79,7 @@ public class Jugador {
         this.nombreJugador = nombreJugador;
         this.jugadorId = jugadorId;
         this.posicion = posicion;
-        this.enCarcel = enCarcel;
+        this.estado = estado;
         this.propiedades = propiedades;
     }
 
