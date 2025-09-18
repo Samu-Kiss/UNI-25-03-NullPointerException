@@ -5,7 +5,7 @@ import java.util.Queue;
 /**
     * Clase que representa una casilla de evento en el juego
     * Contiene una lista de tarjetas de evento disponibles de la cual
-    * se sacarn las tarjetas de manera aleatoria
+    * se sacarán las tarjetas de manera aleatoria
  */
 
 /*
