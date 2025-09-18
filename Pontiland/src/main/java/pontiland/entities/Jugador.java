@@ -10,7 +10,7 @@ import java.util.List;
 public class Jugador {
     private byte jugadorId;
     private String nombreJugador = "";
-    private byte iconoId = 0;
+    private Icono iconoJugador = null;
     private byte posicion = 1;
     private boolean enCarcel = false;
     private Double dinero = 0.0;
@@ -18,24 +18,27 @@ public class Jugador {
 
     /** Constructor de la clase Jugador por defecto, con posicion inicial 1 y sin propiedades
      * @param dinero Cantidad inicial de dinero del jugador
-     * @param iconoId Identificador del icono del jugador
+     * @param iconoJugador Identificador del icono del jugador
      * @param nombreJugador Nombre del jugador
      * @param jugadorId Identificador único del jugador
      * @throws IllegalArgumentException si el dinero es negativo, los IDs son negativos o el nombre está vacío
      */
-    public Jugador(Double dinero, byte iconoId, String nombreJugador, byte jugadorId) {
+    public Jugador(Double dinero, Icono iconoJugador, String nombreJugador, byte jugadorId) {
         if (dinero < 0) {
             throw new IllegalArgumentException("El dinero no puede ser negativo");
         }
-        if (iconoId < 0 || jugadorId < 0) {
-            throw new IllegalArgumentException("Identificadores no pueden ser negativos");
+        if (jugadorId > 4 || jugadorId < 0) {
+            throw new IllegalArgumentException("Identificador del jugador es inválido");
+        }
+        if (iconoJugador == null) {
+            throw new IllegalArgumentException("El icono del jugador no puede ser nulo");
         }
         if (nombreJugador == null || nombreJugador.isEmpty()) {
             throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
         }
 
         this.dinero = dinero;
-        this.iconoId = iconoId;
+        this.iconoJugador = iconoJugador;
         this.nombreJugador = nombreJugador;
         this.jugadorId = jugadorId;
 
@@ -44,7 +47,7 @@ public class Jugador {
 
     /** Constructor de la clase Jugador por defecto, con posicion variable y con propiedades
      * @param dinero Cantidad inicial de dinero del jugador
-     * @param iconoId Identificador del icono del jugador
+     * @param iconoJugador Identificador del icono del jugador
      * @param nombreJugador Nombre del jugador
      * @param jugadorId Identificador único del jugador
      * @param posicion Posicion del jugador en el tablero
@@ -53,12 +56,12 @@ public class Jugador {
      * @throws IllegalArgumentException si el dinero es negativo, los IDs son negativos,
      * el nombre está vacío, si la posicion es inválida
      */
-    public Jugador(Double dinero, byte iconoId, String nombreJugador, byte jugadorId, byte posicion, boolean enCarcel, List<Propiedad> propiedades) {
+    public Jugador(Double dinero, Icono iconoJugador, String nombreJugador, byte jugadorId, byte posicion, boolean enCarcel, List<Propiedad> propiedades) {
         if (dinero < 0) {
             throw new IllegalArgumentException("El dinero no puede ser negativo");
         }
-        if (iconoId < 0 || jugadorId < 0) {
-            throw new IllegalArgumentException("Identificadores no pueden ser negativos");
+        if (iconoJugador == null || jugadorId < 0 || jugadorId > 4) {
+            throw new IllegalArgumentException("El identificador o el icono del jugador es invalido");
         }
         if (nombreJugador == null || nombreJugador.isEmpty()) {
             throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
@@ -68,7 +71,7 @@ public class Jugador {
         }
 
         this.dinero = dinero;
-        this.iconoId = iconoId;
+        this.iconoJugador = iconoJugador;
         this.nombreJugador = nombreJugador;
         this.jugadorId = jugadorId;
         this.posicion = posicion;
