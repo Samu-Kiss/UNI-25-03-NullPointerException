@@ -37,7 +37,7 @@ public class Propiedad extends Casilla{
         }
         this.idPropiedad = idPropiedad;
         this.idGrupo = idGrupo;
-        this.nivelPropiedad = 1;
+        this.nivelPropiedad = nivelPropiedad;
         this.precioCompra = precioCompra;
         this.rentaPorNivel = rentaPorNivel;
     }
