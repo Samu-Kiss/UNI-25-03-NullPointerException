@@ -21,7 +21,7 @@ public class Evento extends Casilla{
 
     /**
      * Constructor de la clase Evento
-     * @param posicionTablero Posicin de la casilla en el tablero
+     * @param posicionTablero Posición de la casilla en el tablero
      * @param nombreCasilla Nombre de la casilla
      * @param tarjetasDisponibles Cola de tarjetas de evento disponibles
      */
