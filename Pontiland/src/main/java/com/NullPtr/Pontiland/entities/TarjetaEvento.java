@@ -1,4 +1,4 @@
-package pontiland.entities;
+package com.NullPtr.Pontiland.entities;
 
 /**
  * Enum que representa las posibles acciones que una tarjeta de evento puede tener
