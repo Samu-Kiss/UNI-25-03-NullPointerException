@@ -1,4 +1,4 @@
-package pontiland.entities;
+package com.NullPtr.Pontiland.entities;
 
 /**
  * Clase que representa un icono en el juego

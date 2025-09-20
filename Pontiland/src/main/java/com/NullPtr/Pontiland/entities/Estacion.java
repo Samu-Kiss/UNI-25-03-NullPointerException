@@ -1,4 +1,4 @@
-package pontiland.entities;
+package com.NullPtr.Pontiland.entities;
 
 /**
  * Clase que representa una estación en el juego
