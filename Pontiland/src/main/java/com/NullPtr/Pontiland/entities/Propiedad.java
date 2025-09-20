@@ -1,4 +1,4 @@
-package pontiland.entities;
+package com.NullPtr.Pontiland.entities;
 
 /**
  * Clase que representa una propiedad en el juego

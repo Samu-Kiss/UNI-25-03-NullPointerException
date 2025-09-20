@@ -1,4 +1,4 @@
-package pontiland.entities;
+package com.NullPtr.Pontiland.entities;
 
 /**
  * Clase que representa una casilla en el tablero de juego
