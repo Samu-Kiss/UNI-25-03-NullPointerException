@@ -5,6 +5,7 @@ import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
@@ -12,8 +13,12 @@ import com.jme3.scene.shape.Box;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.control.RigidBodyControl;
+
 
 import java.awt.*;
+import java.util.Arrays;
 
 /**
  * Aplicación principal de JMonkeyEngine 3 para el juego Pontiland.
@@ -34,6 +39,8 @@ import java.awt.*;
  * @since 2025
  */
 public class GameApplication extends SimpleApplication {
+
+    private final BulletAppState bulletAppState = new BulletAppState();
 
     /**
      * Método principal que inicia la aplicación del juego.
@@ -85,7 +92,9 @@ public class GameApplication extends SimpleApplication {
      */
     @Override
     public void simpleInitApp() {
+        stateManager.attach(bulletAppState);
         loadBoardModel();
+        loadDicemodel();
         setupSkyEnvironment();
         setupLighting();
         setupCamera();
@@ -109,13 +118,42 @@ public class GameApplication extends SimpleApplication {
         // Ajustar la ruta si posteriormente se reorganizan los assets.
         try {
             Spatial board = assetManager.loadModel("graphics/models/Board.glb");
+            RigidBodyControl boardPhysics = new RigidBodyControl(0f); // masa 0 = estático
+            board.addControl(boardPhysics);
             rootNode.attachChild(board);
+            bulletAppState.getPhysicsSpace().add(boardPhysics);
         } catch (Exception ex) {
             // Cubo de prueba de respaldo si el modelo falla al cargar para que la escena no esté vacía.
             Box b = new Box(1, 1, 1);
             Geometry geom = new Geometry("FallbackBox", b);
             Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
             mat.setColor("Color", ColorRGBA.Red);
+            geom.setMaterial(mat);
+            rootNode.attachChild(geom);
+        }
+    }
+
+    private void loadDicemodel(){
+        // Cargar modelo del dado (GLB). La ruta es relativa al classpath (src/main/resources)
+        // Ajustar la ruta si posteriormente se reorganizan los assets.
+        try {
+            Spatial dice = assetManager.loadModel("graphics/models/Dice.glb");
+            // Agregar físicas al dado
+            RigidBodyControl dicePhysics = new RigidBodyControl(1f);// masa 1
+            dice.setLocalRotation(new Matrix3f(0,0,0,1,1,1,0,0,0));
+            dice.setLocalTranslation(0f,10f,0f);
+            dice.addControl(dicePhysics);
+            dicePhysics.setRestitution(2f); // Rebote
+            //dicePhysics.setAngularFactor(-0.1f);
+            rootNode.attachChild(dice);
+            bulletAppState.getPhysicsSpace().add(dicePhysics);
+        } catch (Exception ex) {
+            System.out.println(Arrays.toString(ex.getStackTrace()));
+            // Cubo de prueba de respaldo si el modelo falla al cargar para que la escena no esté vacía.
+            Box b = new Box(1, 1, 1);
+            Geometry geom = new Geometry("FallbackBox", b);
+            Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+            mat.setColor("Color", ColorRGBA.Blue);
             geom.setMaterial(mat);
             rootNode.attachChild(geom);
         }
