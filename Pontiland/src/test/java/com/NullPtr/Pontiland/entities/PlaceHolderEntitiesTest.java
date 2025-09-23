@@ -1,4 +1,3 @@
 package com.NullPtr.Pontiland.entities;
 
-public class PlaceHolderEntitiesTest {
-}
+public class PlaceHolderEntitiesTest {}

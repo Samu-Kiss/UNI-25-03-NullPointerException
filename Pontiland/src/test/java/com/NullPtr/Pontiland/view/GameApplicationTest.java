@@ -1,3 +1,3 @@
 package com.NullPtr.Pontiland.view;
-public class GameApplicationTest{
-}
+
+public class GameApplicationTest {}

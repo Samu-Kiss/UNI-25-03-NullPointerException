@@ -1,4 +1,3 @@
 package com.NullPtr.Pontiland.services;
 
-public class PlaceHolderServicesTest {
-}
+public class PlaceHolderServicesTest {}
