@@ -57,7 +57,8 @@ CREATE TABLE Jugador (
     Dinero INT NOT NULL DEFAULT 1500,
     Partida INT NOT NULL,
     FOREIGN KEY (IconoID) REFERENCES Icono(IconoID) ON DELETE CASCADE,
-    FOREIGN KEY (Partida) REFERENCES Partida(PartidaID) ON DELETE CASCADE
+    FOREIGN KEY (Partida) REFERENCES Partida(PartidaID) ON DELETE CASCADE,
+    FOREIGN KEY (Posicion) REFERENCES Casilla(PosicionTablero) ON DELETE CASCADE
 );
 
 -- Tabla Adquisiciones (Relación entre un jugador y las propiedades que ha adquirido en la partida, almacenando en nivel de renta en el que se encuentra la propiedad)
