@@ -1,3 +1,6 @@
+-- No se poblan las tablas de Partida, Jugador, Adqusiciones y JugadorActivo antes de configurar la partida
+-- A continuación se hacen las inserciones para los datos del tablero y por defecto de la partida
+-- Poblar Tabla TipoCasilla (Si es evento, salida, parada libre, propiedad, cárcel, movimiento o ir a la carcel)
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(1,'Salida');
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(2,'Cárcel');
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(3,'ParadaLibre');
@@ -6,7 +9,7 @@ INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(5,'Propiedad');
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(6,'Movimiento');
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(7,'IrALaCarcel');
 
-
+-- Poblar Tabla Casilla (Descripción detodas las casillas del tablero, considerando su tipo y posición)
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(1,'El Tunel (Salida)',1);
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(2,'Básicas Viejo',5);
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(3,'Evento1',4);
@@ -48,6 +51,7 @@ INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(38,'Atri
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(39,'Evento8',4);
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(40,'Ingeniería',5);
 
+-- Poblar Tabla GrupoPropiedades (Grupos de propiedades del mismo color en el tablero)
 INSERT INTO GRUPOPROPIEDADES(GrupoID, NumeroPropiedades) VALUES(1,3);
 INSERT INTO GRUPOPROPIEDADES(GrupoID, NumeroPropiedades) VALUES(2,3);
 INSERT INTO GRUPOPROPIEDADES(GrupoID, NumeroPropiedades) VALUES(3,3);
@@ -57,6 +61,7 @@ INSERT INTO GRUPOPROPIEDADES(GrupoID, NumeroPropiedades) VALUES(6,3);
 INSERT INTO GRUPOPROPIEDADES(GrupoID, NumeroPropiedades) VALUES(7,3);
 INSERT INTO GRUPOPROPIEDADES(GrupoID, NumeroPropiedades) VALUES(8,3);
 
+-- Poblar Tabla Propiedad (Propiedades en el juego, incluyendo el costo para comprarlas, y el valor de la renta por cada nivel, además del grupo de propiedades al que pertenece)
 INSERT INTO PROPIEDAD(PropiedadID, PosicionTablero, GrupoPropiedades, PrecioCompra, RentaNivel1, RentaNivel2, RentaNivel3, RentaNivel4, RentaNivel5) VALUES(1,2,1,60,70,130,220,370,750);
 INSERT INTO PROPIEDAD(PropiedadID, PosicionTablero, GrupoPropiedades, PrecioCompra, RentaNivel1, RentaNivel2, RentaNivel3, RentaNivel4, RentaNivel5) VALUES(2,4,1,60,70,130,220,370,750);
 INSERT INTO PROPIEDAD(PropiedadID, PosicionTablero, GrupoPropiedades, PrecioCompra, RentaNivel1, RentaNivel2, RentaNivel3, RentaNivel4, RentaNivel5) VALUES(3,5,1,80,70,130,220,370,750);
@@ -82,6 +87,7 @@ INSERT INTO PROPIEDAD(PropiedadID, PosicionTablero, GrupoPropiedades, PrecioComp
 INSERT INTO PROPIEDAD(PropiedadID, PosicionTablero, GrupoPropiedades, PrecioCompra, RentaNivel1, RentaNivel2, RentaNivel3, RentaNivel4, RentaNivel5) VALUES(23,38,8,350,270,360,510,740,1500);
 INSERT INTO PROPIEDAD(PropiedadID, PosicionTablero, GrupoPropiedades, PrecioCompra, RentaNivel1, RentaNivel2, RentaNivel3, RentaNivel4, RentaNivel5) VALUES(24,40,8,400,300,400,560,810,1600);
 
+-- Poblar Tabla TipoEvento (El mismo tipo de evento representa el mismo efecto sobre la base de datos) El nombre del evento representa el efecto que tiene
 INSERT INTO TIPOEVENTO(TipoEventoID,TipoEvento) VALUES(1,'PropiedadANivel5');
 INSERT INTO TIPOEVENTO(TipoEventoID,TipoEvento) VALUES(2,'PropiedadANivel1');
 INSERT INTO TIPOEVENTO(TipoEventoID,TipoEvento) VALUES(3,'PropiedadNivel-1');
@@ -91,6 +97,7 @@ INSERT INTO TIPOEVENTO(TipoEventoID,TipoEvento) VALUES(6,'Pierde50porPropiedad')
 INSERT INTO TIPOEVENTO(TipoEventoID,TipoEvento) VALUES(7,'Gana50');
 INSERT INTO TIPOEVENTO(TipoEventoID,TipoEvento) VALUES(8,'Gana100');
 
+-- Poblar Tabla Evento (Descripciones-cartas de evento en el juego)
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Centro de Investigación Élite','Un filántropo dona equipos de última generación y tu edificio alcanza el máximo nivel. Tu propiedad sube a nivel 5.',1);
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Laboratorio Vanguardista','Tus instalaciones reciben certificación internacional y suben al nivel 5.',1);
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Auditorio Emblemático','Se inaugura un espacio con tecnología punta y tu edificio se convierte en la joya del campus. Tu propiedad sube a nivel 5.',1);
@@ -172,6 +179,7 @@ INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Convenio con Editori
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Exposición de Ciencia','La feria atrae patrocinadores. Ganas $100.',8);
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Patrocinio Estudiantil','Un grupo de alumnos apoya tu edificio. Ganas $100.',8);
 
+-- Poblar Tabla Icono (Se refiere al ícono que está usando el jugador para identificarse dentro del juego)
 INSERT INTO ICONO(IconoID, IconoNombre) VALUES(1,'Kiwi');
 INSERT INTO ICONO(IconoID, IconoNombre) VALUES(2,'Balon');
 INSERT INTO ICONO(IconoID, IconoNombre) VALUES(3,'Maleta');
