@@ -171,3 +171,11 @@ INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Clase Magistral','Un
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Convenio con Editorial','Publicas material académico con ganancias. Ganas $100.',8);
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Exposición de Ciencia','La feria atrae patrocinadores. Ganas $100.',8);
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Patrocinio Estudiantil','Un grupo de alumnos apoya tu edificio. Ganas $100.',8);
+
+INSERT INTO ICONO(IconoID, IconoNombre) VALUES(1,'Kiwi');
+INSERT INTO ICONO(IconoID, IconoNombre) VALUES(2,'Balon');
+INSERT INTO ICONO(IconoID, IconoNombre) VALUES(3,'Maleta');
+INSERT INTO ICONO(IconoID, IconoNombre) VALUES(4,'Pescadito');
+INSERT INTO ICONO(IconoID, IconoNombre) VALUES(5,'Carnet');
+INSERT INTO ICONO(IconoID, IconoNombre) VALUES(6,'Ignacito');
+INSERT INTO ICONO(IconoID, IconoNombre) VALUES(7,'Nave');
