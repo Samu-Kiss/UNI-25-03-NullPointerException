@@ -1,13 +1,6 @@
 package com.NullPtr.Pontiland.entities;
 
-/**
- * Enum que representa las posibles acciones que una tarjeta de evento puede tener
- */
-enum Accion {
-    bajarNivel, aumentarNivel, propiedadNivel1, propiedadNivel5,
-    CobroAJugador,
-    AbonoAJugador50, AbonoAJugador100, AbonoAJugador200
-}
+import com.NullPtr.Pontiland.enums.Accion;
 
 /**
  * Clase que representa una tarjeta de evento en el juego.
@@ -32,6 +25,7 @@ public class TarjetaEvento {
         if (nombre.isEmpty() || descripcion.isEmpty()) {
             throw new IllegalArgumentException("El nombre y la descripción no pueden estar vacíos");
         }
+
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.accion = accion;

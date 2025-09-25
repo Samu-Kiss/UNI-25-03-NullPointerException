@@ -1,15 +1,13 @@
 package com.NullPtr.Pontiland.entities;
 
+import com.NullPtr.Pontiland.enums.Estado;
+
 import java.util.ArrayList;
 import java.util.List;
 
-enum Estado{
-    MOVIMIENTO, CARCEL, BANCARROTA
-}
-
 /**
-    * Clase que representa a un jugador en el juego.
-    * Contiene atributos como ID, nombre, icono, posicion, estado en la carcel, dinero y propiedades
+ * Clase que representa a un jugador en el juego.
+ * Contiene atributos como ID, nombre, icono, posicion, estado en la carcel, dinero y propiedades
  */
 public class Jugador {
     private byte jugadorId = -1;
