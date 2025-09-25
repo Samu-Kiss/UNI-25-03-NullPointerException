@@ -5,6 +5,7 @@ package com.NullPtr.Pontiland.entities;
  */
 public class Propiedad extends Casilla{
     private byte idPropiedad = -1;
+    //REVIEW: Id grupo podría ser eliminado si se usa una matriz de propiedades para separarlas por grupo
     private byte idGrupo = -1;
     private byte nivelPropiedad = 1;
     private int precioCompra = -1;
@@ -42,5 +43,53 @@ public class Propiedad extends Casilla{
         this.rentaPorNivel = rentaPorNivel;
     }
 
+    public byte getIdPropiedad() {
+        return idPropiedad;
+    }
+    public void setIdPropiedad(byte idPropiedad) {
+        if (idPropiedad < 1 || idPropiedad > 24) {
+            throw new IllegalArgumentException("Identificador de propiedad invalido");
+        }
+        this.idPropiedad = idPropiedad;
+    }
 
+    public byte getNivelPropiedad() {
+        return nivelPropiedad;
+    }
+    public void setNivelPropiedad(byte nivelPropiedad) {
+        if (nivelPropiedad < 1 || nivelPropiedad > 5) {
+            throw new IllegalArgumentException("Nivel de propiedad invalido");
+        }
+        this.nivelPropiedad = nivelPropiedad;
+    }
+
+    public int getPrecioCompra() {
+        return precioCompra;
+    }
+    public void setPrecioCompra(int precioCompra) {
+        if (precioCompra < 0) {
+            throw new IllegalArgumentException("Precio de compra invalido");
+        }
+        this.precioCompra = precioCompra;
+    }
+
+    public int[] getRentaPorNivel() {
+        return rentaPorNivel;
+    }
+    public void setRentaPorNivel(int[] rentaPorNivel) {
+        if (rentaPorNivel == null || rentaPorNivel.length != 5) {
+            throw new IllegalArgumentException("Renta por nivel invalida");
+        }
+        this.rentaPorNivel = rentaPorNivel;
+    }
+
+    public Jugador getDueno() {
+        return dueno;
+    }
+    public void setDueno(Jugador dueno) {
+        if (dueno == null) {
+            throw new IllegalArgumentException("El dueño no puede ser nulo");
+        }
+        this.dueno = dueno;
+    }
 }

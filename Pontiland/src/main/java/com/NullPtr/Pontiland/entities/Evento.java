@@ -10,7 +10,7 @@ import java.util.Queue;
  */
 
 /*
- * WARNING: Se usa la misma clase para el uso de otras casillas como:
+ * REVIEW: Se usa la misma clase para el uso de otras casillas como:
  *   - Carcel
  *   - Parking Gratis
  *   - Ir a la carcel
@@ -35,7 +35,6 @@ public class Evento extends Casilla{
     public Tipo getTipoCasilla() {
         return tipoCasilla;
     }
-
     public void setTipoCasilla(Tipo tipoCasilla) {
         this.tipoCasilla = tipoCasilla;
     }
@@ -46,7 +45,6 @@ public class Evento extends Casilla{
             throw new IllegalStateException("La casilla no es de tipo Evento, no tiene tarjetas disponibles");
         return tarjetasDisponibles;
     }
-
     public void setTarjetasDisponibles(Queue<TarjetaEvento> tarjetasDisponibles) {
         if (this.tipoCasilla != Tipo.Evento)
             throw new IllegalStateException("La casilla no es de tipo Evento, no puede tener tarjetas disponibles");

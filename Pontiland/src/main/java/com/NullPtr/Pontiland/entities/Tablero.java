@@ -25,4 +25,24 @@ public class Tablero {
         this.casillas = casillas;
         this.modeloTablero = modeloTablero;
     }
+
+    public List<Casilla> getCasillas() {
+        return casillas;
+    }
+    public void setCasillas(List<Casilla> casillas) {
+        if (casillas == null || casillas.size() != 40) {
+            throw new IllegalArgumentException("El tablero debe tener exactamente 40 casillas.");
+        }
+        this.casillas = casillas;
+    }
+
+    public File getModeloTablero() {
+        return modeloTablero;
+    }
+    public void setModeloTablero(File modeloTablero) {
+        if (modeloTablero == null || !modeloTablero.exists()) {
+            throw new IllegalArgumentException("El modelo del tablero no puede ser nulo y debe existir");
+        }
+        this.modeloTablero = modeloTablero;
+    }
 }

@@ -81,5 +81,74 @@ public class Jugador {
         this.propiedades = propiedades;
     }
 
+    public byte getJugadorId() {
+        return jugadorId;
+    }
+    public void setJugadorId(byte jugadorId) {
+        if (jugadorId < 0 || jugadorId > 4) {
+            throw new IllegalArgumentException("Identificador del jugador es inválido");
+        }
+        this.jugadorId = jugadorId;
+    }
 
+    public String getNombreJugador() {
+        return nombreJugador;
+    }
+    public void setNombreJugador(String nombreJugador) {
+        if (nombreJugador == null || nombreJugador.isEmpty()) {
+            throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
+        }
+        this.nombreJugador = nombreJugador;
+    }
+
+    public Icono getIconoJugador() {
+        return iconoJugador;
+    }
+    public void setIconoJugador(Icono iconoJugador) {
+        if (iconoJugador == null) {
+            throw new IllegalArgumentException("El icono del jugador no puede ser nulo");
+        }
+        this.iconoJugador = iconoJugador;
+    }
+
+    public byte getPosicion() {
+        return posicion;
+    }
+    public void setPosicion(byte posicion) {
+        if (posicion < 1 || posicion > 40) {
+            throw new IllegalArgumentException("Posicion invalida");
+        }
+        this.posicion = posicion;
+    }
+
+    public Estado getEstado() {
+        return estado;
+    }
+    public void setEstado(Estado estado) {
+        if (estado == null) {
+            throw new IllegalArgumentException("El estado del jugador no puede ser nulo");
+        }
+        this.estado = estado;
+    }
+
+    /*
+        * TODO: los getter y setter de dinero no son realmente necesarios
+        *  Dinero podría ser publico
+     */
+    public Double getDinero() {
+        return dinero;
+    }
+    public void setDinero(Double dinero) {
+        this.dinero = dinero;
+    }
+
+    public List<Propiedad> getPropiedades() {
+        return propiedades;
+    }
+    public void setPropiedades(List<Propiedad> propiedades) {
+        if (propiedades == null) {
+            throw new IllegalArgumentException("La lista de propiedades no puede ser nula");
+        }
+        this.propiedades = propiedades;
+    }
 }

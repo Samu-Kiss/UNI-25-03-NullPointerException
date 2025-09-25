@@ -27,4 +27,26 @@ public class Icono {
         this.nombreIcono = nombreIcono;
         this.modeloIcono = modeloIcono;
     }
+
+    public String getNombreIcono() {
+        return nombreIcono;
+    }
+
+    public void setNombreIcono(String nombreIcono) {
+        if (nombreIcono == null || nombreIcono.isEmpty()) {
+            throw new IllegalArgumentException("El nombre del icono no puede ser nulo o vacío");
+        }
+        this.nombreIcono = nombreIcono;
+    }
+
+    public File getModeloIcono() {
+        return modeloIcono;
+    }
+
+    public void setModeloIcono(File modeloIcono) {
+        if (modeloIcono == null || !modeloIcono.exists()) {
+            throw new IllegalArgumentException("El modelo del icono no puede ser nulo y debe existir");
+        }
+        this.modeloIcono = modeloIcono;
+    }
 }

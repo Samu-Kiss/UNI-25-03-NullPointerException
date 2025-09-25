@@ -29,4 +29,23 @@ public class Partida {
         this.jugadores = jugadores;
     }
 
+    public Tablero getTablero() {
+        return tablero;
+    }
+    public void setTablero(Tablero tablero) {
+        if (tablero == null) {
+            throw new IllegalArgumentException("El tablero no puede ser nulo");
+        }
+        this.tablero = tablero;
+    }
+
+    public Queue<Jugador> getJugadores() {
+        return jugadores;
+    }
+    public void setJugadores(Queue<Jugador> jugadores) {
+        if (jugadores == null || jugadores.isEmpty()) {
+            throw new IllegalArgumentException("La cola de jugadores no puede ser nula o vacía");
+        }
+        this.jugadores = jugadores;
+    }
 }

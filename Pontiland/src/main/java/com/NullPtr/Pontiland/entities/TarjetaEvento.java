@@ -31,4 +31,33 @@ public class TarjetaEvento {
         this.accion = accion;
     }
 
+    public String getNombre() {
+        return nombre;
+    }
+    public void setNombre(String nombre) {
+        if (nombre == null || nombre.isEmpty()) {
+            throw new IllegalArgumentException("El nombre no puede ser nulo o vacío");
+        }
+        this.nombre = nombre;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+    public void setDescripcion(String descripcion) {
+        if (descripcion == null || descripcion.isEmpty()) {
+            throw new IllegalArgumentException("La descripción no puede ser nula o vacía");
+        }
+        this.descripcion = descripcion;
+    }
+
+    public Accion getAccion() {
+        return accion;
+    }
+    public void setAccion(Accion accion) {
+        if (accion == null) {
+            throw new IllegalArgumentException("La acción no puede ser nula");
+        }
+        this.accion = accion;
+    }
 }
