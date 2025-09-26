@@ -1,5 +1,7 @@
 package com.NullPtr.Pontiland.entities;
 
+import com.NullPtr.Pontiland.enums.Tipo;
+
 /**
  * Clase que representa una propiedad en el juego
  */
@@ -91,5 +93,35 @@ public class Propiedad extends Casilla{
             throw new IllegalArgumentException("El dueño no puede ser nulo");
         }
         this.dueno = dueno;
+    }
+
+    @Override
+    public void setPosicionTablero(Byte posicionTablero) {
+        this.posicionTablero = posicionTablero;
+    }
+
+    @Override
+    public byte getPosicionTablero() {
+        return 0;
+    }
+
+    @Override
+    public void setNombreCasilla(String nombreCasilla) {
+
+    }
+
+    @Override
+    public String getNombreCasilla() {
+        return "";
+    }
+
+    @Override
+    public void setTipoCasilla(Tipo tipoCasilla) {
+
+    }
+
+    @Override
+    public Tipo getTipoCasilla() {
+        return null;
     }
 }

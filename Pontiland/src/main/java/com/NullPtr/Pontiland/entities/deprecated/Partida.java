@@ -1,4 +1,6 @@
-package com.NullPtr.Pontiland.entities;
+package com.NullPtr.Pontiland.entities.deprecated;
+
+import com.NullPtr.Pontiland.entities.Jugador;
 
 import java.util.Queue;
 
@@ -8,6 +10,7 @@ import java.util.Queue;
  * usando una cola para ir jugador a jugador en un orden determinado de manera
  * constante
  */
+@Deprecated
 public class Partida {
     private Tablero tablero;
     private Queue<Jugador> jugadores;

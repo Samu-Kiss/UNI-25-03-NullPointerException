@@ -1,4 +1,6 @@
-package com.NullPtr.Pontiland.entities;
+package com.NullPtr.Pontiland.entities.deprecated;
+
+import com.NullPtr.Pontiland.entities.Casilla;
 
 import java.io.File;
 import java.util.List;
@@ -7,10 +9,12 @@ import java.util.List;
 * Representa el tablero del juego, compuesto por una lista de casillas.
 * Cada casilla puede ser una propiedad, una estación, un evento, etc.
  */
+@Deprecated
 public class Tablero {
     //WARNING: La lista a nivel de programación está con indexación 0, pero en el juego la casilla 1 es la primera.
     private List<Casilla> casillas = null;
-    File modeloTablero = null;
+    private List<List<Casilla>> gruposPropiedades = null;
+    private File modeloTablero = null;
 
     /** Constructor que inicializa el tablero con una lista de casillas.
      * @param casillas Lista de casillas que componen el tablero.

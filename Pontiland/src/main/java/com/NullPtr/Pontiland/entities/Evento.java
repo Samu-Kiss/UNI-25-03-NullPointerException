@@ -1,6 +1,7 @@
 package com.NullPtr.Pontiland.entities;
 
 import com.NullPtr.Pontiland.enums.Tipo;
+
 import java.util.Queue;
 
 /**
@@ -10,16 +11,18 @@ import java.util.Queue;
  */
 
 /*
- * REVIEW: Se usa la misma clase para el uso de otras casillas como:
+ * WARNING: Se usa la misma clase para el uso de otras casillas como:
  *   - Carcel
  *   - Parking Gratis
  *   - Ir a la carcel
  *   - Salida
  *   - Movimiento/Estacion
+ *   - Evento/Suerte
  */
-public class Evento extends Casilla{
+public class Evento implements ICasilla {
     private Tipo tipoCasilla = null;
-    private Queue<TarjetaEvento> tarjetasDisponibles;
+    private Byte posicionTablero = -1;
+    private String nombreCasilla = null;
 
     /**
      * Constructor de la clase Evento
@@ -28,26 +31,48 @@ public class Evento extends Casilla{
      * @param tipoCasilla Tipo de la casilla
      */
     public Evento(byte posicionTablero, String nombreCasilla, Tipo tipoCasilla) {
-        super(posicionTablero, nombreCasilla);
+        if (posicionTablero < 0 || posicionTablero > 40) {
+            throw new IllegalArgumentException("Posición de casilla inválida");
+        }
+        if (nombreCasilla == null || nombreCasilla.isEmpty()) {
+            throw new IllegalArgumentException("Nombre de casilla inválido");
+        }
+        if (tipoCasilla == null) {
+            throw new IllegalArgumentException("Tipo de casilla inválido");
+        }
+
+        this.posicionTablero = posicionTablero;
+        this.nombreCasilla = nombreCasilla;
         this.tipoCasilla = tipoCasilla;
     }
 
+    @Override
     public Tipo getTipoCasilla() {
         return tipoCasilla;
     }
+
+    @Override
     public void setTipoCasilla(Tipo tipoCasilla) {
         this.tipoCasilla = tipoCasilla;
     }
 
-    public Queue<TarjetaEvento> getTarjetasDisponibles() {
-        // Asegurarse de que la casilla es de tipo Evento antes de devolver las tarjetas
-        if (this.tipoCasilla != Tipo.Evento)
-            throw new IllegalStateException("La casilla no es de tipo Evento, no tiene tarjetas disponibles");
-        return tarjetasDisponibles;
+    @Override
+    public byte getPosicionTablero() {
+        return posicionTablero;
     }
-    public void setTarjetasDisponibles(Queue<TarjetaEvento> tarjetasDisponibles) {
-        if (this.tipoCasilla != Tipo.Evento)
-            throw new IllegalStateException("La casilla no es de tipo Evento, no puede tener tarjetas disponibles");
-        this.tarjetasDisponibles = tarjetasDisponibles;
+
+    @Override
+    public void setPosicionTablero(Byte posicionTablero) {
+        this.posicionTablero = posicionTablero;
+    }
+
+    @Override
+    public String getNombreCasilla() {
+        return nombreCasilla;
+    }
+
+    @Override
+    public void setNombreCasilla(String nombreCasilla) {
+        this.nombreCasilla = nombreCasilla;
     }
 }
