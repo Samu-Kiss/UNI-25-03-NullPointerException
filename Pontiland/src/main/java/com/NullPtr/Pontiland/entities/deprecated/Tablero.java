@@ -1,6 +1,6 @@
 package com.NullPtr.Pontiland.entities.deprecated;
 
-import com.NullPtr.Pontiland.entities.Casilla;
+import com.NullPtr.Pontiland.entities.ICasilla;
 
 import java.io.File;
 import java.util.List;
@@ -12,14 +12,14 @@ import java.util.List;
 @Deprecated
 public class Tablero {
     //WARNING: La lista a nivel de programación está con indexación 0, pero en el juego la casilla 1 es la primera.
-    private List<Casilla> casillas = null;
-    private List<List<Casilla>> gruposPropiedades = null;
+    private List<ICasilla> casillas = null;
+    private List<List<ICasilla>> gruposPropiedades = null;
     private File modeloTablero = null;
 
     /** Constructor que inicializa el tablero con una lista de casillas.
      * @param casillas Lista de casillas que componen el tablero.
      */
-    public Tablero(List<Casilla> casillas, File modeloTablero) {
+    public Tablero(List<ICasilla> casillas, File modeloTablero) {
         if (casillas == null || casillas.isEmpty()) {
             throw new IllegalArgumentException("El tablero debe tener al menos una casilla.");
         }
@@ -30,10 +30,10 @@ public class Tablero {
         this.modeloTablero = modeloTablero;
     }
 
-    public List<Casilla> getCasillas() {
+    public List<ICasilla> getCasillas() {
         return casillas;
     }
-    public void setCasillas(List<Casilla> casillas) {
+    public void setCasillas(List<ICasilla> casillas) {
         if (casillas == null || casillas.size() != 40) {
             throw new IllegalArgumentException("El tablero debe tener exactamente 40 casillas.");
         }
