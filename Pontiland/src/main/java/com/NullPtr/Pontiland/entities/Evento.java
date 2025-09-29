@@ -31,7 +31,7 @@ public class Evento implements ICasilla {
      * @param tipoCasilla Tipo de la casilla
      */
     public Evento(byte posicionTablero, String nombreCasilla, Tipo tipoCasilla) {
-        if (posicionTablero < 0 || posicionTablero > 40) {
+        if (posicionTablero < 1 || posicionTablero > 40) {
             throw new IllegalArgumentException("Posición de casilla inválida");
         }
         if (nombreCasilla == null || nombreCasilla.isEmpty()) {
