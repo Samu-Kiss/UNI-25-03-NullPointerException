@@ -105,7 +105,7 @@ public class Propiedad implements ICasilla{
 
     @Override
     public byte getPosicionTablero() {
-        return 0;
+        return posicionTablero;
     }
 
     @Override
