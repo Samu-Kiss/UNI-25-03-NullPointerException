@@ -12,6 +12,7 @@ public class Propiedad implements ICasilla{
     private String nombreCasilla = null;
     private Byte posicionTablero = -1;
     private byte nivelPropiedad = 1;
+    private Tipo tipoCasilla = Tipo.Propiedad;
     private int precioCompra = -1;
     private int[] rentaPorNivel = null;
     private Jugador dueno = null;
@@ -119,11 +120,11 @@ public class Propiedad implements ICasilla{
 
     @Override
     public void setTipoCasilla(Tipo tipoCasilla) {
-
+        this.tipoCasilla = tipoCasilla;
     }
 
     @Override
     public Tipo getTipoCasilla() {
-        return null;
+        return this.tipoCasilla;
     }
 }
