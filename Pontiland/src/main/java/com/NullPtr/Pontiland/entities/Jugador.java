@@ -27,7 +27,7 @@ public class Jugador {
         if (dinero < 0) {
             throw new IllegalArgumentException("El dinero no puede ser negativo");
         }
-        if (jugadorId > 4 || jugadorId < 0) {
+        if (jugadorId > 4 || jugadorId < 1) {
             throw new IllegalArgumentException("Identificador del jugador es inválido");
         }
         if (nombreJugador == null || nombreJugador.isEmpty()) {

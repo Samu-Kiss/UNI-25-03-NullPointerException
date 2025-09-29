@@ -57,6 +57,9 @@ public class Partida {
         if (jugadores == null || jugadores.isEmpty()) {
             throw new IllegalArgumentException("La cola de jugadores no puede ser nula o vacía");
         }
+        if (jugadores.size() > 4 || jugadores.size() < 2) {
+            throw new IllegalArgumentException("Numero de jugadores inválido (mínimo 2, máximo 4)");
+        }
         this.jugadores = jugadores;
     }
 }
