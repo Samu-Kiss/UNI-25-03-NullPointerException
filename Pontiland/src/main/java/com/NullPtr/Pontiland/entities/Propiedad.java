@@ -92,9 +92,6 @@ public class Propiedad implements ICasilla{
         return dueno;
     }
     public void setDueno(Jugador dueno) {
-        if (dueno == null) {
-            throw new IllegalArgumentException("El dueño no puede ser nulo");
-        }
         this.dueno = dueno;
     }
 
