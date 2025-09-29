@@ -110,12 +110,15 @@ public class Propiedad implements ICasilla{
 
     @Override
     public void setNombreCasilla(String nombreCasilla) {
-
+        if (nombreCasilla == null || nombreCasilla.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre de la casilla no puede ser nulo o vacío");
+        }
+        this.nombreCasilla = nombreCasilla;
     }
 
     @Override
     public String getNombreCasilla() {
-        return "";
+        return this.nombreCasilla;
     }
 
     @Override
