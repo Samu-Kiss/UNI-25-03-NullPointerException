@@ -1,4 +1,4 @@
-package com.NullPtr.Pontiland.entities;
+package com.NullPtr.Pontiland.entities.deprecated;
 
 import java.io.File;
 
@@ -6,6 +6,7 @@ import java.io.File;
  * Clase que representa un icono en el juego
  * Un icono tiene un id y un nombre
  */
+@Deprecated
 public class Icono {
     private String nombreIcono = null;
     File modeloIcono = null;
