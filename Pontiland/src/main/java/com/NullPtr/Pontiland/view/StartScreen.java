@@ -6,6 +6,7 @@ import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.input.InputManager;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
@@ -56,6 +57,11 @@ public class StartScreen extends AbstractAppState {
   // Tamaño base (preferido) y traducción base para escalar desde el centro
   private final Map<Button, Vector3f> basePrefSizes = new HashMap<>();
   private final Map<Button, Vector3f> baseTranslations = new HashMap<>();
+  // Ángulo de rotación fijo por botón (grados)
+  private final Map<Button, Float> rotationDeg = new HashMap<>();
+  // Capa Z por botón (para orden de apilado) y offset manual (para ajustes finos)
+  private final Map<Button, Float> zLayers = new HashMap<>();
+  private final Map<Button, Vector3f> manualOffsets = new HashMap<>();
 
   @Override
   public void initialize(AppStateManager stateManager, Application app) {
@@ -130,26 +136,37 @@ public class StartScreen extends AbstractAppState {
     subtitle.setFontSize(20);
     subtitle.setInsets(new com.simsilica.lemur.Insets3f(0, 0, 20, 0));
     subtitle.setColor(new ColorRGBA(0.85f, 0.86f, 0.92f, 1f));
+    // Centrar el texto horizontalmente
+    subtitle.setTextHAlignment(com.simsilica.lemur.HAlignment.Center);
     rightPane.addChild(subtitle);
 
     Container buttonsRow = rightPane.addChild(new Container(new SpringGridLayout(), "pontiland"));
     buttonsRow.setInsets(new com.simsilica.lemur.Insets3f(10, 20, 20, 20));
 
-    // Botones como sprites (background con textura y clamp para evitar bleeding)
-    Button btn2 = createSpriteButton("graphics/sprites/2 Jugadores.png", 2);
-    Button btn3 = createSpriteButton("graphics/sprites/3 Jugadores.png", 3);
-    Button btn4 = createSpriteButton("graphics/sprites/4 Jugadores.png", 4);
+    // Botones como sprites con rotación ligera sobre su centro
+    Button btn2 = createSpriteButton("graphics/sprites/2 Jugadores.png", 2, -8f);
+    Button btn3 = createSpriteButton("graphics/sprites/3 Jugadores.png", 3, 7f);
+    Button btn4 = createSpriteButton("graphics/sprites/4 Jugadores.png", 4, -5f);
+
+    // Orden de apilado: rosa (2) encima del azul (3) encima del verde (4)
+    zLayers.put(btn2, 0.3f);
+    zLayers.put(btn3, 0.2f);
+    zLayers.put(btn4, 0.1f);
+    // Mover el sprite de 2 jugadores un poco más hacia abajo
+    manualOffsets.put(btn2, new Vector3f(+10f, -10f, 0f));
+    manualOffsets.put(btn3, new Vector3f(+10f, -20f, 0f));
+    manualOffsets.put(btn4, new Vector3f(+10f, +30f, 0f));
 
     // Envolver cada botón en un contenedor que aporta el espaciado externo
     buttonsRow.addChild(wrapWithSpacing(btn2));
     buttonsRow.addChild(wrapWithSpacing(btn3));
     buttonsRow.addChild(wrapWithSpacing(btn4));
 
-    Label hint = new Label("Haz clic en un botón para comenzar", "pontiland");
-    hint.setFontSize(16);
-    hint.setInsets(new com.simsilica.lemur.Insets3f(15, 0, 15, 0));
-    hint.setColor(new ColorRGBA(0.75f, 0.78f, 0.85f, 1f));
-    rightPane.addChild(hint);
+    // Ajustar el ancho preferido del título al ancho de la fila de botones para centrarlo
+    // visualmente
+    Vector3f rowPref = buttonsRow.getPreferredSize();
+    Vector3f titlePref = subtitle.getPreferredSize().clone();
+    subtitle.setPreferredSize(new Vector3f(rowPref.x, titlePref.y, 0));
 
     // Contenedor separado para "Cargar partida"
     Container loadContainer = rightPane.addChild(new Container("pontiland"));
@@ -179,7 +196,8 @@ public class StartScreen extends AbstractAppState {
     return slot;
   }
 
-  private Button createSpriteButton(String assetPath, int playerCount) {
+  // Sobrecarga con ángulo
+  private Button createSpriteButton(String assetPath, int playerCount, float angleDeg) {
     Button b = new Button("", "pontiland");
     b.setBackground(null);
 
@@ -202,14 +220,14 @@ public class StartScreen extends AbstractAppState {
     b.setPreferredSize(pref);
     basePrefSizes.put(b, pref.clone());
 
-    // Quitar insets del botón para no estirar el background
-    // (el espaciado lo da el contenedor envolvente)
-
-    // Escala base/objetivo para animación del spatial
+    // Estado animación + rotación
     currentScales.put(b, 1f);
     targetScales.put(b, 1f);
+    rotationDeg.put(b, angleDeg);
+    b.setLocalRotation(
+        new Quaternion().fromAngleAxis((float) Math.toRadians(angleDeg), Vector3f.UNIT_Z));
 
-    // Listener de hover (CursorListener de Lemur)
+    // Hover: solo escala (rotación fija)
     final Button btnRef = b;
     CursorEventControl.addListenersToSpatial(
         b,
@@ -227,6 +245,11 @@ public class StartScreen extends AbstractAppState {
 
     b.addClickCommands(source -> startGame(playerCount));
     return b;
+  }
+
+  // Mantener la versión previa por compatibilidad
+  private Button createSpriteButton(String assetPath, int playerCount) {
+    return createSpriteButton(assetPath, playerCount, 0f);
   }
 
   private Button createLoadButton() {
@@ -253,43 +276,42 @@ public class StartScreen extends AbstractAppState {
   public void update(float tpf) {
     super.update(tpf);
     if (targetScales.isEmpty()) {
-      // Inicializar traducciones base si aún no están y no hay animación
       return;
     }
     float alpha = Math.min(1f, SCALE_LERP_SPEED * tpf);
 
     for (Map.Entry<Button, Float> e : targetScales.entrySet()) {
       Button btn = e.getKey();
-
-      // Capturar/actualizar traducción base cuando la escala es ~1 (tras layouts)
       float cur = currentScales.getOrDefault(btn, 1f);
       float tgt = e.getValue();
-      Vector3f curLoc = btn.getLocalTranslation();
+
+      if (Math.abs(tgt - cur) >= 0.0005f) {
+        float next = cur + (tgt - cur) * alpha;
+        currentScales.put(btn, next);
+      }
+      float s = currentScales.get(btn);
+
+      float angleRad = (float) Math.toRadians(rotationDeg.getOrDefault(btn, 0f));
+      Quaternion rot = new Quaternion().fromAngleAxis(angleRad, Vector3f.UNIT_Z);
+      btn.setLocalRotation(rot);
+
       Vector3f baseLoc = baseTranslations.get(btn);
-      if (baseLoc == null
-          || (Math.abs(cur - 1f) < 0.0005f
-              && Math.abs(tgt - 1f) < 0.0005f
-              && (baseLoc.x != curLoc.x || baseLoc.y != curLoc.y))) {
-        baseTranslations.put(btn, curLoc.clone());
+      if (baseLoc == null) {
+        baseTranslations.put(btn, btn.getLocalTranslation().clone());
         baseLoc = baseTranslations.get(btn);
       }
 
-      // Interpolar escala hacia el objetivo
-      if (Math.abs(tgt - cur) < 0.0005f) {
-        continue;
-      }
-      float next = cur + (tgt - cur) * alpha;
-      currentScales.put(btn, next);
-      btn.setLocalScale(next, next, 1f);
-
-      // Desplazar desde el centro usando tamaño preferido base
       Vector3f size = basePrefSizes.get(btn);
-      if (baseLoc != null && size != null) {
-        float dx = size.x * (1f - next) * 0.5f;
-        float dy = size.y * (1f - next) * 0.5f;
-        // En GUI, y hacia arriba es positivo; para mantener centro fijo restamos en y
-        btn.setLocalTranslation(baseLoc.x + dx, baseLoc.y - dy, baseLoc.z);
+      if (size != null && baseLoc != null) {
+        Vector3f center = new Vector3f(size.x * 0.5f, -size.y * 0.5f, 0);
+        Vector3f offset = rot.mult(center).subtract(rot.mult(center.mult(s)));
+        Vector3f manual = manualOffsets.getOrDefault(btn, Vector3f.ZERO);
+        float z = zLayers.getOrDefault(btn, baseLoc.z);
+        btn.setLocalTranslation(
+            baseLoc.x + offset.x + manual.x, baseLoc.y + offset.y + manual.y, z);
       }
+
+      btn.setLocalScale(s, s, 1f);
     }
   }
 
@@ -317,5 +339,6 @@ public class StartScreen extends AbstractAppState {
     targetScales.clear();
     basePrefSizes.clear();
     baseTranslations.clear();
+    rotationDeg.clear();
   }
 }
