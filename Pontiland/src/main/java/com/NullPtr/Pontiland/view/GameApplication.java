@@ -249,4 +249,16 @@ public class GameApplication extends SimpleApplication {
     // Campo de visión más amplio y planos cercano/lejano optimizados para mantener todo enfocado
     cam.setFrustumPerspective(60f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 500f);
   }
+
+  /**
+   * Carga una partida guardada (placeholder).
+   *
+   * <p>De momento solo registra el evento; en el futuro debe abrir un selector de partidas o
+   * iniciar la carga desde almacenamiento.
+   */
+  public void loadSavedGame() {
+    System.out.println("[Pontiland] Cargar partida: función aún no implementada.");
+    // TODO: implementar lógica real de carga de partida.
+    // Por ejemplo, mostrar un diálogo de selección o cargar el último guardado.
+  }
 }
