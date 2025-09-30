@@ -39,6 +39,11 @@
       <artifactId>jme3-effects</artifactId>
       <version>${jme.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.simsilica</groupId>
+      <artifactId>lemur</artifactId>
+      <version>1.16.0</version>
+    </dependency>
   </dependencies>
 
   <build>
