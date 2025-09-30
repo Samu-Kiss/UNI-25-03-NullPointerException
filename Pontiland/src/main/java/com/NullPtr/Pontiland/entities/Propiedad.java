@@ -12,7 +12,7 @@ public class Propiedad implements ICasilla{
     private String nombreCasilla = null;
     private Byte posicionTablero = -1;
     private byte nivelPropiedad = 1;
-    private Tipo tipoCasilla = Tipo.Propiedad;
+    private Tipo tipoCasilla = Tipo.PROPIEDAD;
     private int precioCompra = -1;
     private int[] rentaPorNivel = null;
     private Jugador dueno = null;
