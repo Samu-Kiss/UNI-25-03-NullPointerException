@@ -1,6 +1,10 @@
 package com.NullPtr.Pontiland.view;
 
+import com.NullPtr.Pontiland.controllers.DiceController;
 import com.jme3.app.SimpleApplication;
+import com.jme3.input.KeyInput;
+import com.jme3.input.RawInputListener;
+import com.jme3.input.event.*;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -17,8 +21,13 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 
 
-import java.awt.*;
+import java.awt.Toolkit;
+import java.awt.Dimension;
+import java.awt.HeadlessException;
+
+
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * Aplicación principal de JMonkeyEngine 3 para el juego Pontiland.
@@ -39,9 +48,11 @@ import java.util.Arrays;
  * @since 2025
  */
 public class GameApplication extends SimpleApplication {
-
     private final BulletAppState bulletAppState = new BulletAppState();
+    private DiceController diceController = new DiceController();
 
+    AtomicReferenceArray<Byte> resultados = new AtomicReferenceArray<>(2);
+    
     /**
      * Método principal que inicia la aplicación del juego.
      *
@@ -75,7 +86,16 @@ public class GameApplication extends SimpleApplication {
         app.setShowSettings(false); // Omitir diálogo de configuración predeterminado
         app.setSettings(settings);
         app.start();
+
     }
+
+    @Override
+    public void simpleUpdate(float tpf) {
+        bulletAppState.update(tpf);
+
+    }
+
+
 
     /**
      * Método de inicialización principal de la aplicación JMonkeyEngine.
@@ -98,6 +118,44 @@ public class GameApplication extends SimpleApplication {
         setupSkyEnvironment();
         setupLighting();
         setupCamera();
+        loadConitoModel();
+
+        inputManager.addRawInputListener(new RawInputListener() {
+            @Override
+            public void onKeyEvent(KeyInputEvent evt) {
+                if (evt.isPressed() && evt.getKeyCode() == KeyInput.KEY_L) {
+                     diceController.lanzarDados();
+
+                     //TODO: Funciona pq espero a que se pulse otra tecla, probar en una función aparte
+                     while (true){
+                         if (resultados.get(0) != null){
+                             System.out.println(resultados.toString());
+                             resultados.set(0, null);
+                             resultados.set(1, null);
+                             System.out.println("Hola");
+                             //break;
+                         }
+                     }
+
+                }
+                if (evt.isPressed() && evt.getKeyCode() == KeyInput.KEY_P) {
+                    System.out.println(Arrays.toString(diceController.leerDados()));
+                }
+                if (evt.isPressed() && evt.getKeyCode() == KeyInput.KEY_Y) {
+                    diceController.lanzamientoDadosBloqueante(resultados);
+                }
+            }
+            // Other methods can be left empty
+            public void beginInput() {}
+            public void endInput() {}
+            public void onMouseMotionEvent(MouseMotionEvent evt) {}
+            public void onMouseButtonEvent(MouseButtonEvent evt) {}
+            public void onJoyAxisEvent(JoyAxisEvent evt) {}
+            public void onJoyButtonEvent(JoyButtonEvent evt) {}
+            public void onTouchEvent(TouchEvent evt) {}
+        });
+
+        initializeGUI();
     }
 
     /**
@@ -137,16 +195,39 @@ public class GameApplication extends SimpleApplication {
         // Cargar modelo del dado (GLB). La ruta es relativa al classpath (src/main/resources)
         // Ajustar la ruta si posteriormente se reorganizan los assets.
         try {
-            Spatial dice = assetManager.loadModel("graphics/models/Dice.glb");
+            Spatial dice1 = assetManager.loadModel("graphics/models/Dice.glb");
             // Agregar físicas al dado
             RigidBodyControl dicePhysics = new RigidBodyControl(1f);// masa 1
-            dice.setLocalRotation(new Matrix3f(0,0,0,1,1,1,0,0,0));
-            dice.setLocalTranslation(0f,10f,0f);
-            dice.addControl(dicePhysics);
-            dicePhysics.setRestitution(2f); // Rebote
+            dice1.setLocalRotation(new Matrix3f(0,0,0,1,1,1,0,0,0));
+            dice1.setLocalTranslation(0f,10f,0f);
+            dice1.addControl(dicePhysics);
+            dicePhysics.setRestitution(0.5f); // Rebote
             //dicePhysics.setAngularFactor(-0.1f);
-            rootNode.attachChild(dice);
+            rootNode.attachChild(dice1);
             bulletAppState.getPhysicsSpace().add(dicePhysics);
+            diceController.setDado1(dice1);
+        } catch (Exception ex) {
+            System.out.println(Arrays.toString(ex.getStackTrace()));
+            // Cubo de prueba de respaldo si el modelo falla al cargar para que la escena no esté vacía.
+            Box b = new Box(1, 1, 1);
+            Geometry geom = new Geometry("FallbackBox", b);
+            Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+            mat.setColor("Color", ColorRGBA.Blue);
+            geom.setMaterial(mat);
+            rootNode.attachChild(geom);
+        }
+    }
+
+    private void loadConitoModel(){
+        try {
+            Spatial conito = assetManager.loadModel("graphics/models/Conito.glb");
+            // Agregar físicas al dado
+            RigidBodyControl conitoPhysics = new RigidBodyControl(0f);// masa 1
+            conito.addControl(conitoPhysics);
+            //conitoPhysics.setRestitution(2f); // Rebote
+            //dicePhysics.setAngularFactor(-0.1f);
+            rootNode.attachChild(conito);
+            bulletAppState.getPhysicsSpace().add(conitoPhysics);
         } catch (Exception ex) {
             System.out.println(Arrays.toString(ex.getStackTrace()));
             // Cubo de prueba de respaldo si el modelo falla al cargar para que la escena no esté vacía.
@@ -239,5 +320,24 @@ public class GameApplication extends SimpleApplication {
         // Configuraciones mejoradas de recorte de cámara para mejor rango de enfoque
         // Campo de visión más amplio y planos cercano/lejano optimizados para mantener todo enfocado
         cam.setFrustumPerspective(60f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 500f);
+    }
+
+    private void initializeGUI(){
+//        GuiGlobals.initialize(this);
+//        BaseStyles.loadGlassStyle();
+//        GuiGlobals.getInstance().getStyles().setDefaultStyle("glass");
+//
+//        Container myWindow = new Container();
+//        guiNode.attachChild(myWindow);
+//
+//        myWindow.setLocalTranslation(100, 100, 0);
+//
+//        // Add some elements
+//        myWindow.addChild(new Label("Hello, World."));
+//        Button clickMe = myWindow.addChild(new Button("Click Me"));
+//        clickMe.addClickCommands(source -> System.out.println("Button Clicked!"));
+
+
+
     }
 }
