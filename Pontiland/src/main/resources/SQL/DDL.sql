@@ -41,7 +41,7 @@ CREATE TABLE Propiedad (
 
 -- Tabla Partida (Representación de la partida en la base de datos)
 CREATE TABLE Partida (
-    PartidaID BIGINT PRIMARY KEY,
+    PartidaID INT PRIMARY KEY,
     Activa BOOLEAN NOT NULL DEFAULT TRUE,
     NumeroJugadores INT NOT NULL CHECK (NumeroJugadores BETWEEN 2 AND 4)
 );

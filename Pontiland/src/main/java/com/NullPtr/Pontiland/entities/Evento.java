@@ -1,78 +1,33 @@
 package com.NullPtr.Pontiland.entities;
 
-import com.NullPtr.Pontiland.enums.Tipo;
-
 import java.util.Queue;
 
 /**
- * Clase que representa una casilla de evento en el juego
- * Contiene una lista de tarjetas de evento disponibles de la cual
- * se sacarán las tarjetas de manera aleatoria
+ * Clase que representa una casilla de evento en el juego Contiene una lista de tarjetas de evento
+ * disponibles de la cual se sacarán las tarjetas de manera aleatoria
  */
 
 /*
- * WARNING: Se usa la misma clase para el uso de otras casillas como:
+ * TODO: Se podria usar la misma clase para el uso de otras casillas como:
  *   - Carcel
  *   - Parking Gratis
  *   - Ir a la carcel
  *   - Salida
  *   - Movimiento/Estacion
- *   - Evento/Suerte
  */
-public class Evento implements ICasilla {
-    private Tipo tipoCasilla = null;
-    private Byte posicionTablero = -1;
-    private String nombreCasilla = null;
+public class Evento extends Casilla {
+  private Queue<TarjetaEvento> tarjetasDisponibles;
 
-    /**
-     * Constructor de la clase Evento
-     * @param posicionTablero Posición de la casilla en el tablero
-     * @param nombreCasilla Nombre de la casilla
-     * @param tipoCasilla Tipo de la casilla
-     */
-    public Evento(byte posicionTablero, String nombreCasilla, Tipo tipoCasilla) {
-        if (posicionTablero < 1 || posicionTablero > 40) {
-            throw new IllegalArgumentException("Posición de casilla inválida");
-        }
-        if (nombreCasilla == null || nombreCasilla.isEmpty()) {
-            throw new IllegalArgumentException("Nombre de casilla inválido");
-        }
-        if (tipoCasilla == null) {
-            throw new IllegalArgumentException("Tipo de casilla inválido");
-        }
-
-        this.posicionTablero = posicionTablero;
-        this.nombreCasilla = nombreCasilla;
-        this.tipoCasilla = tipoCasilla;
-    }
-
-    @Override
-    public Tipo getTipoCasilla() {
-        return tipoCasilla;
-    }
-
-    @Override
-    public void setTipoCasilla(Tipo tipoCasilla) {
-        this.tipoCasilla = tipoCasilla;
-    }
-
-    @Override
-    public byte getPosicionTablero() {
-        return posicionTablero;
-    }
-
-    @Override
-    public void setPosicionTablero(Byte posicionTablero) {
-        this.posicionTablero = posicionTablero;
-    }
-
-    @Override
-    public String getNombreCasilla() {
-        return nombreCasilla;
-    }
-
-    @Override
-    public void setNombreCasilla(String nombreCasilla) {
-        this.nombreCasilla = nombreCasilla;
-    }
+  /**
+   * Constructor de la clase Evento
+   *
+   * @param posicionTablero Posición de la casilla en el tablero
+   * @param nombreCasilla Nombre de la casilla
+   * @param tarjetasDisponibles Cola de tarjetas de evento disponibles
+   */
+  public Evento(
+      byte posicionTablero, String nombreCasilla, Queue<TarjetaEvento> tarjetasDisponibles) {
+    super(posicionTablero, nombreCasilla);
+    this.tarjetasDisponibles = tarjetasDisponibles;
+  }
 }
