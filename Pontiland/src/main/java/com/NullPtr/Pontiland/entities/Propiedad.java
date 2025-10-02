@@ -8,7 +8,7 @@ public class Propiedad implements ICasilla{
     private byte idPropiedad = -1;
     //REVIEW: Id grupo podría ser eliminado si se usa una matriz de propiedades para separarlas por grupo
     private byte idGrupo = -1;
-    private Tipo tipoCasilla = null;
+    private Tipo tipoCasilla = Tipo.PROPIEDAD;
     private String nombreCasilla = null;
     private Byte posicionTablero = -1;
     private byte nivelPropiedad = 1;
