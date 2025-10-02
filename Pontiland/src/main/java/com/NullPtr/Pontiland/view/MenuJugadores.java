@@ -36,7 +36,7 @@ import java.util.Map;
  * Administrar el orden de apilado (Z) y offsets manuales para un look superpuesto. - Exponer un
  * botón adicional “Cargar partida” sin animación de escala.
  */
-public class StartScreen extends AbstractAppState {
+public class MenuJugadores extends AbstractAppState {
 
   // Referencias del entorno JME3/Lemur necesarias para la UI en pantalla
   private Node guiNode;
@@ -164,9 +164,9 @@ public class StartScreen extends AbstractAppState {
     buttonsRow.setInsets(new com.simsilica.lemur.Insets3f(10, 20, 20, 20));
 
     // Botones como sprites con rotación ligera sobre su centro
-    Button btn2 = createSpriteButton("graphics/sprites/2 Jugadores.png", 2, -8f);
-    Button btn3 = createSpriteButton("graphics/sprites/3 Jugadores.png", 3, 7f);
-    Button btn4 = createSpriteButton("graphics/sprites/4 Jugadores.png", 4, -5f);
+    Button btn2 = createSpriteButton("graphics/sprites/Button_2J.png", 2, -8f);
+    Button btn3 = createSpriteButton("graphics/sprites/Button_3J.png", 3, 7f);
+    Button btn4 = createSpriteButton("graphics/sprites/Button_4J.png", 4, -5f);
 
     // Orden de apilado: rosa (2) encima del azul (3) encima del verde (4)
     zLayers.put(btn2, 0.3f);
@@ -333,7 +333,7 @@ public class StartScreen extends AbstractAppState {
         float next = cur + (tgt - cur) * alpha;
         currentScales.put(btn, next);
       }
-      float s = currentScales.get(btn);
+      float s = currentScales.getOrDefault(btn, 1f);
 
       // Rotación fija
       float angleRad = (float) Math.toRadians(rotationDeg.getOrDefault(btn, 0f));

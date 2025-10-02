@@ -31,7 +31,8 @@ import java.awt.*;
  */
 public class GameApplication extends SimpleApplication {
 
-  private StartScreen startScreen;
+  private MenuPrincipal menuPrincipal;
+  private MenuJugadores menuJugadores;
   private boolean gameStarted = false;
   private int selectedPlayerCount = 0;
 
@@ -83,8 +84,8 @@ public class GameApplication extends SimpleApplication {
 
   /** Muestra la pantalla de inicio para selección de jugadores. */
   private void showStartScreen() {
-    startScreen = new StartScreen();
-    stateManager.attach(startScreen);
+    menuPrincipal = new MenuPrincipal();
+    stateManager.attach(menuPrincipal);
   }
 
   /**
@@ -97,9 +98,9 @@ public class GameApplication extends SimpleApplication {
     this.gameStarted = true;
 
     // Remover la pantalla de inicio si está activa
-    if (startScreen != null) {
-      stateManager.detach(startScreen);
-      startScreen = null;
+    if (menuPrincipal != null) {
+      stateManager.detach(menuPrincipal);
+      menuPrincipal = null;
     }
 
     // Configurar cursor para el modo 3D (usualmente se oculta para navegación de cámara)
@@ -260,5 +261,15 @@ public class GameApplication extends SimpleApplication {
     System.out.println("[Pontiland] Cargar partida: función aún no implementada.");
     // TODO: implementar lógica real de carga de partida.
     // Por ejemplo, mostrar un diálogo de selección o cargar el último guardado.
+  }
+
+    /**
+     * Inicia la selección de jugadores (placeholder).
+     *
+     * <p>Actualmente no implementado; en el futuro debe abrir la interfaz de selección de jugadores.
+     */
+  public void startPlayerSelection() {
+    menuJugadores = new MenuJugadores();
+    stateManager.attach(menuJugadores);
   }
 }
