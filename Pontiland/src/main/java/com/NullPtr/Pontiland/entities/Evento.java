@@ -1,7 +1,5 @@
 package com.NullPtr.Pontiland.entities;
 
-import com.NullPtr.Pontiland.enums.Tipo;
-
 import java.util.Queue;
 
 /**
@@ -51,10 +49,6 @@ public class Evento implements ICasilla {
         return tipoCasilla;
     }
 
-    @Override
-    public void setTipoCasilla(Tipo tipoCasilla) {
-        this.tipoCasilla = tipoCasilla;
-    }
 
     @Override
     public byte getPosicionTablero() {
@@ -69,6 +63,11 @@ public class Evento implements ICasilla {
     @Override
     public String getNombreCasilla() {
         return nombreCasilla;
+    }
+
+    @Override
+    public void setTipoCasilla(Tipo tipoCasilla) {
+        this.tipoCasilla = tipoCasilla;
     }
 
     @Override
