@@ -9,7 +9,6 @@ import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
@@ -92,7 +91,16 @@ public class GameApplication extends SimpleApplication {
     @Override
     public void simpleUpdate(float tpf) {
         bulletAppState.update(tpf);
-
+        // Avanzar la FSM de los dados de forma no bloqueante
+        diceController.update(tpf);
+        // Si hay resultados listos, mostrarlos y limpiar para el próximo lanzamiento
+        Byte r0 = resultados.get(0);
+        Byte r1 = resultados.get(1);
+        if (r0 != null || r1 != null) {
+            System.out.println("Resultados dados: [" + r0 + ", " + r1 + "]");
+            resultados.set(0, null);
+            resultados.set(1, null);
+        }
     }
 
 
@@ -114,11 +122,11 @@ public class GameApplication extends SimpleApplication {
     public void simpleInitApp() {
         stateManager.attach(bulletAppState);
         loadBoardModel();
+        loadConitoModel();
         loadDicemodel();
         setupSkyEnvironment();
         setupLighting();
         setupCamera();
-        loadConitoModel();
 
         inputManager.addRawInputListener(new RawInputListener() {
             @Override
@@ -127,21 +135,22 @@ public class GameApplication extends SimpleApplication {
                      diceController.lanzarDados();
 
                      //TODO: Funciona pq espero a que se pulse otra tecla, probar en una función aparte
-                     while (true){
-                         if (resultados.get(0) != null){
-                             System.out.println(resultados.toString());
-                             resultados.set(0, null);
-                             resultados.set(1, null);
-                             System.out.println("Hola");
-                             //break;
-                         }
-                     }
+//                     while (true){
+//                         if (resultados.get(0) != null){
+//                             System.out.println(resultados.toString());
+//                             resultados.set(0, null);
+//                             resultados.set(1, null);
+//                             System.out.println("Hola");
+//                             //break;
+//                         }
+//                     }
 
                 }
                 if (evt.isPressed() && evt.getKeyCode() == KeyInput.KEY_P) {
                     System.out.println(Arrays.toString(diceController.leerDados()));
                 }
                 if (evt.isPressed() && evt.getKeyCode() == KeyInput.KEY_Y) {
+                    // Inicia el proceso no bloqueante basado en FSM. Los resultados se escribirán cuando termine.
                     diceController.lanzamientoDadosBloqueante(resultados);
                 }
             }
@@ -177,6 +186,7 @@ public class GameApplication extends SimpleApplication {
         try {
             Spatial board = assetManager.loadModel("graphics/models/Board.glb");
             RigidBodyControl boardPhysics = new RigidBodyControl(0f); // masa 0 = estático
+            board.setLocalTranslation(0, 0, 0);
             board.addControl(boardPhysics);
             rootNode.attachChild(board);
             bulletAppState.getPhysicsSpace().add(boardPhysics);
@@ -197,11 +207,12 @@ public class GameApplication extends SimpleApplication {
         try {
             Spatial dice1 = assetManager.loadModel("graphics/models/Dice.glb");
             // Agregar físicas al dado
-            RigidBodyControl dicePhysics = new RigidBodyControl(1f);// masa 1
-            dice1.setLocalRotation(new Matrix3f(0,0,0,1,1,1,0,0,0));
+            RigidBodyControl dicePhysics = new RigidBodyControl(1.5f);// masa 1
+            //dice1.setLocalRotation(new Matrix3f(0,0,0,1,1,1,0,0,0));
+
             dice1.setLocalTranslation(0f,10f,0f);
             dice1.addControl(dicePhysics);
-            dicePhysics.setRestitution(0.5f); // Rebote
+            dicePhysics.setRestitution(0f); // Rebote
             //dicePhysics.setAngularFactor(-0.1f);
             rootNode.attachChild(dice1);
             bulletAppState.getPhysicsSpace().add(dicePhysics);
@@ -221,8 +232,8 @@ public class GameApplication extends SimpleApplication {
     private void loadConitoModel(){
         try {
             Spatial conito = assetManager.loadModel("graphics/models/Conito.glb");
-            // Agregar físicas al dado
             RigidBodyControl conitoPhysics = new RigidBodyControl(0f);// masa 1
+            conito.setLocalTranslation(0, 0, 0);
             conito.addControl(conitoPhysics);
             //conitoPhysics.setRestitution(2f); // Rebote
             //dicePhysics.setAngularFactor(-0.1f);

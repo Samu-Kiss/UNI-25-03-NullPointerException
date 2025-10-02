@@ -42,7 +42,7 @@ public class Dado {
     public void moverDado(){
         RigidBodyControl control = spatial.getControl(RigidBodyControl.class);
         control.applyImpulse(new Vector3f(0, 5, 0), Vector3f.ZERO);
-        control.applyTorqueImpulse(new Vector3f((float)Math.random()*0.4f, (float)Math.random()*0.1f, (float)Math.random()*0.2f));
+        control.applyTorqueImpulse(new Vector3f((float)Math.random()*0.4f, (float)Math.random()*0.1f, (float)Math.random()*0.05f));
         //spatial.setLocalTranslation(0f, 10f, 0f);
         spatial.setLocalRotation(new Matrix3f((float)Math.random(), (float)Math.random(), (float)Math.random(),
                                         (float)Math.random(), 0, 0,
