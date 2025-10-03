@@ -17,6 +17,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
+// TODO: Agregar boton de regreso en la parte superior izquierda de cada menu
+// TODO: Separar la logica de los menus en el paquete controller
+
 /**
  * Aplicación principal de JMonkeyEngine 3 para el juego Pontiland.
  *
@@ -37,6 +40,7 @@ public class GameApplication extends SimpleApplication {
   private MenuPrincipal menuPrincipal;
   private MenuJugadores menuJugadores;
   private MenuCarga menuCarga;
+  private MenuCreditos menuCreditos;
   private boolean gameStarted = false;
   private int selectedPlayerCount = 0;
 
@@ -310,5 +314,50 @@ public class GameApplication extends SimpleApplication {
   public void startPlayerSelection() {
     menuJugadores = new MenuJugadores();
     stateManager.attach(menuJugadores);
+  }
+
+  /**
+   * Muestra la pantalla de créditos con opción de volver al menú principal. Si existen variables de
+   * entorno GITHUB_REPO_OWNER y GITHUB_REPO_NAME, se hará fetch de los contribuidores de ese
+   * repositorio.
+   */
+  public void showCredits() {
+    String owner = System.getenv("GITHUB_REPO_OWNER");
+    String repo = System.getenv("GITHUB_REPO_NAME");
+    if (owner != null && !owner.isBlank() && repo != null && !repo.isBlank()) {
+      showCredits(owner.trim(), repo.trim(), 10);
+      return;
+    }
+
+    // Cerrar menú principal si está visible
+    if (menuPrincipal != null) {
+      stateManager.detach(menuPrincipal);
+      menuPrincipal = null;
+    }
+    // Cerrar créditos previos si existían
+    if (menuCreditos != null) {
+      stateManager.detach(menuCreditos);
+      menuCreditos = null;
+    }
+
+    menuCreditos = new MenuCreditos(() -> showStartScreen());
+    stateManager.attach(menuCreditos);
+  }
+
+  /** Muestra la pantalla de créditos y obtiene contribuidores del repo indicado. */
+  public void showCredits(String owner, String repo, int limit) {
+    // Cerrar menú principal si está visible
+    if (menuPrincipal != null) {
+      stateManager.detach(menuPrincipal);
+      menuPrincipal = null;
+    }
+    // Cerrar créditos previos si existían
+    if (menuCreditos != null) {
+      stateManager.detach(menuCreditos);
+      menuCreditos = null;
+    }
+
+    menuCreditos = new MenuCreditos(() -> showStartScreen(), owner, repo, limit);
+    stateManager.attach(menuCreditos);
   }
 }

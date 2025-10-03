@@ -347,8 +347,6 @@ public class MenuPrincipal extends AbstractAppState {
    * @param option 1 -> Iniciar, 2 -> Cargar, 3 -> Créditos
    */
   private void nextMenu(int option) {
-    // TODO: Implementar carga de partida y créditos
-
     cleanup();
     switch (option) {
       case 1 -> {
@@ -360,8 +358,8 @@ public class MenuPrincipal extends AbstractAppState {
         ((GameApplication) app).loadSavedGame();
       }
       case 3 -> {
-        // Mostrar créditos (no implementado)
-        System.out.println("Créditos - No implementado");
+        // Abrir pantalla de créditos con contribuidores del repo indicado
+        ((GameApplication) app).showCredits("Samu-Kiss", "UNI-25-03-NullPointerException", 15);
       }
     }
   }

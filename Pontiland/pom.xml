@@ -44,6 +44,12 @@
       <artifactId>lemur</artifactId>
       <version>1.16.0</version>
     </dependency>
+    <!-- JSON parsing for GitHub API responses -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.17.2</version>
+    </dependency>
   </dependencies>
 
   <build>
