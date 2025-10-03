@@ -263,11 +263,11 @@ public class GameApplication extends SimpleApplication {
     // Por ejemplo, mostrar un diálogo de selección o cargar el último guardado.
   }
 
-    /**
-     * Inicia la selección de jugadores (placeholder).
-     *
-     * <p>Actualmente no implementado; en el futuro debe abrir la interfaz de selección de jugadores.
-     */
+  /**
+   * Inicia la selección de jugadores (placeholder).
+   *
+   * <p>Actualmente no implementado; en el futuro debe abrir la interfaz de selección de jugadores.
+   */
   public void startPlayerSelection() {
     menuJugadores = new MenuJugadores();
     stateManager.attach(menuJugadores);

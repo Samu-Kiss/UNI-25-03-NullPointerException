@@ -1,5 +1,3 @@
 package com.NullPtr.Pontiland.view;
 
-public class MenuCarga {
-
-}
+public class MenuCarga {}
