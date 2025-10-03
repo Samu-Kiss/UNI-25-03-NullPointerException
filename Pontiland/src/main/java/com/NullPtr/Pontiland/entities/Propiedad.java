@@ -1,6 +1,5 @@
 package com.NullPtr.Pontiland.entities;
 
-import com.NullPtr.Pontiland.enums.Tipo;
 
 /**
  * Clase que representa una propiedad en el juego
@@ -9,10 +8,10 @@ public class Propiedad implements ICasilla{
     private byte idPropiedad = -1;
     //REVIEW: Id grupo podría ser eliminado si se usa una matriz de propiedades para separarlas por grupo
     private byte idGrupo = -1;
+    private Tipo tipoCasilla = Tipo.PROPIEDAD;
     private String nombreCasilla = null;
     private Byte posicionTablero = -1;
     private byte nivelPropiedad = 1;
-    private Tipo tipoCasilla = Tipo.PROPIEDAD;
     private int precioCompra = -1;
     private int[] rentaPorNivel = null;
     private Jugador dueno = null;
@@ -117,6 +116,7 @@ public class Propiedad implements ICasilla{
     public String getNombreCasilla() {
         return this.nombreCasilla;
     }
+
 
     @Override
     public void setTipoCasilla(Tipo tipoCasilla) {

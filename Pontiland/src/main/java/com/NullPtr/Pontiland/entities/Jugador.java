@@ -1,7 +1,5 @@
 package com.NullPtr.Pontiland.entities;
 
-import com.NullPtr.Pontiland.enums.Estado;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +11,7 @@ public class Jugador {
     private byte jugadorId = -1;
     private String nombreJugador = "";
     private byte posicion = 1;
-    private Estado estado = Estado.MOVIMIENTO;
+    private boolean enCarcel = false;
     private Double dinero = 0.0;
     private List<Propiedad> propiedades;
 
@@ -47,11 +45,10 @@ public class Jugador {
      * @param jugadorId Identificador único del jugador
      * @param posicion Posicion del jugador en el tablero
      * @param propiedades Lista de propiedades que posee el jugador
-     * @param estado Estado actual del jugador (en movimiento, en la carcel, en bancarrota)
      * @throws IllegalArgumentException si el dinero es negativo, los IDs son negativos,
      * el nombre está vacío, si la posicion es inválida
      */
-    public Jugador(Double dinero, String nombreJugador, byte jugadorId, Estado estado,byte posicion, List<Propiedad> propiedades) {
+    public Jugador(Double dinero, String nombreJugador, byte jugadorId,byte posicion, List<Propiedad> propiedades) {
         if (dinero < 0) {
             throw new IllegalArgumentException("El dinero no puede ser negativo");
         }
@@ -66,7 +63,6 @@ public class Jugador {
         this.nombreJugador = nombreJugador;
         this.jugadorId = jugadorId;
         this.posicion = posicion;
-        this.estado = estado;
         this.propiedades = propiedades;
     }
 
@@ -100,14 +96,11 @@ public class Jugador {
         this.posicion = posicion;
     }
 
-    public Estado getEstado() {
-        return estado;
+    public boolean getEstado() {
+        return enCarcel;
     }
-    public void setEstado(Estado estado) {
-        if (estado == null) {
-            throw new IllegalArgumentException("El estado del jugador no puede ser nulo");
-        }
-        this.estado = estado;
+    public void setEstado(boolean enCarcel) {
+        this.enCarcel = enCarcel;
     }
 
     /*

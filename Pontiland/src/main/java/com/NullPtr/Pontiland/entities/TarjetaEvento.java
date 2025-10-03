@@ -1,6 +1,13 @@
 package com.NullPtr.Pontiland.entities;
 
-import com.NullPtr.Pontiland.enums.Accion;
+/**
+ * Enum que representa las posibles acciones que una tarjeta de evento puede tener
+ */
+enum Accion {
+    BAJAR_NIVEL, AUMENTAR_NIVEL, PROPIEDAD_NIVEL1, PROPIEDAD_NIVEL5,
+    COBRO_JUGADOR,
+    ABONO_JUGADOR50, ABONO_JUGADOR100, ABONO_JUGADOR200
+}
 
 /**
  * Clase que representa una tarjeta de evento en el juego.

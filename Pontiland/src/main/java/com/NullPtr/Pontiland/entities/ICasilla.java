@@ -1,7 +1,5 @@
 package com.NullPtr.Pontiland.entities;
 
-import com.NullPtr.Pontiland.enums.Tipo;
-
 /**
  * Clase que representa una casilla en el tablero de juego
  * Cada casilla tiene por lo menos una posición y un nombre
