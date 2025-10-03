@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
-// TODO: Agregar boton de regreso en la parte superior izquierda de cada menu
 // TODO: Separar la logica de los menus en el paquete controller
 
 /**
@@ -359,5 +358,27 @@ public class GameApplication extends SimpleApplication {
 
     menuCreditos = new MenuCreditos(() -> showStartScreen(), owner, repo, limit);
     stateManager.attach(menuCreditos);
+  }
+
+  /** Vuelve al menú principal desde cualquier estado. */
+  public void goToMainMenu() {
+    // Detach posibles menús activos
+    if (menuJugadores != null) {
+      stateManager.detach(menuJugadores);
+      menuJugadores = null;
+    }
+    if (menuCarga != null) {
+      stateManager.detach(menuCarga);
+      menuCarga = null;
+    }
+    if (menuCreditos != null) {
+      stateManager.detach(menuCreditos);
+      menuCreditos = null;
+    }
+    if (menuPrincipal != null) {
+      stateManager.detach(menuPrincipal);
+      menuPrincipal = null;
+    }
+    showStartScreen();
   }
 }

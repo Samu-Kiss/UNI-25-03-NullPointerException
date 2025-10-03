@@ -17,6 +17,7 @@ import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.Label;
+import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.event.CursorEventControl;
@@ -49,6 +50,7 @@ public class MenuJugadores extends AbstractAppState {
   // Contenedores izquierda/derecha
   private Container leftPane;
   private Container rightPane;
+  private Container backBar;
 
   // Parámetros visuales de los sprites (tamaño y hover)
   private static final float SPRITE_SCALE = 0.6f;
@@ -197,6 +199,40 @@ public class MenuJugadores extends AbstractAppState {
     // Adjuntar al guiNode (backdrop primero, luego panes)
     guiNode.attachChild(leftPane);
     guiNode.attachChild(rightPane);
+
+    // Overlay: botón volver arriba-izquierda
+    backBar = new Container("pontiland");
+    backBar.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.16f, 0.18f, 0.22f, 0.85f)));
+    backBar.setInsets(new com.simsilica.lemur.Insets3f(6, 10, 6, 10));
+
+    Container row = new Container(new BorderLayout(), "pontiland");
+
+    // Icono de flecha con sprite
+    TextureKey key = new TextureKey("graphics/sprites/Icon_Back_White.png", true);
+    key.setGenerateMips(false);
+    Texture2D iconTex = (Texture2D) this.app.getAssetManager().loadTexture(key);
+    iconTex.setWrap(Texture.WrapMode.EdgeClamp);
+    iconTex.setMagFilter(Texture.MagFilter.Bilinear);
+    iconTex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+
+    Button iconBtn = new Button("", "pontiland");
+    iconBtn.setBackground(new QuadBackgroundComponent(iconTex));
+    iconBtn.setPreferredSize(new Vector3f(24, 24, 0));
+    iconBtn.setInsets(new com.simsilica.lemur.Insets3f(0, 0, 0, 6));
+    iconBtn.addClickCommands(src -> ((GameApplication) app).goToMainMenu());
+
+    Button textBtn = new Button("Volver", "pontiland");
+    textBtn.setFontSize(16);
+    textBtn.setInsets(new com.simsilica.lemur.Insets3f(2, 6, 2, 6));
+    textBtn.addClickCommands(src -> ((GameApplication) app).goToMainMenu());
+
+    row.addChild(iconBtn, BorderLayout.Position.West);
+    row.addChild(textBtn, BorderLayout.Position.Center);
+
+    backBar.addChild(row);
+
+    backBar.setLocalTranslation(10, camera.getHeight() - 10, 1);
+    guiNode.attachChild(backBar);
   }
 
   /**
@@ -383,6 +419,9 @@ public class MenuJugadores extends AbstractAppState {
     }
     if (backdrop != null && backdrop.getParent() != null) {
       backdrop.removeFromParent();
+    }
+    if (backBar != null && backBar.getParent() != null) {
+      backBar.removeFromParent();
     }
     super.cleanup();
     // Limpiar estado de animación

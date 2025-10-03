@@ -3,15 +3,19 @@ package com.NullPtr.Pontiland.view;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
+import com.jme3.asset.TextureKey;
 import com.jme3.input.InputManager;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
+import com.jme3.texture.Texture;
+import com.jme3.texture.Texture2D;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.Label;
+import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.style.Styles;
 import java.util.Collections;
@@ -52,6 +56,7 @@ public class MenuCarga extends AbstractAppState {
   private Container backdrop;
   private Container leftPane;
   private Container rightPane;
+  private Container backBar;
 
   public MenuCarga(List<SavedGame> saves, Consumer<String> onSelect) {
     this.saves = saves == null ? Collections.emptyList() : saves;
@@ -159,6 +164,38 @@ public class MenuCarga extends AbstractAppState {
 
     guiNode.attachChild(leftPane);
     guiNode.attachChild(rightPane);
+
+    // Overlay: botón volver arriba-izquierda (icono + texto)
+    backBar = new Container("pontiland");
+    backBar.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.16f, 0.18f, 0.22f, 0.85f)));
+    backBar.setInsets(new com.simsilica.lemur.Insets3f(6, 10, 6, 10));
+
+    Container row = new Container(new BorderLayout(), "pontiland");
+
+    TextureKey key = new TextureKey("graphics/sprites/Icon_Back_White.png", true);
+    key.setGenerateMips(false);
+    Texture2D iconTex = (Texture2D) this.app.getAssetManager().loadTexture(key);
+    iconTex.setWrap(Texture.WrapMode.EdgeClamp);
+    iconTex.setMagFilter(Texture.MagFilter.Bilinear);
+    iconTex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+
+    Button iconBtn = new Button("", "pontiland");
+    iconBtn.setBackground(new QuadBackgroundComponent(iconTex));
+    iconBtn.setPreferredSize(new Vector3f(24, 24, 0));
+    iconBtn.setInsets(new com.simsilica.lemur.Insets3f(0, 0, 0, 6));
+    iconBtn.addClickCommands(src -> ((GameApplication) app).goToMainMenu());
+
+    Button textBtn = new Button("Volver", "pontiland");
+    textBtn.setFontSize(16);
+    textBtn.setInsets(new com.simsilica.lemur.Insets3f(2, 6, 2, 6));
+    textBtn.addClickCommands(src -> ((GameApplication) app).goToMainMenu());
+
+    row.addChild(iconBtn, BorderLayout.Position.West);
+    row.addChild(textBtn, BorderLayout.Position.Center);
+    backBar.addChild(row);
+
+    backBar.setLocalTranslation(10, camera.getHeight() - 10, 1);
+    guiNode.attachChild(backBar);
   }
 
   private Button createSaveItemButton(SavedGame sg) {
@@ -203,6 +240,9 @@ public class MenuCarga extends AbstractAppState {
     }
     if (backdrop != null && backdrop.getParent() != null) {
       backdrop.removeFromParent();
+    }
+    if (backBar != null && backBar.getParent() != null) {
+      backBar.removeFromParent();
     }
     super.cleanup();
   }
