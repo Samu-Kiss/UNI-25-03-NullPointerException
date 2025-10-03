@@ -334,8 +334,8 @@ public class MenuPrincipal extends AbstractAppState {
 
         // Aplicar escala final
         btn.setLocalScale(s, s, 1f);
-      } catch (Exception exception) {
-        System.out.println("Error en la escala del botón: " + exception.getMessage());
+      } catch (NullPointerException | IllegalArgumentException ex) {
+        ex.printStackTrace();
       }
     }
   }

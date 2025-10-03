@@ -227,8 +227,14 @@ public class MenuCreditos extends AbstractAppState {
                   try {
                     img = downloadAvatar(c.avatarUrl, AVATAR_SIZE);
                     img = makeCircular(img, AVATAR_SIZE);
-                  } catch (Exception ignore) {
+                  } catch (Exception ex) {
                     img = makePlaceholderCircle(AVATAR_SIZE);
+                    System.err.println(
+                        "Failed to download or process avatar for "
+                            + c.login
+                            + ": "
+                            + ex.getMessage());
+                    ex.printStackTrace();
                   }
                   data.add(new Object[] {c.login, c.htmlUrl, img});
                 }
