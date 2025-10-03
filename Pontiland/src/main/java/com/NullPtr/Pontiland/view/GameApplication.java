@@ -1,5 +1,6 @@
 package com.NullPtr.Pontiland.view;
 
+import com.NullPtr.Pontiland.controllers.MenuController;
 import com.jme3.app.SimpleApplication;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
@@ -13,11 +14,8 @@ import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 import java.awt.*;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
-
-// TODO: Separar la logica de los menus en el paquete controller
 
 /**
  * Aplicación principal de JMonkeyEngine 3 para el juego Pontiland.
@@ -36,12 +34,7 @@ import java.util.function.Consumer;
  */
 public class GameApplication extends SimpleApplication {
 
-  private MenuPrincipal menuPrincipal;
-  private MenuJugadores menuJugadores;
-  private MenuCarga menuCarga;
-  private MenuCreditos menuCreditos;
-  private boolean gameStarted = false;
-  private int selectedPlayerCount = 0;
+  private MenuController menuController;
 
   /**
    * Método principal que inicia la aplicación del juego.
@@ -85,41 +78,69 @@ public class GameApplication extends SimpleApplication {
    */
   @Override
   public void simpleInitApp() {
+    // Inicializar controlador de menús y mostrar pantalla de inicio
+    this.menuController = new MenuController(this);
     // Inicializar la pantalla de inicio
-    showStartScreen();
+    menuController.showStartScreen();
   }
 
+  // ========== Accesores de controlador ==========
+  public MenuController getMenuController() {
+    return menuController;
+  }
+
+  // ========== Delegaciones para compatibilidad con vistas ==========
   /** Muestra la pantalla de inicio para selección de jugadores. */
   private void showStartScreen() {
-    menuPrincipal = new MenuPrincipal();
-    stateManager.attach(menuPrincipal);
+    if (menuController != null) menuController.showStartScreen();
   }
 
-  /**
-   * Inicia el juego principal con el número de jugadores seleccionado.
-   *
-   * @param playerCount Número de jugadores para la partida
-   */
+  /** Inicia el juego principal con el número de jugadores seleccionado. */
   public void startMainGame(int playerCount) {
-    this.selectedPlayerCount = playerCount;
-    this.gameStarted = true;
-
-    // Remover la pantalla de inicio si está activa
-    if (menuPrincipal != null) {
-      stateManager.detach(menuPrincipal);
-      menuPrincipal = null;
-    }
-
-    // Configurar cursor para el modo 3D (usualmente se oculta para navegación de cámara)
-    // Pero lo mantenemos visible por si necesitamos interactuar con UI
-    inputManager.setCursorVisible(true);
-
-    // Inicializar el juego 3D
-    initializeGame3D();
-
-    System.out.println("Juego iniciado con " + playerCount + " jugadores");
+    if (menuController != null) menuController.startMainGame(playerCount);
   }
 
+  /** Obtiene el número de jugadores seleccionado. */
+  public int getSelectedPlayerCount() {
+    return menuController != null ? menuController.getSelectedPlayerCount() : 0;
+  }
+
+  /** Verifica si el juego ya ha sido iniciado. */
+  public boolean isGameStarted() {
+    return menuController != null && menuController.isGameStarted();
+  }
+
+  /** Carga una partida guardada abriendo el menú de carga. */
+  public void loadSavedGame() {
+    if (menuController != null) menuController.loadSavedGame();
+  }
+
+  /** Muestra el menú de carga con la lista de partidas y un callback al seleccionar. */
+  public void showLoadMenu(List<MenuCarga.SavedGame> saves, Consumer<String> onSelect) {
+    if (menuController != null) menuController.showLoadMenu(saves, onSelect);
+  }
+
+  /** Inicia la selección de jugadores. */
+  public void startPlayerSelection() {
+    if (menuController != null) menuController.startPlayerSelection();
+  }
+
+  /** Muestra la pantalla de créditos. */
+  public void showCredits() {
+    if (menuController != null) menuController.showCredits();
+  }
+
+  /** Muestra la pantalla de créditos con repo. */
+  public void showCredits(String owner, String repo, int limit) {
+    if (menuController != null) menuController.showCredits(owner, repo, limit);
+  }
+
+  /** Vuelve al menú principal desde cualquier estado. */
+  public void goToMainMenu() {
+    if (menuController != null) menuController.goToMainMenu();
+  }
+
+  // ========== Inicialización de escena 3D ==========
   /**
    * Inicializa la escena 3D del juego.
    *
@@ -127,29 +148,11 @@ public class GameApplication extends SimpleApplication {
    * y cielo 3. Configuración del sistema de iluminación 4. Posicionamiento y configuración de la
    * cámara
    */
-  private void initializeGame3D() {
+  public void initializeGame3D() {
     loadBoardModel();
     setupSkyEnvironment();
     setupLighting();
     setupCamera();
-  }
-
-  /**
-   * Obtiene el número de jugadores seleccionado.
-   *
-   * @return Número de jugadores de la partida actual
-   */
-  public int getSelectedPlayerCount() {
-    return selectedPlayerCount;
-  }
-
-  /**
-   * Verifica si el juego ya ha sido iniciado.
-   *
-   * @return true si el juego está en curso, false si está en la pantalla de inicio
-   */
-  public boolean isGameStarted() {
-    return gameStarted;
   }
 
   /**
@@ -160,9 +163,6 @@ public class GameApplication extends SimpleApplication {
    * respaldo para asegurar que la escena no esté vacía durante el desarrollo.
    *
    * <p>Ruta del archivo: graphics/models/Board.glb (relativa a src/main/resources)
-   *
-   * @throws Exception Si hay problemas con la carga del modelo, se captura y se usa el objeto de
-   *     respaldo
    */
   private void loadBoardModel() {
     // Cargar modelo del tablero (GLB). La ruta es relativa al classpath (src/main/resources)
@@ -256,129 +256,5 @@ public class GameApplication extends SimpleApplication {
     // Configuraciones mejoradas de recorte de cámara para mejor rango de enfoque
     // Campo de visión más amplio y planos cercano/lejano optimizados para mantener todo enfocado
     cam.setFrustumPerspective(60f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 500f);
-  }
-
-  /**
-   * Carga una partida guardada abriendo el menú de carga con datos de ejemplo. En una
-   * implementación real, sustituir la lista por partidas desde persistencia.
-   */
-  public void loadSavedGame() {
-    // Si venimos del menú principal, desanclarlo (el propio menú invoca cleanup() antes de llamar
-    // aquí)
-    if (menuPrincipal != null) {
-      stateManager.detach(menuPrincipal);
-      menuPrincipal = null;
-    }
-
-    // Datos de ejemplo; reemplazar por repositorio/servicio real
-    List<MenuCarga.SavedGame> saves =
-        Arrays.asList(
-            new MenuCarga.SavedGame("save-001", "Partida #1 - 2025-10-03 18:30"),
-            new MenuCarga.SavedGame("save-002", "Partida #2 - 2025-10-02 11:05"),
-            new MenuCarga.SavedGame("save-003", "Partida #3 - 2025-09-28 21:10"));
-
-    // Abrir el menú de carga; al seleccionar, recibimos el id
-    showLoadMenu(
-        saves,
-        (String id) -> {
-          System.out.println("[Pontiland] Seleccionado guardado: " + id);
-          // TODO: aquí iría la lógica de carga real de la partida id
-          // Tras seleccionar, regresar a la pantalla de inicio por ahora
-          showStartScreen();
-        });
-  }
-
-  /**
-   * Muestra el menú de carga con la lista de partidas y un callback al seleccionar.
-   *
-   * @param saves lista de partidas a mostrar
-   * @param onSelect callback que recibe el id seleccionado
-   */
-  public void showLoadMenu(List<MenuCarga.SavedGame> saves, Consumer<String> onSelect) {
-    // Cerrar si ya hay un menú de carga activo
-    if (menuCarga != null) {
-      stateManager.detach(menuCarga);
-      menuCarga = null;
-    }
-
-    menuCarga = new MenuCarga(saves, onSelect);
-    stateManager.attach(menuCarga);
-  }
-
-  /**
-   * Inicia la selección de jugadores (placeholder).
-   *
-   * <p>Actualmente no implementado; en el futuro debe abrir la interfaz de selección de jugadores.
-   */
-  public void startPlayerSelection() {
-    menuJugadores = new MenuJugadores();
-    stateManager.attach(menuJugadores);
-  }
-
-  /**
-   * Muestra la pantalla de créditos con opción de volver al menú principal. Si existen variables de
-   * entorno GITHUB_REPO_OWNER y GITHUB_REPO_NAME, se hará fetch de los contribuidores de ese
-   * repositorio.
-   */
-  public void showCredits() {
-    String owner = System.getenv("GITHUB_REPO_OWNER");
-    String repo = System.getenv("GITHUB_REPO_NAME");
-    if (owner != null && !owner.isBlank() && repo != null && !repo.isBlank()) {
-      showCredits(owner.trim(), repo.trim(), 10);
-      return;
-    }
-
-    // Cerrar menú principal si está visible
-    if (menuPrincipal != null) {
-      stateManager.detach(menuPrincipal);
-      menuPrincipal = null;
-    }
-    // Cerrar créditos previos si existían
-    if (menuCreditos != null) {
-      stateManager.detach(menuCreditos);
-      menuCreditos = null;
-    }
-
-    menuCreditos = new MenuCreditos(() -> showStartScreen());
-    stateManager.attach(menuCreditos);
-  }
-
-  /** Muestra la pantalla de créditos y obtiene contribuidores del repo indicado. */
-  public void showCredits(String owner, String repo, int limit) {
-    // Cerrar menú principal si está visible
-    if (menuPrincipal != null) {
-      stateManager.detach(menuPrincipal);
-      menuPrincipal = null;
-    }
-    // Cerrar créditos previos si existían
-    if (menuCreditos != null) {
-      stateManager.detach(menuCreditos);
-      menuCreditos = null;
-    }
-
-    menuCreditos = new MenuCreditos(() -> showStartScreen(), owner, repo, limit);
-    stateManager.attach(menuCreditos);
-  }
-
-  /** Vuelve al menú principal desde cualquier estado. */
-  public void goToMainMenu() {
-    // Detach posibles menús activos
-    if (menuJugadores != null) {
-      stateManager.detach(menuJugadores);
-      menuJugadores = null;
-    }
-    if (menuCarga != null) {
-      stateManager.detach(menuCarga);
-      menuCarga = null;
-    }
-    if (menuCreditos != null) {
-      stateManager.detach(menuCreditos);
-      menuCreditos = null;
-    }
-    if (menuPrincipal != null) {
-      stateManager.detach(menuPrincipal);
-      menuPrincipal = null;
-    }
-    showStartScreen();
   }
 }
