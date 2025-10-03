@@ -55,7 +55,7 @@ CREATE TABLE Jugador (
     Posicion INT NOT NULL DEFAULT 1,
     Encarcelado BOOLEAN NOT NULL DEFAULT FALSE,
     Dinero INT NOT NULL DEFAULT 1500,
-    Partida INT NOT NULL,
+    Partida BIGINT NOT NULL,
     FOREIGN KEY (IconoID) REFERENCES Icono(IconoID) ON DELETE CASCADE,
     FOREIGN KEY (Partida) REFERENCES Partida(PartidaID) ON DELETE CASCADE,
     FOREIGN KEY (Posicion) REFERENCES Casilla(PosicionTablero) ON DELETE CASCADE
@@ -74,7 +74,7 @@ CREATE TABLE Adquisiciones (
 
 --Relación partida-jugador activo (Jugador de turno)
 CREATE TABLE JugadorActivo (
-    PartidaID INT NOT NULL UNIQUE,
+    PartidaID BIGINT NOT NULL UNIQUE,
     JugadorActualID INT NOT NULL,
     PRIMARY KEY (PartidaID, JugadorActualID),
     FOREIGN KEY (PartidaID) REFERENCES Partida(PartidaID) ON DELETE CASCADE,
