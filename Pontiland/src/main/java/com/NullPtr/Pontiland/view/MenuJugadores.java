@@ -187,12 +187,6 @@ public class MenuJugadores extends AbstractAppState {
     Vector3f titlePref = subtitle.getPreferredSize().clone();
     subtitle.setPreferredSize(new Vector3f(rowPref.x, titlePref.y, 0));
 
-    // Contenedor separado para "Cargar partida" (sin animación)
-    Container loadContainer = rightPane.addChild(new Container("pontiland"));
-    loadContainer.setInsets(new com.simsilica.lemur.Insets3f(24, 0, 10, 0));
-    Button loadBtn = createLoadButton();
-    loadContainer.addChild(loadBtn);
-
     // Centrar el panel derecho en su mitad de pantalla
     Vector3f rightPref = rightPane.getPreferredSize();
     rightPane.setPreferredSize(rightPref);
