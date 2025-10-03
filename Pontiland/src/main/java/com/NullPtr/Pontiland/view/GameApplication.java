@@ -13,6 +13,9 @@ import com.jme3.system.AppSettings;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 import java.awt.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Aplicación principal de JMonkeyEngine 3 para el juego Pontiland.
@@ -33,6 +36,7 @@ public class GameApplication extends SimpleApplication {
 
   private MenuPrincipal menuPrincipal;
   private MenuJugadores menuJugadores;
+  private MenuCarga menuCarga;
   private boolean gameStarted = false;
   private int selectedPlayerCount = 0;
 
@@ -252,15 +256,50 @@ public class GameApplication extends SimpleApplication {
   }
 
   /**
-   * Carga una partida guardada (placeholder).
-   *
-   * <p>De momento solo registra el evento; en el futuro debe abrir un selector de partidas o
-   * iniciar la carga desde almacenamiento.
+   * Carga una partida guardada abriendo el menú de carga con datos de ejemplo. En una
+   * implementación real, sustituir la lista por partidas desde persistencia.
    */
   public void loadSavedGame() {
-    System.out.println("[Pontiland] Cargar partida: función aún no implementada.");
-    // TODO: implementar lógica real de carga de partida.
-    // Por ejemplo, mostrar un diálogo de selección o cargar el último guardado.
+    // Si venimos del menú principal, desanclarlo (el propio menú invoca cleanup() antes de llamar
+    // aquí)
+    if (menuPrincipal != null) {
+      stateManager.detach(menuPrincipal);
+      menuPrincipal = null;
+    }
+
+    // Datos de ejemplo; reemplazar por repositorio/servicio real
+    List<MenuCarga.SavedGame> saves =
+        Arrays.asList(
+            new MenuCarga.SavedGame("save-001", "Partida #1 - 2025-10-03 18:30"),
+            new MenuCarga.SavedGame("save-002", "Partida #2 - 2025-10-02 11:05"),
+            new MenuCarga.SavedGame("save-003", "Partida #3 - 2025-09-28 21:10"));
+
+    // Abrir el menú de carga; al seleccionar, recibimos el id
+    showLoadMenu(
+        saves,
+        (String id) -> {
+          System.out.println("[Pontiland] Seleccionado guardado: " + id);
+          // TODO: aquí iría la lógica de carga real de la partida id
+          // Tras seleccionar, regresar a la pantalla de inicio por ahora
+          showStartScreen();
+        });
+  }
+
+  /**
+   * Muestra el menú de carga con la lista de partidas y un callback al seleccionar.
+   *
+   * @param saves lista de partidas a mostrar
+   * @param onSelect callback que recibe el id seleccionado
+   */
+  public void showLoadMenu(List<MenuCarga.SavedGame> saves, Consumer<String> onSelect) {
+    // Cerrar si ya hay un menú de carga activo
+    if (menuCarga != null) {
+      stateManager.detach(menuCarga);
+      menuCarga = null;
+    }
+
+    menuCarga = new MenuCarga(saves, onSelect);
+    stateManager.attach(menuCarga);
   }
 
   /**

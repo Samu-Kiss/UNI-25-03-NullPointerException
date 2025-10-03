@@ -356,8 +356,8 @@ public class MenuPrincipal extends AbstractAppState {
         ((GameApplication) app).startPlayerSelection();
       }
       case 2 -> {
-        // Cargar partida (no implementado)
-        System.out.println("Cargar partida - No implementado");
+        // Abrir menú de carga de partidas
+        ((GameApplication) app).loadSavedGame();
       }
       case 3 -> {
         // Mostrar créditos (no implementado)
