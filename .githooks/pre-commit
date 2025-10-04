@@ -11,7 +11,7 @@ git diff --quiet || git stash push -k -u -m "$STASH_NAME" > /dev/null 2>&1
 FORMAT_OK=true
 if command -v mvn >/dev/null 2>&1; then
   echo "[pre-commit] Running Spotless apply..."
-  mvn -q -pl Pontiland -am spotless:apply || FORMAT_OK=false
+  (cd Pontiland && mvn -q spotless:apply) || FORMAT_OK=false
 else
   echo "[pre-commit] Maven not found. Skipping formatting." >&2
 fi
@@ -35,7 +35,7 @@ fi
 
 # Final check to avoid committing unformatted code
 if command -v mvn >/dev/null 2>&1; then
-  mvn -q -pl Pontiland -am spotless:check || {
+  (cd Pontiland && mvn -q spotless:check) || {
     echo "[pre-commit] Code not properly formatted after apply. Aborting." >&2
     exit 1
   }

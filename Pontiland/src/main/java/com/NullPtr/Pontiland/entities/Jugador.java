@@ -4,123 +4,139 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Clase que representa a un jugador en el juego.
- * Contiene atributos como ID, nombre, icono, posicion, estado en la carcel, dinero y propiedades
+ * Clase que representa a un jugador en el juego. Contiene atributos como ID, nombre, icono,
+ * posicion, estado en la carcel, dinero y propiedades
  */
 public class Jugador {
-    private byte jugadorId = -1;
-    private String nombreJugador = "";
-    private byte posicion = 1;
-    private boolean enCarcel = false;
-    private Double dinero = 0.0;
-    private List<Propiedad> propiedades;
+  private byte jugadorId = -1;
+  private String nombreJugador = "";
+  private byte posicion = 1;
+  private boolean enCarcel = false;
+  private Double dinero = 0.0;
+  private List<Propiedad> propiedades;
 
-    /** Constructor de la clase Jugador por defecto, con posicion inicial 1 y sin propiedades
-     * @param dinero Cantidad inicial de dinero del jugador
-     * @param nombreJugador Nombre del jugador
-     * @param jugadorId Identificador único del jugador
-     * @throws IllegalArgumentException si el dinero es negativo, los IDs son negativos o el nombre está vacío
-     */
-    public Jugador(Double dinero, String nombreJugador, byte jugadorId) {
-        if (dinero < 0) {
-            throw new IllegalArgumentException("El dinero no puede ser negativo");
-        }
-        if (jugadorId > 4 || jugadorId < 1) {
-            throw new IllegalArgumentException("Identificador del jugador es inválido");
-        }
-        if (nombreJugador == null || nombreJugador.isEmpty()) {
-            throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
-        }
-
-        this.dinero = dinero;
-        this.nombreJugador = nombreJugador;
-        this.jugadorId = jugadorId;
-
-        propiedades = new ArrayList<Propiedad>();
+  /**
+   * Constructor de la clase Jugador por defecto, con posicion inicial 1 y sin propiedades
+   *
+   * @param dinero Cantidad inicial de dinero del jugador
+   * @param nombreJugador Nombre del jugador
+   * @param jugadorId Identificador único del jugador
+   * @throws IllegalArgumentException si el dinero es negativo, los IDs son negativos o el nombre
+   *     está vacío
+   */
+  public Jugador(Double dinero, String nombreJugador, byte jugadorId) {
+    if (dinero < 0) {
+      throw new IllegalArgumentException("El dinero no puede ser negativo");
+    }
+    if (jugadorId > 4 || jugadorId < 1) {
+      throw new IllegalArgumentException("Identificador del jugador es inválido");
+    }
+    if (nombreJugador == null || nombreJugador.isEmpty()) {
+      throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
     }
 
-    /** Constructor de la clase Jugador por defecto, con posicion variable y con propiedades
-     * @param dinero Cantidad inicial de dinero del jugador
-     * @param nombreJugador Nombre del jugador
-     * @param jugadorId Identificador único del jugador
-     * @param posicion Posicion del jugador en el tablero
-     * @param propiedades Lista de propiedades que posee el jugador
-     * @throws IllegalArgumentException si el dinero es negativo, los IDs son negativos,
-     * el nombre está vacío, si la posicion es inválida
-     */
-    public Jugador(Double dinero, String nombreJugador, byte jugadorId,byte posicion, List<Propiedad> propiedades) {
-        if (dinero < 0) {
-            throw new IllegalArgumentException("El dinero no puede ser negativo");
-        }
-        if (nombreJugador == null || nombreJugador.isEmpty()) {
-            throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
-        }
-        if (posicion < 1 || posicion > 40) {
-            throw new IllegalArgumentException("Posicion invalida");
-        }
+    this.dinero = dinero;
+    this.nombreJugador = nombreJugador;
+    this.jugadorId = jugadorId;
 
-        this.dinero = dinero;
-        this.nombreJugador = nombreJugador;
-        this.jugadorId = jugadorId;
-        this.posicion = posicion;
-        this.propiedades = propiedades;
-    }
+    propiedades = new ArrayList<Propiedad>();
+  }
 
-    public byte getJugadorId() {
-        return jugadorId;
+  /**
+   * Constructor de la clase Jugador por defecto, con posicion variable y con propiedades
+   *
+   * @param dinero Cantidad inicial de dinero del jugador
+   * @param nombreJugador Nombre del jugador
+   * @param jugadorId Identificador único del jugador
+   * @param posicion Posicion del jugador en el tablero
+   * @param propiedades Lista de propiedades que posee el jugador
+   * @throws IllegalArgumentException si el dinero es negativo, los IDs son negativos, el nombre
+   *     está vacío, si la posicion es inválida
+   */
+  public Jugador(
+      Double dinero,
+      String nombreJugador,
+      byte jugadorId,
+      byte posicion,
+      List<Propiedad> propiedades) {
+    if (dinero < 0) {
+      throw new IllegalArgumentException("El dinero no puede ser negativo");
     }
-    public void setJugadorId(byte jugadorId) {
-        if (jugadorId < 0 || jugadorId > 4) {
-            throw new IllegalArgumentException("Identificador del jugador es inválido");
-        }
-        this.jugadorId = jugadorId;
+    if (nombreJugador == null || nombreJugador.isEmpty()) {
+      throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
+    }
+    if (posicion < 1 || posicion > 40) {
+      throw new IllegalArgumentException("Posicion invalida");
     }
 
-    public String getNombreJugador() {
-        return nombreJugador;
-    }
-    public void setNombreJugador(String nombreJugador) {
-        if (nombreJugador == null || nombreJugador.isEmpty()) {
-            throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
-        }
-        this.nombreJugador = nombreJugador;
-    }
+    this.dinero = dinero;
+    this.nombreJugador = nombreJugador;
+    this.jugadorId = jugadorId;
+    this.posicion = posicion;
+    this.propiedades = propiedades;
+  }
 
-    public byte getPosicion() {
-        return posicion;
-    }
-    public void setPosicion(byte posicion) {
-        if (posicion < 1 || posicion > 40) {
-            throw new IllegalArgumentException("Posicion invalida");
-        }
-        this.posicion = posicion;
-    }
+  public byte getJugadorId() {
+    return jugadorId;
+  }
 
-    public boolean getEstado() {
-        return enCarcel;
+  public void setJugadorId(byte jugadorId) {
+    if (jugadorId < 0 || jugadorId > 4) {
+      throw new IllegalArgumentException("Identificador del jugador es inválido");
     }
-    public void setEstado(boolean enCarcel) {
-        this.enCarcel = enCarcel;
-    }
+    this.jugadorId = jugadorId;
+  }
 
-    /*
-        * TODO: los getter y setter de dinero no son realmente necesarios
-        *  Dinero podría ser publico
-     */
-    public Double getDinero() {
-        return dinero;
-    }
-    public void setDinero(Double dinero) {
-        this.dinero = dinero;
-    }
+  public String getNombreJugador() {
+    return nombreJugador;
+  }
 
-    public List<Propiedad> getPropiedades() {
-        return propiedades;
+  public void setNombreJugador(String nombreJugador) {
+    if (nombreJugador == null || nombreJugador.isEmpty()) {
+      throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
     }
-    public void setPropiedades(List<Propiedad> propiedades) {
-        if (propiedades == null) {
-            throw new IllegalArgumentException("La lista de propiedades no puede ser nula");
-        }
-        this.propiedades = propiedades;
+    this.nombreJugador = nombreJugador;
+  }
+
+  public byte getPosicion() {
+    return posicion;
+  }
+
+  public void setPosicion(byte posicion) {
+    if (posicion < 1 || posicion > 40) {
+      throw new IllegalArgumentException("Posicion invalida");
     }
+    this.posicion = posicion;
+  }
+
+  public boolean getEstado() {
+    return enCarcel;
+  }
+
+  public void setEstado(boolean enCarcel) {
+    this.enCarcel = enCarcel;
+  }
+
+  /*
+   * TODO: los getter y setter de dinero no son realmente necesarios
+   *  Dinero podría ser publico
+   */
+  public Double getDinero() {
+    return dinero;
+  }
+
+  public void setDinero(Double dinero) {
+    this.dinero = dinero;
+  }
+
+  public List<Propiedad> getPropiedades() {
+    return propiedades;
+  }
+
+  public void setPropiedades(List<Propiedad> propiedades) {
+    if (propiedades == null) {
+      throw new IllegalArgumentException("La lista de propiedades no puede ser nula");
+    }
+    this.propiedades = propiedades;
+  }
 }
