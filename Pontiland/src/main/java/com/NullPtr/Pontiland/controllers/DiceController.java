@@ -31,7 +31,7 @@ public class DiceController{
     public void lanzarDados() {
         for (Dado dado : dados) {
             if (dado != null){
-                dado.moverDado();
+                dado.lanzar();
             }
         }
     }
@@ -78,7 +78,7 @@ public class DiceController{
             case CHECK_MOVIMIENTO:
                 boolean enMovimiento = false;
                 for (Dado dado : dados) {
-                    if (dado != null && dado.estaMoviendose()) {
+                    if (dado != null && dado.enMovimiento()) {
                         enMovimiento = true;
                         break;
                     }

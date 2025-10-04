@@ -1,7 +1,6 @@
 package com.NullPtr.Pontiland.entities;
 
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import java.util.ArrayList;
@@ -39,23 +38,39 @@ public class Dado {
         return caraArriba != null ? caraArriba.getValor() : -1;
     }
 
-    public void moverDado(){
+    /*public void moverDado(){
         RigidBodyControl control = spatial.getControl(RigidBodyControl.class);
         control.applyImpulse(new Vector3f(0, 5, 0), Vector3f.ZERO);
         control.applyTorqueImpulse(new Vector3f((float)Math.random()*0.4f, (float)Math.random()*0.1f, (float)Math.random()*0.05f));
-        //spatial.setLocalTranslation(0f, 10f, 0f);
         spatial.setLocalRotation(new Matrix3f((float)Math.random(), (float)Math.random(), (float)Math.random(),
                                         (float)Math.random(), 0, 0,
                                         (float)Math.random(), 0, (float)Math.random()));
         control.activate();
+    }*/
+
+    public void lanzar() {
+        RigidBodyControl rb = spatial.getControl(RigidBodyControl.class);
+
+        rb.setLinearVelocity(Vector3f.ZERO);
+        rb.setAngularVelocity(Vector3f.ZERO);
+        rb.clearForces();
+        rb.activate();
+
+        Vector3f n = new Vector3f(1, 5, 0.3f);
+        float m = rb.getMass();
+        Vector3f impulse = n.mult(1.0f * m);
+        impulse.y += 0.5f * m;
+        rb.applyImpulse(impulse, Vector3f.ZERO);
+
+        rb.applyTorqueImpulse(new Vector3f(1.0f, 0.7f, 1.2f));
 
     }
 
-    public boolean estaMoviendose() {
+    public boolean enMovimiento() {
         RigidBodyControl control = spatial.getControl(RigidBodyControl.class);
         if (control != null) {
             Vector3f velocidad = control.getLinearVelocity();
-            return velocidad.length() > 0.02f; // Umbral para considerar que se está moviendo
+            return velocidad.length() > 0.04f;
         }
         return false;
     }
