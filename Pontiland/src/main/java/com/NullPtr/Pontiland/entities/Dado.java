@@ -13,13 +13,13 @@ public class Dado {
     public Dado(Spatial spatial) {
         this.spatial = spatial;
         this.caras = new ArrayList<>();
-        // Definir las 6 caras del dado con sus normales y valores
-        caras.add(new Cara((byte) 1, new Vector3f(0 , 0 , 1 ))); // Frente
-        caras.add(new Cara((byte) 2, new Vector3f(0 , 1 , 0 ))); // Arriba
-        caras.add(new Cara((byte) 3, new Vector3f(1 , 0 , 0 ))); // Derecha
-        caras.add(new Cara((byte) 4, new Vector3f(-1, 0 , 0 ))); // Izquierda
-        caras.add(new Cara((byte) 5, new Vector3f(0 , -1, 0 ))); // Abajo
-        caras.add(new Cara((byte) 6, new Vector3f(0 , 0 , -1))); // Atrás
+// Definir las 6 caras del dado con sus normales y valores
+        caras.add(new Cara((byte)2, new Vector3f(0, 1, 0))); // Arriba
+        caras.add(new Cara((byte)5, new Vector3f(0, -1, 0))); // Abajo
+        caras.add(new Cara((byte)3, new Vector3f(1, 0, 0))); // Derecha
+        caras.add(new Cara((byte)4, new Vector3f(-1, 0, 0))); // Izquierda
+        caras.add(new Cara((byte)1, new Vector3f(0, 0, 1))); // Frente
+        caras.add(new Cara((byte)6, new Vector3f(0, 0, -1))); // Atrás
     }
 
     public byte getCaraSuperior() {
@@ -37,6 +37,16 @@ public class Dado {
         }
         return caraArriba != null ? caraArriba.getValor() : -1;
     }
+
+    /*public void moverDado(){
+        RigidBodyControl control = spatial.getControl(RigidBodyControl.class);
+        control.applyImpulse(new Vector3f(0, 5, 0), Vector3f.ZERO);
+        control.applyTorqueImpulse(new Vector3f((float)Math.random()*0.4f, (float)Math.random()*0.1f, (float)Math.random()*0.05f));
+        spatial.setLocalRotation(new Matrix3f((float)Math.random(), (float)Math.random(), (float)Math.random(),
+                                        (float)Math.random(), 0, 0,
+                                        (float)Math.random(), 0, (float)Math.random()));
+        control.activate();
+    }*/
 
     public void lanzar() {
         RigidBodyControl rb = spatial.getControl(RigidBodyControl.class);

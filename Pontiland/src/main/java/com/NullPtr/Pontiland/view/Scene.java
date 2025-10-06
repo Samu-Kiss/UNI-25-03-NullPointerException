@@ -1,9 +1,7 @@
 package com.NullPtr.Pontiland.view;
 
-import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.controllers.LanzamientoDadosController;
 import com.NullPtr.Pontiland.services.DiceService;
-import com.jme3.app.LegacyApplication;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
@@ -31,25 +29,27 @@ import com.jme3.util.SkyFactory;
  */
 public class Scene {
     /** Referencias a la aplicación y a sus componentes para cargar assets y manipular la escena. */
-    private LegacyApplication app;
+    private SimpleApplication app;
     private AssetManager assetManager;
     private Node rootNode;
     private Camera cam;
     private LanzamientoDadosController lanzamientoController;
+
+    /** Estado de físicas compartido, inyectado desde la aplicación. */
     private BulletAppState bullet;
     /** Servicio de dados que gestionará la lógica; se inyecta para poder establecer el Spatial del dado. */
 
     /**
      * Inicializa la escena cargando modelos, creando luces y configurando la cámara.
      *
-     * @param app           Instancia de {@link LegacyApplication} usada para acceder a rootNode, assetManager y cámara
+     * @param app           Instancia de {@link SimpleApplication} usada para acceder a rootNode, assetManager y cámara
      * @param bullet        Estado de físicas adjunto al stateManager de la aplicación
      */
-    public Scene(LegacyApplication app, BulletAppState bullet, LanzamientoDadosController lanzamientoController) {
-        Launcher L = (Launcher) app;
-        this.assetManager = L.getAssetManager();
-        this.rootNode = L.getRootNode();
-        this.cam = L.getCamera();
+    public Scene(SimpleApplication app, BulletAppState bullet, LanzamientoDadosController lanzamientoController) {
+        this.app = app;
+        this.assetManager = app.getAssetManager();
+        this.rootNode = app.getRootNode();
+        this.cam = app.getCamera();
         this.bullet = bullet;
         this.lanzamientoController = lanzamientoController;
         loadBoardModel();
@@ -193,8 +193,7 @@ public class Scene {
     private void setupCamera() {
         cam.setLocation(new Vector3f(6, 6, 10));
         cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
+        app.getFlyByCamera().setMoveSpeed(20f);
         cam.setFrustumPerspective(60f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 500f);
     }
-
-
 }

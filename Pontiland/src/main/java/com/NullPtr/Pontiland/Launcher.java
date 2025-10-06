@@ -1,13 +1,9 @@
 package com.NullPtr.Pontiland;
 
-import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.NullPtr.Pontiland.controllers.LanzamientoDadosController;
-import com.NullPtr.Pontiland.controllers.MenuController;
 import com.NullPtr.Pontiland.services.DiceService;
-import com.NullPtr.Pontiland.view.MenuPrincipal;
 import com.NullPtr.Pontiland.view.Scene;
 import com.jme3.app.SimpleApplication;
-import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.system.AppSettings;
 import java.awt.Dimension;
@@ -30,11 +26,6 @@ public class Launcher extends SimpleApplication {
     private LanzamientoDadosController lanzamientoDadosController;
     private Scene scene;
 
-    public Launcher() {
-        super(
-                new AudioListenerState()  // útil para UI/audio
-        );
-    }
     /**
      * Método de entrada principal que configura y arranca la aplicación.
      *
@@ -68,10 +59,6 @@ public class Launcher extends SimpleApplication {
         lanzamientoDadosController = new LanzamientoDadosController(diceService, resultados);
         lanzamientoDadosController.registerInputs(getInputManager());
         scene = new Scene(this, bulletAppState, lanzamientoDadosController);
-
-
-        IMenuActions actions = new MenuController(this);
-        stateManager.attach(new MenuPrincipal(actions));
     }
 
     @Override
@@ -81,12 +68,6 @@ public class Launcher extends SimpleApplication {
         }
         if (lanzamientoDadosController != null) {
             lanzamientoDadosController.update();
-        }
-    }
-
-    public void initializeGame3D() {
-        if (scene == null) {
-            scene = new Scene(this, bulletAppState, lanzamientoDadosController);
         }
     }
 }
