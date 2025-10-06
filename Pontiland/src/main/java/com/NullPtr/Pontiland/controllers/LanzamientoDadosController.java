@@ -74,7 +74,7 @@ public class LanzamientoDadosController {
         }
     }
 
-    /**z
+    /**
      * Actualización por frame. Se debe llamar desde el método simpleUpdate() de la aplicación.
      */
     public void update() {
