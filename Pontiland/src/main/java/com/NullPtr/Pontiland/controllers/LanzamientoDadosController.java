@@ -1,17 +1,11 @@
 package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.services.DiceService;
-import com.jme3.app.SimpleApplication;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.RawInputListener;
-import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.event.*;
 import com.jme3.scene.Spatial;
-// Se han eliminado numerosas importaciones relacionadas con la carga y configuración
-// de la escena porque esta responsabilidad ahora recae en la clase Scene.
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
