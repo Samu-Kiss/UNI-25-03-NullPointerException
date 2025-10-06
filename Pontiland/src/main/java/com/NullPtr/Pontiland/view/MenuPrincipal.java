@@ -1,6 +1,10 @@
 package com.NullPtr.Pontiland.view;
 
+import com.NullPtr.Pontiland.Launcher;
+import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.jme3.app.Application;
+import com.jme3.app.LegacyApplication;
+import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.TextureKey;
@@ -41,7 +45,8 @@ public class MenuPrincipal extends AbstractAppState {
   private Node guiNode;
   private InputManager inputManager;
   private Camera camera;
-  private GameApplication app;
+  private IMenuActions actions;
+  private LegacyApplication app;
 
   // Contenedor de fondo (backdrop) y paneles principales
   private Container backdrop;
@@ -69,32 +74,33 @@ public class MenuPrincipal extends AbstractAppState {
   private final Map<Button, Float> zLayers = new HashMap<>();
   private final Map<Button, Vector3f> manualOffsets = new HashMap<>();
 
-  /**
+
+    public MenuPrincipal(IMenuActions actions) {
+        this.actions = actions;
+    }
+
+    /**
    * Inicializa el estado al adjuntarse al gestor de estados. - Guarda referencias a
    * app/cámara/entrada. - Asegura la inicialización de Lemur. - Construye la UI.
    */
   @Override
   public void initialize(AppStateManager stateManager, Application app) {
-    super.initialize(stateManager, app);
-    this.app = (GameApplication) app;
-    this.inputManager = app.getInputManager();
-    this.camera = app.getCamera();
-    this.guiNode = ((GameApplication) app).getGuiNode();
+      Launcher L = (Launcher) app;
+      this.app = L;
+      this.inputManager = L.getInputManager();
+      this.camera = L.getCamera();
+      this.guiNode = L.getGuiNode();
 
-    // Mostrar el cursor del ratón para la UI
-    inputManager.setCursorVisible(true);
-
-    // Inicializar Lemur (idempotente)
-    if (GuiGlobals.getInstance() == null) {
-      GuiGlobals.initialize(app);
-    }
-    setupStyles();
-
-    // Construir la pantalla de inicio
-    buildUI();
+      inputManager.setCursorVisible(true);
+      if (GuiGlobals.getInstance() == null) {
+          GuiGlobals.initialize(app);
+      }
+      setupStyles();
+      buildUI();
   }
 
-  /**
+
+    /**
    * Define estilos básicos para contenedores y botones bajo el estilo "pontiland". Mantiene fondo
    * oscuro semi-transparente y texto claro por defecto.
    */
@@ -347,21 +353,13 @@ public class MenuPrincipal extends AbstractAppState {
    * @param option 1 -> Iniciar, 2 -> Cargar, 3 -> Créditos
    */
   private void nextMenu(int option) {
-    cleanup();
-    switch (option) {
-      case 1 -> {
-        // Ir al menu de selección de jugadores
-        ((GameApplication) app).startPlayerSelection();
+      cleanup();
+      switch (option) {
+          case 1 -> actions.startPlayerSelection();
+          case 2 -> actions.loadSavedGame();
+          case 3 -> actions.showCredits("Samu-Kiss", "UNI-25-03-NullPointerException", 15);
+          default -> actions.goToMainMenu();
       }
-      case 2 -> {
-        // Abrir menú de carga de partidas
-        ((GameApplication) app).loadSavedGame();
-      }
-      case 3 -> {
-        // Abrir pantalla de créditos con contribuidores del repo indicado
-        ((GameApplication) app).showCredits("Samu-Kiss", "UNI-25-03-NullPointerException", 15);
-      }
-    }
   }
 
   /**

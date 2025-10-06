@@ -39,6 +39,11 @@
       <artifactId>jme3-effects</artifactId>
       <version>${jme.version}</version>
     </dependency>
+      <dependency>
+          <groupId>org.jmonkeyengine</groupId>
+          <artifactId>jme3-bullet-native</artifactId>
+          <version>3.3.2-stable</version>
+      </dependency>
     <dependency>
       <groupId>com.simsilica</groupId>
       <artifactId>lemur</artifactId>

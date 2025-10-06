@@ -1,6 +1,6 @@
 package com.NullPtr.Pontiland.controllers;
 
-import com.NullPtr.Pontiland.view.GameApplication;
+import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.view.MenuCarga;
 import com.NullPtr.Pontiland.view.MenuCreditos;
 import com.NullPtr.Pontiland.view.MenuJugadores;
@@ -14,11 +14,11 @@ import java.util.function.Consumer;
  * Controlador central para manejar la navegación de menús y el inicio del juego.
  *
  * <p>Mantiene y adjunta/desadjunta los AppStates de UI según corresponda y delega al
- * GameApplication para la inicialización de la escena 3D.
+ * Launcher para la inicialización de la escena 3D.
  */
-public class MenuController {
+public class MenuController  implements IMenuActions{
 
-  private final GameApplication app;
+  private final Launcher app;
 
   private MenuPrincipal menuPrincipal;
   private MenuJugadores menuJugadores;
@@ -28,7 +28,7 @@ public class MenuController {
   private boolean gameStarted = false;
   private int selectedPlayerCount = 0;
 
-  public MenuController(GameApplication app) {
+  public MenuController(Launcher app) {
     this.app = app;
   }
 
@@ -36,7 +36,7 @@ public class MenuController {
     return app.getStateManager();
   }
 
-  // ============ Entradas desde GameApplication o la UI ============
+  // ============ Entradas desde Launcher o la UI ============
 
   /** Muestra la pantalla de inicio. */
   public void showStartScreen() {
@@ -46,26 +46,29 @@ public class MenuController {
     detachIfAttached(menuCreditos);
 
     if (menuPrincipal == null) {
-      menuPrincipal = new MenuPrincipal();
+        menuPrincipal = new MenuPrincipal(this);
     }
+
     if (!stateManager().hasState(menuPrincipal)) {
       stateManager().attach(menuPrincipal);
     }
   }
 
   /** Abre el menú de selección de jugadores. */
+  @Override
   public void startPlayerSelection() {
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuCarga);
     detachIfAttached(menuCreditos);
 
-    menuJugadores = new MenuJugadores();
+    menuJugadores = new MenuJugadores(this);
     if (!stateManager().hasState(menuJugadores)) {
       stateManager().attach(menuJugadores);
     }
   }
 
   /** Inicia el juego principal para el número de jugadores indicado. */
+  @Override
   public void startMainGame(int playerCount) {
     this.selectedPlayerCount = playerCount;
     this.gameStarted = true;
@@ -83,6 +86,7 @@ public class MenuController {
   }
 
   /** Abre el menú de carga con datos de demo. */
+  @Override
   public void loadSavedGame() {
     detachIfAttached(menuPrincipal);
 
@@ -128,8 +132,8 @@ public class MenuController {
     }
   }
 
-  /** Muestra la pantalla de créditos conectada a un repositorio concreto. */
-  public void showCredits(String owner, String repo, int limit) {
+    @Override
+    public void showCredits(String owner, String repo, int limit) {
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuCreditos);
 

@@ -67,13 +67,6 @@ public class LanzamientoDadosController {
         diceService.setDados(dado1, dado2);
     }
 
-    // Método opcional para compatibilidad con código heredado: solo registra entradas.
-    public void initialize(SimpleApplication app) {
-        if (app != null) {
-            registerInputs(app.getInputManager());
-        }
-    }
-
     /**z
      * Actualización por frame. Se debe llamar desde el método simpleUpdate() de la aplicación.
      */
