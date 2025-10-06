@@ -32,7 +32,7 @@ public class LanzamientoDadosController {
 
             int code = evt.getKeyCode();
             if (code == KeyInput.KEY_Y) {
-                diceService.lanzamientoDadosNoBloqueante(resultados);;
+                diceService.lanzamientoDadosNoBloqueante(resultados);
             }
         }
 
@@ -74,7 +74,7 @@ public class LanzamientoDadosController {
         }
     }
 
-    /**z
+    /**
      * Actualización por frame. Se debe llamar desde el método simpleUpdate() de la aplicación.
      */
     public void update() {
