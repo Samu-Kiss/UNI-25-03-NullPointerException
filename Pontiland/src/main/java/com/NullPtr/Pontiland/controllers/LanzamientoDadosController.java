@@ -32,7 +32,7 @@ public class LanzamientoDadosController {
 
             int code = evt.getKeyCode();
             if (code == KeyInput.KEY_Y) {
-                diceService.lanzamientoDadosNoBloqueante(resultados);;
+                diceService.lanzamientoDadosNoBloqueante(resultados);
             }
         }
 
