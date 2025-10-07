@@ -12,18 +12,39 @@ import java.util.Date;
 public class DataService implements IDataService {
     String url;
     DataService(){}
+    /**
+     * Constructor que inicializa el servicio de datos con una URL de conexión específica.
+     *
+     * @param url URL de la base de datos a utilizar para la conexión.
+     */
     DataService(String url) {
         this.url = url;
     }
 
+    /**
+     * Establece la URL de la base de datos.
+     *
+     * @param url Nueva URL de la base de datos.
+     */
     public void setUrl(String url) {
         this.url = url;
     }
 
+    /**
+     * Obtiene la URL actual de la base de datos.
+     *
+     * @return URL de la base de datos.
+     */
     public String getUrl() {
         return url;
     }
 
+    /**
+     * Crea y retorna una nueva conexión a la base de datos utilizando la URL configurada.
+     *
+     * @return Objeto Connection para interactuar con la base de datos.
+     * @throws RuntimeException si ocurre un error de SQL al intentar conectarse.
+     */
     public Connection createConnection(){
         Connection conn = null;
         try {
@@ -32,6 +53,14 @@ public class DataService implements IDataService {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Crea una nueva base de datos para una partida, ejecutando los scripts de DDL y de inserciones iniciales.
+     *
+     * Lee y ejecuta los archivos DDL.sql e Insertions.sql desde la carpeta correspondiente para inicializar la estructura y los datos de la partida.
+     *
+     * @throws RuntimeException si ocurre un error de SQL o de lectura de archivos.
+     */
     public void newDataBase(){
         Connection conn = createConnection();
         try {
@@ -52,6 +81,15 @@ public class DataService implements IDataService {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Carga el estado de una partida desde un archivo SQL seleccionado.
+     *
+     * El archivo debe encontrarse en la ruta 'src/main/resources/SQL/PartidasPasadas/'.
+     *
+     * @param archivoSeleccionado Nombre del archivo SQL de la partida a cargar.
+     * @throws RuntimeException si ocurre un error de SQL durante la carga.
+     */
     public void loadDataBase(String archivoSeleccionado){
         Connection conn = createConnection();
         try {
@@ -69,6 +107,15 @@ public class DataService implements IDataService {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Lista los archivos de partidas pasadas disponibles en la carpeta de recursos.
+     *
+     * Busca archivos con extensión .sql y extrae la fecha de creación del nombre del archivo,
+     * devolviendo un mapa con la fecha formateada como clave y el nombre del archivo como valor.
+     *
+     * @return Mapa con fechas formateadas y nombres de archivos de partidas pasadas.
+     */
     public Map<String, String> listarPartidasPasadas(){
         Map<String, String> mapaArchivo = new LinkedHashMap<>();
 
