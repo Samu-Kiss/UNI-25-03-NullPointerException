@@ -38,15 +38,6 @@ public class Dado {
         return caraArriba != null ? caraArriba.getValor() : -1;
     }
 
-    /*public void moverDado(){
-        RigidBodyControl control = spatial.getControl(RigidBodyControl.class);
-        control.applyImpulse(new Vector3f(0, 5, 0), Vector3f.ZERO);
-        control.applyTorqueImpulse(new Vector3f((float)Math.random()*0.4f, (float)Math.random()*0.1f, (float)Math.random()*0.05f));
-        spatial.setLocalRotation(new Matrix3f((float)Math.random(), (float)Math.random(), (float)Math.random(),
-                                        (float)Math.random(), 0, 0,
-                                        (float)Math.random(), 0, (float)Math.random()));
-        control.activate();
-    }*/
 
     public void lanzar() {
         RigidBodyControl rb = spatial.getControl(RigidBodyControl.class);
