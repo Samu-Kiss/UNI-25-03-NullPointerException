@@ -1,8 +1,11 @@
 package com.NullPtr.Pontiland.view;
 
+import com.NullPtr.Pontiland.Launcher;
+import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.NullPtr.Pontiland.services.GitHubContributorsService;
 import com.NullPtr.Pontiland.services.GitHubContributorsService.Contributor;
 import com.jme3.app.Application;
+import com.jme3.app.LegacyApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.TextureKey;
@@ -45,9 +48,10 @@ public class MenuCreditos extends AbstractAppState {
   private final String fetchOwner;
   private final String fetchRepo;
   private final int fetchLimit;
+  private IMenuActions actions;
 
   // Referencias JME/Lemur
-  private GameApplication app;
+  private LegacyApplication app;
   private Node guiNode;
   private InputManager inputManager;
   private Camera camera;
@@ -74,13 +78,13 @@ public class MenuCreditos extends AbstractAppState {
   @Override
   public void initialize(AppStateManager stateManager, Application app) {
     super.initialize(stateManager, app);
-    this.app = (GameApplication) app;
-    this.guiNode = this.app.getGuiNode();
-    this.inputManager = app.getInputManager();
-    this.camera = app.getCamera();
+    Launcher L = (Launcher) app;
+    this.app = L;
+    this.guiNode = L.getGuiNode();
+    this.inputManager = L.getInputManager();
+    this.camera = L.getCamera();
 
     inputManager.setCursorVisible(true);
-
     if (GuiGlobals.getInstance() == null) {
       GuiGlobals.initialize(app);
     }
@@ -197,12 +201,12 @@ public class MenuCreditos extends AbstractAppState {
     iconBtn.setBackground(new QuadBackgroundComponent(iconTex));
     iconBtn.setPreferredSize(new Vector3f(24, 24, 0));
     iconBtn.setInsets(new com.simsilica.lemur.Insets3f(0, 0, 0, 6));
-    iconBtn.addClickCommands(src -> ((GameApplication) app).goToMainMenu());
+    iconBtn.addClickCommands(src -> onBack());
 
     Button textBtn = new Button("Volver", "pontiland");
     textBtn.setFontSize(16);
     textBtn.setInsets(new com.simsilica.lemur.Insets3f(2, 6, 2, 6));
-    textBtn.addClickCommands(src -> ((GameApplication) app).goToMainMenu());
+    textBtn.addClickCommands(src -> onBack());
 
     row.addChild(iconBtn, BorderLayout.Position.West);
     row.addChild(textBtn, BorderLayout.Position.Center);
@@ -416,7 +420,11 @@ public class MenuCreditos extends AbstractAppState {
 
   private void onBack() {
     try {
-      if (onClose != null) onClose.run();
+      if (actions != null) {
+        actions.goToMainMenu();
+      } else if (onClose != null) {
+        onClose.run();
+      }
     } finally {
       cleanup();
       if (app != null) app.getStateManager().detach(this);

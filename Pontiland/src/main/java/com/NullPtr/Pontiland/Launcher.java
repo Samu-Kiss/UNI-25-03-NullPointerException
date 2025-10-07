@@ -1,0 +1,81 @@
+package com.NullPtr.Pontiland;
+
+import com.NullPtr.Pontiland.controllers.IMenuActions;
+import com.NullPtr.Pontiland.controllers.LanzamientoDadosController;
+import com.NullPtr.Pontiland.controllers.MenuController;
+import com.NullPtr.Pontiland.services.DiceService;
+import com.NullPtr.Pontiland.view.MenuPrincipal;
+import com.NullPtr.Pontiland.view.Scene;
+import com.jme3.app.SimpleApplication;
+import com.jme3.audio.AudioListenerState;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.system.AppSettings;
+import java.awt.Dimension;
+import java.awt.HeadlessException;
+import java.awt.Toolkit;
+import java.util.concurrent.atomic.AtomicReferenceArray;
+
+public class Launcher extends SimpleApplication {
+
+  public Launcher() {
+    super(new AudioListenerState());
+  }
+
+  private final BulletAppState bulletAppState = new BulletAppState();
+  private final DiceService diceService = new DiceService();
+  private final AtomicReferenceArray<Byte> resultados = new AtomicReferenceArray<>(2);
+  private LanzamientoDadosController lanzamientoDadosController;
+  private Scene scene;
+
+  public static void main(String[] args) {
+    Launcher app = new Launcher();
+    AppSettings settings = new AppSettings(true);
+    try {
+      Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+      int width = (int) (screen.width * 0.75);
+      int height = (int) (screen.height * 0.75);
+      settings.setResolution(width, height);
+    } catch (HeadlessException e) {
+      settings.setResolution(1280, 720);
+    }
+    settings.setTitle("Pontiland");
+    settings.setVSync(true);
+    settings.setFullscreen(false);
+    settings.setGammaCorrection(true);
+
+    app.setShowSettings(false);
+    app.setSettings(settings);
+    app.start();
+  }
+
+  @Override
+  public void simpleInitApp() {
+    inputManager.setCursorVisible(true);
+
+    stateManager.attach(bulletAppState);
+    bulletAppState.getPhysicsSpace().setAccuracy(1f / 120f);
+    bulletAppState.getPhysicsSpace().setMaxSubSteps(2);
+
+    lanzamientoDadosController = new LanzamientoDadosController(diceService, resultados);
+    lanzamientoDadosController.registerInputs(getInputManager());
+
+    IMenuActions actions = new MenuController(this);
+    stateManager.attach(new MenuPrincipal(actions));
+  }
+
+  @Override
+  public void simpleUpdate(float tpf) {
+    if (scene != null) {
+      scene.update(tpf);
+    }
+    if (lanzamientoDadosController != null) {
+      lanzamientoDadosController.update();
+    }
+  }
+
+  public void initializeGame3D() {
+    if (scene == null) {
+      scene = new Scene(this, bulletAppState, lanzamientoDadosController);
+    }
+  }
+}

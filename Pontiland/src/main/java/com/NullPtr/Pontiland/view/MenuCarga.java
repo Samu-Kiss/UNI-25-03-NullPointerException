@@ -1,6 +1,9 @@
 package com.NullPtr.Pontiland.view;
 
+import com.NullPtr.Pontiland.Launcher;
+import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.jme3.app.Application;
+import com.jme3.app.LegacyApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.TextureKey;
@@ -45,9 +48,10 @@ public class MenuCarga extends AbstractAppState {
   // Entradas externas
   private final List<SavedGame> saves;
   private final Consumer<String> onSelect;
+  private IMenuActions actions;
 
   // Referencias JME/Lemur
-  private GameApplication app;
+  private LegacyApplication app;
   private Node guiNode;
   private InputManager inputManager;
   private Camera camera;
@@ -66,13 +70,13 @@ public class MenuCarga extends AbstractAppState {
   @Override
   public void initialize(AppStateManager stateManager, Application app) {
     super.initialize(stateManager, app);
-    this.app = (GameApplication) app;
-    this.guiNode = this.app.getGuiNode();
-    this.inputManager = app.getInputManager();
-    this.camera = app.getCamera();
+    Launcher L = (Launcher) app;
+    this.app = L;
+    this.guiNode = L.getGuiNode();
+    this.inputManager = L.getInputManager();
+    this.camera = L.getCamera();
 
     inputManager.setCursorVisible(true);
-
     if (GuiGlobals.getInstance() == null) {
       GuiGlobals.initialize(app);
     }
@@ -183,12 +187,12 @@ public class MenuCarga extends AbstractAppState {
     iconBtn.setBackground(new QuadBackgroundComponent(iconTex));
     iconBtn.setPreferredSize(new Vector3f(24, 24, 0));
     iconBtn.setInsets(new com.simsilica.lemur.Insets3f(0, 0, 0, 6));
-    iconBtn.addClickCommands(src -> ((GameApplication) app).goToMainMenu());
+    iconBtn.addClickCommands(src -> onBack()); // << desacoplado
 
     Button textBtn = new Button("Volver", "pontiland");
     textBtn.setFontSize(16);
     textBtn.setInsets(new com.simsilica.lemur.Insets3f(2, 6, 2, 6));
-    textBtn.addClickCommands(src -> ((GameApplication) app).goToMainMenu());
+    textBtn.addClickCommands(src -> onBack()); // << desacoplado
 
     row.addChild(iconBtn, BorderLayout.Position.West);
     row.addChild(textBtn, BorderLayout.Position.Center);
@@ -196,6 +200,15 @@ public class MenuCarga extends AbstractAppState {
 
     backBar.setLocalTranslation(10, camera.getHeight() - 10, 1);
     guiNode.attachChild(backBar);
+  }
+
+  private void onBack() {
+    try {
+      if (actions != null) actions.goToMainMenu();
+    } finally {
+      cleanup();
+      if (app != null) app.getStateManager().detach(this);
+    }
   }
 
   private Button createSaveItemButton(SavedGame sg) {
