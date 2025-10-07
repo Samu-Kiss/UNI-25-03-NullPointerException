@@ -38,7 +38,6 @@ public class Dado {
     return caraArriba != null ? caraArriba.getValor() : -1;
   }
 
-
   public void lanzar() {
     RigidBodyControl rb = spatial.getControl(RigidBodyControl.class);
 
