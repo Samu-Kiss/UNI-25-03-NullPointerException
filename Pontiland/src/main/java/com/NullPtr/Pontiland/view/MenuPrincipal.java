@@ -4,7 +4,6 @@ import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.jme3.app.Application;
 import com.jme3.app.LegacyApplication;
-import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.TextureKey;
@@ -74,33 +73,31 @@ public class MenuPrincipal extends AbstractAppState {
   private final Map<Button, Float> zLayers = new HashMap<>();
   private final Map<Button, Vector3f> manualOffsets = new HashMap<>();
 
+  public MenuPrincipal(IMenuActions actions) {
+    this.actions = actions;
+  }
 
-    public MenuPrincipal(IMenuActions actions) {
-        this.actions = actions;
-    }
-
-    /**
+  /**
    * Inicializa el estado al adjuntarse al gestor de estados. - Guarda referencias a
    * app/cámara/entrada. - Asegura la inicialización de Lemur. - Construye la UI.
    */
   @Override
   public void initialize(AppStateManager stateManager, Application app) {
-      Launcher L = (Launcher) app;
-      this.app = L;
-      this.inputManager = L.getInputManager();
-      this.camera = L.getCamera();
-      this.guiNode = L.getGuiNode();
+    Launcher L = (Launcher) app;
+    this.app = L;
+    this.inputManager = L.getInputManager();
+    this.camera = L.getCamera();
+    this.guiNode = L.getGuiNode();
 
-      inputManager.setCursorVisible(true);
-      if (GuiGlobals.getInstance() == null) {
-          GuiGlobals.initialize(app);
-      }
-      setupStyles();
-      buildUI();
+    inputManager.setCursorVisible(true);
+    if (GuiGlobals.getInstance() == null) {
+      GuiGlobals.initialize(app);
+    }
+    setupStyles();
+    buildUI();
   }
 
-
-    /**
+  /**
    * Define estilos básicos para contenedores y botones bajo el estilo "pontiland". Mantiene fondo
    * oscuro semi-transparente y texto claro por defecto.
    */
@@ -353,13 +350,13 @@ public class MenuPrincipal extends AbstractAppState {
    * @param option 1 -> Iniciar, 2 -> Cargar, 3 -> Créditos
    */
   private void nextMenu(int option) {
-      cleanup();
-      switch (option) {
-          case 1 -> actions.startPlayerSelection();
-          case 2 -> actions.loadSavedGame();
-          case 3 -> actions.showCredits("Samu-Kiss", "UNI-25-03-NullPointerException", 15);
-          default -> actions.goToMainMenu();
-      }
+    cleanup();
+    switch (option) {
+      case 1 -> actions.startPlayerSelection();
+      case 2 -> actions.loadSavedGame();
+      case 3 -> actions.showCredits("Samu-Kiss", "UNI-25-03-NullPointerException", 15);
+      default -> actions.goToMainMenu();
+    }
   }
 
   /**
