@@ -9,6 +9,7 @@ import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
@@ -21,10 +22,13 @@ import com.simsilica.lemur.Insets3f;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.TextField;
 import com.simsilica.lemur.component.BorderLayout;
+import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.style.Styles;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Pantalla de selección de personajes y nickname para cada jugador. Flujo: viene desde
@@ -46,6 +50,9 @@ public class MenuSeleccion extends AbstractAppState {
     "graphics/sprites/Bill_Azul.png",
     "graphics/sprites/Bill_Verde.png"
   };
+
+  private static final String ERR_DUPLICADOS = "Personajes repetidos";
+  private static final String ERR_SIN_SUFFICIENTES = "No hay suficientes personajes";
 
   private final IMenuActions actions;
   private final int playerCount;
@@ -157,13 +164,11 @@ public class MenuSeleccion extends AbstractAppState {
     Vector3f ep = errorLabel.getPreferredSize();
     errorLabel.setLocalTranslation((cam.getWidth() - ep.x) / 2f, 60, 0);
     guiNode.attachChild(errorLabel);
-  }
 
-  private Button createIconTextButton(String text, Runnable action) {
-    // Ya no se usa para back, pero lo mantenemos por compatibilidad si se necesitara
-    Button b = new Button(text, "pontiland");
-    b.addClickCommands(s -> action.run());
-    return b;
+    // Validación inmediata si jugadores > personajes
+    if (playerCount > CHARACTER_NAMES.length) {
+      errorLabel.setText(ERR_SIN_SUFFICIENTES);
+    }
   }
 
   private void createPlayerPanel(int idx) {
@@ -179,29 +184,39 @@ public class MenuSeleccion extends AbstractAppState {
     Container middle = new Container(new BorderLayout(), "pontiland");
     middle.setBackground(null);
 
+    // Wrapper izquierda para centrar verticalmente
+    Container leftWrap = new Container(new BorderLayout(), "pontiland");
+    leftWrap.setBackground(null);
+    leftWrap.setPreferredSize(new Vector3f(40, BILL_HEIGHT, 0));
     Button left = createArrowButton(false, idx);
-    middle.addChild(left, BorderLayout.Position.West);
+    leftWrap.addChild(left, BorderLayout.Position.Center);
+    middle.addChild(leftWrap, BorderLayout.Position.West);
 
     // Bill sprite central
     Container bill = new Container("pontiland");
     bill.setBackground(loadBillSprite(idx));
     bill.setPreferredSize(new Vector3f(BILL_WIDTH, BILL_HEIGHT, 0));
 
-    Label charName = new Label(CHARACTER_NAMES[0], "pontiland");
+    // Asignación inicial única mientras existan personajes libres
+    int initialCharIdx = getFirstFreeCharacter();
+    characterIndex.add(initialCharIdx);
+    Label charName = new Label(CHARACTER_NAMES[initialCharIdx], "pontiland");
     charName.setFontSize(20);
-    characterIndex.add(0);
     characterLabels.add(charName);
-    // Centrado manual dentro del billete tras conocer tamaños preferidos
     Vector3f cs = charName.getPreferredSize();
     charName.setLocalTranslation((BILL_WIDTH - cs.x) / 2f, (BILL_HEIGHT + cs.y) / 2f, 0);
-    // Guardar bill como userData para fácil recentrado
     bill.setUserData("charLabel", charName);
     bill.attachChild(charName);
 
     middle.addChild(bill, BorderLayout.Position.Center);
 
+    // Wrapper derecha para centrar verticalmente
+    Container rightWrap = new Container(new BorderLayout(), "pontiland");
+    rightWrap.setBackground(null);
+    rightWrap.setPreferredSize(new Vector3f(40, BILL_HEIGHT, 0));
     Button right = createArrowButton(true, idx);
-    middle.addChild(right, BorderLayout.Position.East);
+    rightWrap.addChild(right, BorderLayout.Position.Center);
+    middle.addChild(rightWrap, BorderLayout.Position.East);
     panel.addChild(middle);
 
     TextField nameField = new TextField("", "pontiland");
@@ -211,6 +226,15 @@ public class MenuSeleccion extends AbstractAppState {
 
     playerPanels.add(panel);
     guiNode.attachChild(panel);
+  }
+
+  // Devuelve el primer índice de personaje no usado; si todos ocupados devuelve 0 (se mostrará
+  // error aparte)
+  private int getFirstFreeCharacter() {
+    for (int i = 0; i < CHARACTER_NAMES.length; i++) {
+      if (!characterIndex.contains(i)) return i;
+    }
+    return 0; // fallback si jugadores > personajes
   }
 
   private QuadBackgroundComponent loadBillSprite(int idx) {
@@ -229,26 +253,59 @@ public class MenuSeleccion extends AbstractAppState {
         forward
             ? "graphics/sprites/Icon_Forward_Black.png"
             : "graphics/sprites/Icon_Back_Black.png";
-    TextureKey k = new TextureKey(asset, true);
-    k.setGenerateMips(false);
-    Texture2D t = (Texture2D) app.getAssetManager().loadTexture(k);
-    t.setMagFilter(Texture.MagFilter.Bilinear);
-    t.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+    IconComponent icon = new IconComponent(asset);
+    icon.setIconSize(new Vector2f(40, 40));
     Button b = new Button("", "pontiland");
-    b.setBackground(new QuadBackgroundComponent(t));
+    b.setBackground(null);
+    b.setIcon(icon);
     b.setPreferredSize(new Vector3f(40, 40, 0));
     b.addClickCommands(
         src -> {
-          int cur = characterIndex.get(playerIdx);
-          cur = (cur + (forward ? 1 : -1) + CHARACTER_NAMES.length) % CHARACTER_NAMES.length;
-          characterIndex.set(playerIdx, cur);
+          int current = characterIndex.get(playerIdx);
+          int len = CHARACTER_NAMES.length;
+          int dir = forward ? 1 : -1;
+          int attempts = 0;
+          int next = current;
+          // Buscar siguiente personaje libre
+          do {
+            next = (next + dir + len) % len;
+            attempts++;
+          } while (attempts < len && isCharacterTaken(next, playerIdx));
+
+          if (next == current && isCharacterTaken(next, playerIdx)) {
+            // No hay personajes libres (caso extremo: jugadores > personajes)
+            errorLabel.setText(ERR_SIN_SUFFICIENTES);
+            return;
+          }
+
+          characterIndex.set(playerIdx, next);
           Label lbl = characterLabels.get(playerIdx);
-          lbl.setText(CHARACTER_NAMES[cur]);
-          // Recentrar tras cambio de longitud de texto
+          lbl.setText(CHARACTER_NAMES[next]);
           Vector3f size = lbl.getPreferredSize();
           lbl.setLocalTranslation((BILL_WIDTH - size.x) / 2f, (BILL_HEIGHT + size.y) / 2f, 0);
+          if (!hasDuplicateCharacters()
+              && (ERR_DUPLICADOS.equals(errorLabel.getText())
+                  || ERR_SIN_SUFFICIENTES.equals(errorLabel.getText()))) {
+            errorLabel.setText("");
+          }
         });
     return b;
+  }
+
+  private boolean isCharacterTaken(int charIdx, int exceptPlayer) {
+    for (int i = 0; i < characterIndex.size(); i++) {
+      if (i == exceptPlayer) continue;
+      if (characterIndex.get(i) == charIdx) return true;
+    }
+    return false;
+  }
+
+  private boolean hasDuplicateCharacters() {
+    Set<Integer> seen = new HashSet<>();
+    for (int idx : characterIndex) {
+      if (!seen.add(idx)) return true;
+    }
+    return false;
   }
 
   private void layoutPlayerPanels() {
@@ -275,6 +332,14 @@ public class MenuSeleccion extends AbstractAppState {
 
   private void attemptStart() {
     errorLabel.setText("");
+    if (playerCount > CHARACTER_NAMES.length) {
+      errorLabel.setText(ERR_SIN_SUFFICIENTES);
+      return;
+    }
+    if (hasDuplicateCharacters()) {
+      errorLabel.setText(ERR_DUPLICADOS);
+      return;
+    }
     List<Jugador> jugadores = new ArrayList<>();
     List<Integer> personajeIds = new ArrayList<>();
     for (int i = 0; i < playerCount; i++) {
@@ -306,9 +371,18 @@ public class MenuSeleccion extends AbstractAppState {
         headerLabels.get(i).setText("Nickname J" + (i + 1));
       } else headerLabels.get(i).setText(n.trim());
     }
-    if (ready != lastReadyState) {
+    boolean duplicates = hasDuplicateCharacters();
+    if (playerCount > CHARACTER_NAMES.length) {
+      errorLabel.setText(ERR_SIN_SUFFICIENTES);
+    } else if (duplicates && (errorLabel.getText() == null || errorLabel.getText().isBlank())) {
+      errorLabel.setText(ERR_DUPLICADOS);
+    } else if (!duplicates && (ERR_DUPLICADOS.equals(errorLabel.getText()))) {
+      errorLabel.setText("");
+    }
+    boolean enable = ready && !duplicates && playerCount <= CHARACTER_NAMES.length;
+    if (ready != lastReadyState || startButton.isEnabled() != enable) {
       lastReadyState = ready;
-      if (startButton != null) startButton.setEnabled(ready);
+      if (startButton != null) startButton.setEnabled(enable);
     }
   }
 

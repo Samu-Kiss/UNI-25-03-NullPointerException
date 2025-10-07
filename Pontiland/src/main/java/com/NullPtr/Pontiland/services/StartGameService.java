@@ -3,6 +3,7 @@ package com.NullPtr.Pontiland.services;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
@@ -45,7 +46,8 @@ public class StartGameService implements IStartGameService {
    * @param jugadores Lista de jugadores que participarán en la partida.
    * @param iconos Lista de identificadores de iconos asociados a cada jugador.
    */
-  public void creatingNewGame(ArrayList<Jugador> jugadores, ArrayList<Integer> iconos) {
+  public void creatingNewGame(ArrayList<Jugador> jugadores, ArrayList<Integer> iconos)
+      throws SQLException {
     dataService.newDataBase();
     long partidaID = partidaRepository.newPartida(jugadores.size());
     for (int i = 1; i <= jugadores.size(); i++) {

@@ -33,7 +33,7 @@ public class JugadorRepository implements IJugadorRepository {
    * @param icono Identificador del icono asociado al jugador.
    * @throws RuntimeException si ocurre un error de SQL durante la inserción.
    */
-  public void newPlayer(Jugador newPlayer, long partidaID, int icono) {
+  public void newPlayer(Jugador newPlayer, long partidaID, int icono) throws SQLException {
     Connection conn = dataService.createConnection();
     String nuevoJugador =
         "INSERT INTO Jugador(NumJugador, NombreJugador, IconoID, Partida) VALUES(?, ? , ? , ? )";
@@ -46,6 +46,12 @@ public class JugadorRepository implements IJugadorRepository {
       crearJugador.executeUpdate();
     } catch (SQLException e) {
       throw new RuntimeException(e);
+    } finally {
+      try {
+        conn.close();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
   /**
