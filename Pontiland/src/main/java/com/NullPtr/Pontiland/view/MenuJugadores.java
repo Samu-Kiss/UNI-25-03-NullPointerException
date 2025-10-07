@@ -4,7 +4,6 @@ import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.jme3.app.Application;
 import com.jme3.app.LegacyApplication;
-import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.TextureKey;
@@ -83,19 +82,19 @@ public class MenuJugadores extends AbstractAppState {
    */
   @Override
   public void initialize(AppStateManager stateManager, Application app) {
-      super.initialize(stateManager, app);
-      Launcher L = (Launcher) app;
-      this.app = L;
-      this.inputManager = L.getInputManager();
-      this.camera = L.getCamera();
-      this.guiNode = L.getGuiNode();
+    super.initialize(stateManager, app);
+    Launcher L = (Launcher) app;
+    this.app = L;
+    this.inputManager = L.getInputManager();
+    this.camera = L.getCamera();
+    this.guiNode = L.getGuiNode();
 
-      inputManager.setCursorVisible(true);
-      if (GuiGlobals.getInstance() == null) {
-          GuiGlobals.initialize(app);
-      }
-      setupStyles();
-      buildUI();
+    inputManager.setCursorVisible(true);
+    if (GuiGlobals.getInstance() == null) {
+      GuiGlobals.initialize(app);
+    }
+    setupStyles();
+    buildUI();
   }
 
   /**
@@ -116,9 +115,9 @@ public class MenuJugadores extends AbstractAppState {
     styles.getSelector("button", "pontiland").set("color", ColorRGBA.White, false);
   }
 
-    public MenuJugadores(IMenuActions actions) {
-        this.actions = actions;
-    }
+  public MenuJugadores(IMenuActions actions) {
+    this.actions = actions;
+  }
 
   /**
    * Construye el layout de la pantalla: - Backdrop a pantalla completa. - Panel izquierdo con el
@@ -318,30 +317,6 @@ public class MenuJugadores extends AbstractAppState {
   }
 
   /**
-   * Crea el botón de “Cargar partida”: - Botón textual centrado. - Sin animación de hover ni
-   * rotación. - Invoca app.loadSavedGame() al hacer clic.
-   */
-  private Button createLoadButton() {
-    Button b = new Button("Cargar partida", "pontiland");
-    b.setTextHAlignment(com.simsilica.lemur.HAlignment.Center);
-    b.setFontSize(20);
-    // Fondo neutro
-    b.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.22f, 0.24f, 0.29f, 1f)));
-    b.setColor(ColorRGBA.White);
-    // Padding interno para un tamaño cómodo
-    b.setInsets(new com.simsilica.lemur.Insets3f(10, 18, 10, 18));
-
-    // Fijar tamaño preferido (sin animación)
-    Vector3f pref = b.getPreferredSize().clone();
-    b.setPreferredSize(pref);
-
-    // Sin efecto de hover: no registrar en mapas ni añadir listeners
-
-    b.addClickCommands(source -> actions.loadSavedGame());
-    return b;
-  }
-
-  /**
    * Bucle de actualización para animación y posicionamiento: - Interpola la escala del botón hacia
    * el objetivo (hover in/out). - Aplica la rotación fija (Quaternion sobre Z). - Recalcula la
    * traslación para pivotar en el centro geométrico del sprite: offset = rot(center) - rot(center *
@@ -406,7 +381,7 @@ public class MenuJugadores extends AbstractAppState {
    */
   private void startGame(int playerCount) {
     cleanup();
-      actions.startMainGame(playerCount);
+    actions.startMainGame(playerCount);
   }
 
   /**

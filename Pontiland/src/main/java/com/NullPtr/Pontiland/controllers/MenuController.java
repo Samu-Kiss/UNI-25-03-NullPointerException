@@ -13,10 +13,10 @@ import java.util.function.Consumer;
 /**
  * Controlador central para manejar la navegación de menús y el inicio del juego.
  *
- * <p>Mantiene y adjunta/desadjunta los AppStates de UI según corresponda y delega al
- * Launcher para la inicialización de la escena 3D.
+ * <p>Mantiene y adjunta/desadjunta los AppStates de UI según corresponda y delega al Launcher para
+ * la inicialización de la escena 3D.
  */
-public class MenuController  implements IMenuActions{
+public class MenuController implements IMenuActions {
 
   private final Launcher app;
 
@@ -46,7 +46,7 @@ public class MenuController  implements IMenuActions{
     detachIfAttached(menuCreditos);
 
     if (menuPrincipal == null) {
-        menuPrincipal = new MenuPrincipal(this);
+      menuPrincipal = new MenuPrincipal(this);
     }
 
     if (!stateManager().hasState(menuPrincipal)) {
@@ -114,26 +114,8 @@ public class MenuController  implements IMenuActions{
     }
   }
 
-  /** Abre los créditos, usando owner/repo si están disponibles como variables de entorno. */
-  public void showCredits() {
-    String owner = System.getenv("GITHUB_REPO_OWNER");
-    String repo = System.getenv("GITHUB_REPO_NAME");
-    if (owner != null && !owner.isBlank() && repo != null && !repo.isBlank()) {
-      showCredits(owner.trim(), repo.trim(), 10);
-      return;
-    }
-
-    detachIfAttached(menuPrincipal);
-    detachIfAttached(menuCreditos);
-
-    menuCreditos = new MenuCreditos(this::showStartScreen);
-    if (!stateManager().hasState(menuCreditos)) {
-      stateManager().attach(menuCreditos);
-    }
-  }
-
-    @Override
-    public void showCredits(String owner, String repo, int limit) {
+  @Override
+  public void showCredits(String owner, String repo, int limit) {
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuCreditos);
 

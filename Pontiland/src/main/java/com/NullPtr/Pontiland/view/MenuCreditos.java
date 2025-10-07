@@ -75,22 +75,22 @@ public class MenuCreditos extends AbstractAppState {
     this.fetchLimit = limit <= 0 ? 10 : limit;
   }
 
-    @Override
-    public void initialize(AppStateManager stateManager, Application app) {
-        super.initialize(stateManager, app);
-        Launcher L = (Launcher) app;
-        this.app = L;
-        this.guiNode = L.getGuiNode();
-        this.inputManager = L.getInputManager();
-        this.camera = L.getCamera();
+  @Override
+  public void initialize(AppStateManager stateManager, Application app) {
+    super.initialize(stateManager, app);
+    Launcher L = (Launcher) app;
+    this.app = L;
+    this.guiNode = L.getGuiNode();
+    this.inputManager = L.getInputManager();
+    this.camera = L.getCamera();
 
-        inputManager.setCursorVisible(true);
-        if (GuiGlobals.getInstance() == null) {
-            GuiGlobals.initialize(app);
-        }
-        setupStyles();
-        buildUI();
+    inputManager.setCursorVisible(true);
+    if (GuiGlobals.getInstance() == null) {
+      GuiGlobals.initialize(app);
     }
+    setupStyles();
+    buildUI();
+  }
 
   private void setupStyles() {
     Styles styles = GuiGlobals.getInstance().getStyles();
@@ -418,18 +418,18 @@ public class MenuCreditos extends AbstractAppState {
     }
   }
 
-    private void onBack() {
-        try {
-            if (actions != null) {
-                actions.goToMainMenu();
-            } else if (onClose != null) {
-                onClose.run();
-            }
-        } finally {
-            cleanup();
-            if (app != null) app.getStateManager().detach(this);
-        }
+  private void onBack() {
+    try {
+      if (actions != null) {
+        actions.goToMainMenu();
+      } else if (onClose != null) {
+        onClose.run();
+      }
+    } finally {
+      cleanup();
+      if (app != null) app.getStateManager().detach(this);
     }
+  }
 
   @Override
   public void cleanup() {
