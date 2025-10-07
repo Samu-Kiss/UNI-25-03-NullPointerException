@@ -17,6 +17,7 @@ import com.jme3.texture.Texture2D;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.Insets3f;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.TextField;
 import com.simsilica.lemur.component.BorderLayout;
@@ -53,9 +54,9 @@ public class MenuSeleccion extends AbstractAppState {
   private Camera cam;
 
   private Container backdrop;
-  private Container topBar;
+  private Container backBar;
   private Button startButton;
-  private Label errorLabel;
+  private Label errorLabel; // reemplaza topBar por backBar
   // Ya no usamos mainPane/playersRow para grid automático: posicionaremos manualmente
   private final List<TextField> nameFields = new ArrayList<>();
   private final List<Integer> characterIndex = new ArrayList<>();
@@ -90,35 +91,58 @@ public class MenuSeleccion extends AbstractAppState {
     Styles styles = GuiGlobals.getInstance().getStyles();
     styles
         .getSelector("container", "pontiland")
-        .set("background", new QuadBackgroundComponent(new ColorRGBA(1f, 1f, 1f, 0.0f)), false);
-    styles.getSelector("button", "pontiland").set("color", ColorRGBA.Black, false);
-    styles.getSelector("label", "pontiland").set("color", ColorRGBA.Black, false);
+        .set(
+            "background",
+            new QuadBackgroundComponent(new ColorRGBA(0.10f, 0.11f, 0.14f, 0.88f)),
+            false);
+    styles.getSelector("button", "pontiland").set("color", ColorRGBA.White, false);
+    styles.getSelector("label", "pontiland").set("color", ColorRGBA.White, false);
   }
 
   private void buildUI() {
     cleanup();
-    // Fondo blanco muy claro
+    // Fondo igual que otras pantallas
     backdrop = new Container("pontiland");
-    backdrop.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.96f, 0.97f, 0.98f, 1f)));
+    backdrop.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.09f, 0.11f, 1f)));
     backdrop.setLocalTranslation(0, cam.getHeight(), -1);
     backdrop.setPreferredSize(new Vector3f(cam.getWidth(), cam.getHeight(), 0));
     guiNode.attachChild(backdrop);
 
-    // Barra superior con botón volver
-    topBar = new Container("pontiland");
-    topBar.setBackground(new QuadBackgroundComponent(new ColorRGBA(0f, 0f, 0f, 0f)));
-    Button backBtn = createIconTextButton("< Volver", () -> actions.startPlayerSelection());
-    backBtn.setFontSize(24); // corregido
-    topBar.addChild(backBtn);
-    float barY = cam.getHeight() - 10;
-    topBar.setLocalTranslation(10, barY, 0);
-    guiNode.attachChild(topBar);
+    // Barra volver (mismo estilo que MenuJugadores)
+    backBar = new Container("pontiland");
+    backBar.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.16f, 0.18f, 0.22f, 0.85f)));
+    backBar.setInsets(new Insets3f(6, 10, 6, 10));
+    Container row = new Container(new BorderLayout(), "pontiland");
+
+    TextureKey key = new TextureKey("graphics/sprites/Icon_Back_White.png", true);
+    key.setGenerateMips(false);
+    Texture2D iconTex = (Texture2D) this.app.getAssetManager().loadTexture(key);
+    iconTex.setWrap(Texture.WrapMode.EdgeClamp);
+    iconTex.setMagFilter(Texture.MagFilter.Bilinear);
+    iconTex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+
+    Button iconBtn = new Button("", "pontiland");
+    iconBtn.setBackground(new QuadBackgroundComponent(iconTex));
+    iconBtn.setPreferredSize(new Vector3f(24, 24, 0));
+    iconBtn.setInsets(new Insets3f(0, 0, 0, 6));
+    iconBtn.addClickCommands(src -> actions.startPlayerSelection());
+
+    Button textBtn = new Button("Volver", "pontiland");
+    textBtn.setFontSize(16);
+    textBtn.setInsets(new Insets3f(2, 6, 2, 6));
+    textBtn.addClickCommands(src -> actions.startPlayerSelection());
+
+    row.addChild(iconBtn, BorderLayout.Position.West);
+    row.addChild(textBtn, BorderLayout.Position.Center);
+    backBar.addChild(row);
+    backBar.setLocalTranslation(10, cam.getHeight() - 10, 1);
+    guiNode.attachChild(backBar);
 
     // Crear paneles de jugadores y posicionar
     for (int i = 0; i < playerCount; i++) createPlayerPanel(i);
     layoutPlayerPanels();
 
-    // Botón PLAY centrado abajo
+    // Botón PLAY centrado (mantiene estilo anterior, pero ahora texto blanco sobre fondo amarillo)
     startButton = new Button("PLAY", "pontiland");
     startButton.setFontSize(28);
     startButton.setEnabled(false);
@@ -129,13 +153,14 @@ public class MenuSeleccion extends AbstractAppState {
     guiNode.attachChild(startButton);
 
     errorLabel = new Label("", "pontiland");
-    errorLabel.setColor(new ColorRGBA(0.85f, 0.15f, 0.15f, 1f));
+    errorLabel.setColor(new ColorRGBA(1f, 0.4f, 0.4f, 1f));
     Vector3f ep = errorLabel.getPreferredSize();
     errorLabel.setLocalTranslation((cam.getWidth() - ep.x) / 2f, 60, 0);
     guiNode.attachChild(errorLabel);
   }
 
   private Button createIconTextButton(String text, Runnable action) {
+    // Ya no se usa para back, pero lo mantenemos por compatibilidad si se necesitara
     Button b = new Button(text, "pontiland");
     b.addClickCommands(s -> action.run());
     return b;
@@ -290,7 +315,7 @@ public class MenuSeleccion extends AbstractAppState {
   @Override
   public void cleanup() {
     if (backdrop != null && backdrop.getParent() != null) backdrop.removeFromParent();
-    if (topBar != null && topBar.getParent() != null) topBar.removeFromParent();
+    if (backBar != null && backBar.getParent() != null) backBar.removeFromParent();
     if (startButton != null && startButton.getParent() != null) startButton.removeFromParent();
     if (errorLabel != null && errorLabel.getParent() != null) errorLabel.removeFromParent();
     for (Container c : playerPanels) {
