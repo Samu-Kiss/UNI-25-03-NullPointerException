@@ -169,12 +169,10 @@ public class DataService implements IDataService {
       String ubicacionArchivo = "src/main/resources/SQL/PartidasPasadas/";
       ubicacionArchivo = ubicacionArchivo + partidaID + ".sql";
       Path path = Paths.get(ubicacionArchivo);
-      if (Files.exists(path) && Files.isRegularFile(path)) {
-        String script = "SCRIPT TO ?";
-        PreparedStatement guardarPartida = conn.prepareStatement(script);
-        guardarPartida.setString(1, ubicacionArchivo);
-        guardarPartida.executeUpdate();
-      }
+      String script = "SCRIPT TO ?";
+      PreparedStatement guardarPartida = conn.prepareStatement(script);
+      guardarPartida.setString(1, ubicacionArchivo);
+      guardarPartida.executeUpdate();
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
