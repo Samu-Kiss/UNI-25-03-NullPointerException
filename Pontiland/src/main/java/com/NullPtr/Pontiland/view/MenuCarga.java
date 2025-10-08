@@ -2,6 +2,7 @@ package com.NullPtr.Pontiland.view;
 
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.controllers.IMenuActions;
+import com.NullPtr.Pontiland.entities.SavedGame;
 import com.jme3.app.Application;
 import com.jme3.app.LegacyApplication;
 import com.jme3.app.state.AbstractAppState;
@@ -23,7 +24,6 @@ import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.style.Styles;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -33,17 +33,6 @@ import java.util.function.Consumer;
  * una partida, se invoca el callback con el id seleccionado.
  */
 public class MenuCarga extends AbstractAppState {
-
-  // Modelo simple de partida mostrable en la lista
-  public static class SavedGame {
-    public final String id;
-    public final String titulo; // texto a mostrar (puede incluir fecha/slot)
-
-    public SavedGame(String id, String titulo) {
-      this.id = Objects.requireNonNull(id, "id");
-      this.titulo = Objects.requireNonNull(titulo, "titulo");
-    }
-  }
 
   // Entradas externas
   private final List<SavedGame> saves;
@@ -142,8 +131,10 @@ public class MenuCarga extends AbstractAppState {
       empty.setTextHAlignment(com.simsilica.lemur.HAlignment.Center);
       listContainer.addChild(empty);
     } else {
+      int i = 1;
       for (SavedGame sg : saves) {
-        Button item = createSaveItemButton(sg);
+        Button item = createSaveItemButton(sg, i);
+        i++;
         Container slot = new Container("pontiland");
         slot.setBackground(null);
         slot.setInsets(new com.simsilica.lemur.Insets3f(8, 4, 8, 4));
@@ -203,6 +194,7 @@ public class MenuCarga extends AbstractAppState {
   }
 
   private void onBack() {
+    // TODO: TOCA REVISAR ESO...
     try {
       if (actions != null) actions.goToMainMenu();
     } finally {
@@ -211,8 +203,8 @@ public class MenuCarga extends AbstractAppState {
     }
   }
 
-  private Button createSaveItemButton(SavedGame sg) {
-    Button b = new Button(sg.titulo, "pontiland");
+  private Button createSaveItemButton(SavedGame sg, int i) {
+    Button b = new Button("Partida #" + i + " - " + sg.titulo, "pontiland");
     b.setTextHAlignment(com.simsilica.lemur.HAlignment.Left);
     b.setFontSize(18);
     b.setInsets(new com.simsilica.lemur.Insets3f(10, 14, 10, 14));

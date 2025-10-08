@@ -79,7 +79,7 @@ public class Launcher extends SimpleApplication {
 
     startGameService = new StartGameService(jugadorRepository, partidaRepository, dataService);
 
-    IMenuActions actions = new MenuController(this, startGameService);
+    IMenuActions actions = new MenuController(this, startGameService, dataService);
     stateManager.attach(new MenuPrincipal(actions));
   }
 

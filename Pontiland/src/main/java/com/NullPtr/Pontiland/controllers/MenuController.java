@@ -2,6 +2,8 @@ package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.entities.Jugador;
+import com.NullPtr.Pontiland.entities.SavedGame;
+import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
 import com.NullPtr.Pontiland.view.MenuCarga;
 import com.NullPtr.Pontiland.view.MenuCreditos;
@@ -11,7 +13,6 @@ import com.NullPtr.Pontiland.view.MenuSeleccion;
 import com.jme3.app.state.AppStateManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -33,9 +34,12 @@ public class MenuController implements IMenuActions {
   private boolean gameStarted = false;
   private int selectedPlayerCount = 0;
 
-  private IStartGameService startGameService;
+  private final IStartGameService startGameService;
+  private final IDataService dataService;
 
-  public MenuController(Launcher app, IStartGameService startGameService) {
+  public MenuController(
+      Launcher app, IStartGameService startGameService, IDataService dataService) {
+    this.dataService = dataService;
     if (app == null) {
       throw new IllegalArgumentException("app no puede ser null");
     }
@@ -148,24 +152,27 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuSeleccion);
 
-    List<MenuCarga.SavedGame> saves =
-        Arrays.asList(
-            new MenuCarga.SavedGame("save-001", "Partida #1 - 2025-10-03 18:30"),
-            new MenuCarga.SavedGame("save-002", "Partida #2 - 2025-10-02 11:05"),
-            new MenuCarga.SavedGame("save-003", "Partida #3 - 2025-09-28 21:10"));
+    List<SavedGame> saves = dataService.listarPartidasPasadas();
 
     showLoadMenu(
         saves,
         (String id) -> {
           System.out.println("[Pontiland] Seleccionado guardado: " + id);
-          // TODO: lógica real de carga desde persistencia
-          showStartScreen();
+          dataService.loadDataBase(id);
+
+          // Desconectar cualquier menú de UI
+          detachIfAttached(menuPrincipal);
+          detachIfAttached(menuJugadores);
+          detachIfAttached(menuCarga);
+          detachIfAttached(menuCreditos);
+          detachIfAttached(menuSeleccion);
+
+          app.initializeGame3D();
         });
   }
 
   /** Muestra el menú de carga con una lista y callback de selección. */
-  public void showLoadMenu(
-      List<MenuCarga.SavedGame> saves, java.util.function.Consumer<String> onSelect) {
+  public void showLoadMenu(List<SavedGame> saves, java.util.function.Consumer<String> onSelect) {
     detachIfAttached(menuCarga);
     menuCarga = new MenuCarga(saves, onSelect);
     if (!stateManager().hasState(menuCarga)) {
