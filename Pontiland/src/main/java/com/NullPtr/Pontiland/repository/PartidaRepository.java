@@ -66,7 +66,11 @@ public class PartidaRepository implements IPartidaRepository {
     try {
       PreparedStatement partida = conn.prepareStatement(consultarPartida);
       ResultSet rsPartida = partida.executeQuery();
-      return rsPartida.getLong("PartidaID");
+      if (rsPartida.next()) {
+        return rsPartida.getLong("PartidaID");
+      } else {
+        throw new RuntimeException("No partida found in the database.");
+      }
     } catch (SQLException e) {
       throw new RuntimeException(e);
     } finally {
