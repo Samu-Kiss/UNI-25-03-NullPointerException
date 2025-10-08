@@ -3,7 +3,13 @@ package com.NullPtr.Pontiland;
 import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.NullPtr.Pontiland.controllers.LanzamientoDadosController;
 import com.NullPtr.Pontiland.controllers.MenuController;
-import com.NullPtr.Pontiland.services.DiceService;
+import com.NullPtr.Pontiland.repository.*;
+import com.NullPtr.Pontiland.repository.IPartidaRepository;
+import com.NullPtr.Pontiland.repository.JugadorRepository;
+import com.NullPtr.Pontiland.repository.PartidaRepository;
+import com.NullPtr.Pontiland.services.*;
+import com.NullPtr.Pontiland.services.IDataService;
+import com.NullPtr.Pontiland.services.IStartGameService;
 import com.NullPtr.Pontiland.view.MenuPrincipal;
 import com.NullPtr.Pontiland.view.Scene;
 import com.jme3.app.SimpleApplication;
@@ -26,6 +32,12 @@ public class Launcher extends SimpleApplication {
   private final AtomicReferenceArray<Byte> resultados = new AtomicReferenceArray<>(2);
   private LanzamientoDadosController lanzamientoDadosController;
   private Scene scene;
+
+  private IDataService dataService;
+  private IStartGameService startGameService;
+
+  private IJugadorRepository jugadorRepository;
+  private IPartidaRepository partidaRepository;
 
   public static void main(String[] args) {
     Launcher app = new Launcher();
@@ -59,7 +71,15 @@ public class Launcher extends SimpleApplication {
     lanzamientoDadosController = new LanzamientoDadosController(diceService, resultados);
     lanzamientoDadosController.registerInputs(getInputManager());
 
-    IMenuActions actions = new MenuController(this);
+    dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
+
+    jugadorRepository = new JugadorRepository(dataService);
+
+    partidaRepository = new PartidaRepository(dataService);
+
+    startGameService = new StartGameService(jugadorRepository, partidaRepository, dataService);
+
+    IMenuActions actions = new MenuController(this, startGameService);
     stateManager.attach(new MenuPrincipal(actions));
   }
 
