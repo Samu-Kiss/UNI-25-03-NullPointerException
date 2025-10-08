@@ -54,10 +54,11 @@ public class JugadorRepository implements IJugadorRepository {
       }
     }
   }
+
   /**
    * Actualiza el jugador activo en una partida específica.
    *
-   * @param id        Identificador del nuevo jugador activo.
+   * @param id Identificador del nuevo jugador activo.
    * @param partidaID Identificador de la partida en la que se realiza el cambio.
    * @throws SQLException si ocurre un error al acceder a la base de datos.
    */
@@ -79,10 +80,10 @@ public class JugadorRepository implements IJugadorRepository {
       }
     }
   }
+
   public int getPlayerIdByNumJugador(int numJugador, long partidaID) throws SQLException {
     Connection conn = dataService.createConnection();
-    String consulta =
-        "SELECT JugadorID FROM Jugador WHERE NumJugador = ? AND Partida = ?";
+    String consulta = "SELECT JugadorID FROM Jugador WHERE NumJugador = ? AND Partida = ?";
     try {
       PreparedStatement stmt = conn.prepareStatement(consulta);
       stmt.setInt(1, numJugador);
@@ -103,6 +104,7 @@ public class JugadorRepository implements IJugadorRepository {
       }
     }
   }
+
   public void insertActivePlayer(int jugadorID, long partidaID) throws SQLException {
     Connection conn = dataService.createConnection();
     String insertarJugadorActivo =
