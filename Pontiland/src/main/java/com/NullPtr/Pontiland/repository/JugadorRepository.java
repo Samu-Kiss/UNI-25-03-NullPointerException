@@ -55,6 +55,74 @@ public class JugadorRepository implements IJugadorRepository {
     }
   }
   /**
+   * Actualiza el jugador activo en una partida específica.
+   *
+   * @param id        Identificador del nuevo jugador activo.
+   * @param partidaID Identificador de la partida en la que se realiza el cambio.
+   * @throws SQLException si ocurre un error al acceder a la base de datos.
+   */
+  public void changeActivePlayer(int id, long partidaID) throws SQLException {
+    Connection conn = dataService.createConnection();
+    String cambiarTurno = "UPDATE JugadorActivo SET JugadorActualID = ? WHERE PartidaID = ?";
+    try {
+      PreparedStatement cambiarJugador = conn.prepareStatement(cambiarTurno);
+      cambiarJugador.setInt(1, id);
+      cambiarJugador.setLong(2, partidaID);
+      cambiarJugador.executeUpdate();
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      try {
+        conn.close();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+  public int getPlayerIdByNumJugador(int numJugador, long partidaID) throws SQLException {
+    Connection conn = dataService.createConnection();
+    String consulta =
+        "SELECT JugadorID FROM Jugador WHERE NumJugador = ? AND Partida = ?";
+    try {
+      PreparedStatement stmt = conn.prepareStatement(consulta);
+      stmt.setInt(1, numJugador);
+      stmt.setLong(2, partidaID);
+      var rs = stmt.executeQuery();
+      if (rs.next()) {
+        return rs.getInt("JugadorID");
+      } else {
+        throw new RuntimeException("No se encontró el jugador con NumJugador: " + numJugador);
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      try {
+        conn.close();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+  public void insertActivePlayer(int jugadorID, long partidaID) throws SQLException {
+    Connection conn = dataService.createConnection();
+    String insertarJugadorActivo =
+        "INSERT INTO JugadorActivo(JugadorActualID, PartidaID) VALUES(?, ?)";
+    try {
+      PreparedStatement crearJugadorActivo = conn.prepareStatement(insertarJugadorActivo);
+      crearJugadorActivo.setInt(1, jugadorID);
+      crearJugadorActivo.setLong(2, partidaID);
+      crearJugadorActivo.executeUpdate();
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      try {
+        conn.close();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+  /**
    * public Jugador obtenerJugador(int id){ Connection conn = dataService.createConnection(); String
    * jugador = "SELECT * FROM JUGADOR LEFT JOIN ADQUISICIONES ON
    * JUGADOR.JUGADORID=ADQUISICIONES.JUGADORID WHERE JUGADOR.JUGADORID= ?"; try { PreparedStatement

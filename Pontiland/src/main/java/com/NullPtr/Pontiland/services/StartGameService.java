@@ -5,6 +5,7 @@ import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * Servicio encargado de iniciar y cargar partidas en el sistema Pontiland. Permite la creación de
@@ -53,6 +54,10 @@ public class StartGameService implements IStartGameService {
     for (int i = 1; i <= jugadores.size(); i++) {
       jugadorRepository.newPlayer(jugadores.get(i - 1), partidaID, iconos.get(i - 1));
     }
+    Random r = new Random();
+    int r1 = r.nextInt(jugadores.size()) + 1;
+    int playerID = jugadorRepository.getPlayerIdByNumJugador(r1, partidaID);
+    jugadorRepository.insertActivePlayer(playerID, partidaID);
   }
 
   /**
