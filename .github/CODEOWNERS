@@ -13,7 +13,7 @@ Pontiland/src/main/java/com/NullPtr/Pontiland/services/** @Tho0x2B  @N-Torresito
 
 # Persistence and data model — backend + DBA
 Pontiland/src/main/java/com/NullPtr/Pontiland/repository/** @Tho0x2B  @N-Torresito @JDOG-JuanDORtiz
-Pontiland/src/main/java/com/NullPtr/Pontiland/entities/** @Tho0x2B  @N-Torresito @JDOG-JuanDORtiz
+Pontiland/src/main/java/com/NullPtr/Pontiland/entities/** @Tho0x2B @N-Torresito @JDOG-JuanDORtiz
 Pontiland/src/main/java/com/NullPtr/Pontiland/utils/** @JDOG-JuanDORtiz @MalejaGS
 Pontiland/src/main/resources/SQL/** @JDOG-JuanDORtiz @MalejaGS
 
