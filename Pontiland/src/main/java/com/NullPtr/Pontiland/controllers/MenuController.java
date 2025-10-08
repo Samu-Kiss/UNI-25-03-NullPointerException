@@ -2,12 +2,15 @@ package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.entities.Jugador;
+import com.NullPtr.Pontiland.services.IStartGameService;
 import com.NullPtr.Pontiland.view.MenuCarga;
 import com.NullPtr.Pontiland.view.MenuCreditos;
 import com.NullPtr.Pontiland.view.MenuJugadores;
 import com.NullPtr.Pontiland.view.MenuPrincipal;
 import com.NullPtr.Pontiland.view.MenuSeleccion;
 import com.jme3.app.state.AppStateManager;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -30,7 +33,16 @@ public class MenuController implements IMenuActions {
   private boolean gameStarted = false;
   private int selectedPlayerCount = 0;
 
-  public MenuController(Launcher app) {
+  private IStartGameService startGameService;
+
+  public MenuController(Launcher app, IStartGameService startGameService) {
+    if (app == null) {
+      throw new IllegalArgumentException("app no puede ser null");
+    }
+    if (startGameService == null) {
+      throw new IllegalArgumentException("startGameService no puede ser null");
+    }
+    this.startGameService = startGameService;
     this.app = app;
   }
 
@@ -99,7 +111,9 @@ public class MenuController implements IMenuActions {
    * cierra la UI.
    */
   @Override
-  public void startMainGame(int playerCount, List<Jugador> jugadores, List<Integer> personajeIds) {
+  public void startMainGame(
+      int playerCount, ArrayList<Jugador> jugadores, ArrayList<Integer> personajeIds)
+      throws SQLException {
     this.selectedPlayerCount = playerCount;
     this.gameStarted = true;
 
@@ -112,6 +126,8 @@ public class MenuController implements IMenuActions {
       System.out.println(
           "  - J" + j.getJugadorId() + " nombre='" + j.getNombreJugador() + "' personajeId=" + pid);
     }
+
+    startGameService.creatingNewGame(jugadores, personajeIds);
 
     // Desconectar cualquier menú de UI
     detachIfAttached(menuPrincipal);

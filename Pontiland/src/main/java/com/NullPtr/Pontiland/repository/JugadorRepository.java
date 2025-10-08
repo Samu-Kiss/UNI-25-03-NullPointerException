@@ -21,7 +21,7 @@ public class JugadorRepository implements IJugadorRepository {
    *
    * @param dataService Servicio de datos utilizado para la conexión a la base de datos.
    */
-  JugadorRepository(IDataService dataService) {
+  public JugadorRepository(IDataService dataService) {
     this.dataService = dataService;
   }
 

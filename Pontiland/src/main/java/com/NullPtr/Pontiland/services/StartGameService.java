@@ -3,7 +3,7 @@ package com.NullPtr.Pontiland.services;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 
 /**

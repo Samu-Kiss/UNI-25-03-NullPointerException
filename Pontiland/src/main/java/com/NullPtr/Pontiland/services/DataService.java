@@ -12,14 +12,12 @@ import java.util.Date;
 public class DataService implements IDataService {
   String url;
 
-  DataService() {}
-
   /**
    * Constructor que inicializa el servicio de datos con una URL de conexión específica.
    *
    * @param url URL de la base de datos a utilizar para la conexión.
    */
-  DataService(String url) {
+  public DataService(String url) {
     this.url = url;
   }
 

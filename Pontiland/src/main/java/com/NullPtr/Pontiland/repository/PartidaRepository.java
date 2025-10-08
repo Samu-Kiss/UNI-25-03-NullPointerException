@@ -18,9 +18,6 @@ public class PartidaRepository implements IPartidaRepository {
    */
   IDataService dataService;
 
-  /** Constructor por defecto. */
-  public PartidaRepository() {}
-
   /**
    * Constructor que permite la inyección del servicio de datos.
    *

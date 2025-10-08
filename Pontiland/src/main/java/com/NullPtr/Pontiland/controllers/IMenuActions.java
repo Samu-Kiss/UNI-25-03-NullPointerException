@@ -1,7 +1,8 @@
 package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.entities.Jugador;
-import java.util.List;
+import java.sql.SQLException;
+import java.util.ArrayList;
 
 public interface IMenuActions {
   void startPlayerSelection();
@@ -15,5 +16,6 @@ public interface IMenuActions {
   void startMainGame(int playerCount);
 
   // Nueva sobrecarga para iniciar el juego con datos detallados de jugadores y personajes
-  void startMainGame(int playerCount, List<Jugador> jugadores, List<Integer> personajeIds);
+  void startMainGame(int playerCount, ArrayList<Jugador> jugadores, ArrayList<Integer> personajeIds)
+      throws SQLException;
 }

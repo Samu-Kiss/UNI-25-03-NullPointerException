@@ -25,6 +25,7 @@ import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.style.Styles;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -74,6 +75,11 @@ public class MenuSeleccion extends AbstractAppState {
 
   private static final int BILL_WIDTH = 400;
   private static final int BILL_HEIGHT = 140;
+  // Nuevo: offset vertical ajustable para subir o bajar los paneles de billetes (valor más alto =
+  // más arriba)
+  // Aumentado a 100f para mover los paneles hacia arriba.
+  private static final float PANELS_Y_OFFSET =
+      100f; // Ajusta este valor si quieres más o menos desplazamiento
 
   public MenuSeleccion(IMenuActions actions, int playerCount) {
     this.actions = actions;
@@ -154,7 +160,14 @@ public class MenuSeleccion extends AbstractAppState {
     startButton.setFontSize(28);
     startButton.setEnabled(false);
     startButton.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.95f, 0.9f, 0.3f, 1f)));
-    startButton.addClickCommands(src -> attemptStart());
+    startButton.addClickCommands(
+        src -> {
+          try {
+            attemptStart();
+          } catch (SQLException e) {
+            throw new RuntimeException(e);
+          }
+        });
     Vector3f pref = startButton.getPreferredSize();
     startButton.setLocalTranslation((cam.getWidth() - pref.x) / 2f, 90, 0);
     guiNode.attachChild(startButton);
@@ -316,7 +329,8 @@ public class MenuSeleccion extends AbstractAppState {
     float hGap = 70f;
     float vGap = 60f;
     float totalH = rows * panelH + (rows - 1) * vGap;
-    float topY = (cam.getHeight() + totalH) / 2f - 100; // ligera elevación
+    // Ajuste: antes se restaban 100px. Ahora usamos un offset parametrizable (PANELS_Y_OFFSET).
+    float topY = (cam.getHeight() + totalH) / 2f + PANELS_Y_OFFSET;
     for (int i = 0; i < playerCount; i++) {
       int row = i / 2;
       int col = i % 2;
@@ -330,7 +344,7 @@ public class MenuSeleccion extends AbstractAppState {
     }
   }
 
-  private void attemptStart() {
+  private void attemptStart() throws SQLException {
     errorLabel.setText("");
     if (playerCount > CHARACTER_NAMES.length) {
       errorLabel.setText(ERR_SIN_SUFFICIENTES);
@@ -340,8 +354,8 @@ public class MenuSeleccion extends AbstractAppState {
       errorLabel.setText(ERR_DUPLICADOS);
       return;
     }
-    List<Jugador> jugadores = new ArrayList<>();
-    List<Integer> personajeIds = new ArrayList<>();
+    ArrayList<Jugador> jugadores = new ArrayList<>();
+    ArrayList<Integer> personajeIds = new ArrayList<>();
     for (int i = 0; i < playerCount; i++) {
       String nombre = nameFields.get(i).getText();
       if (nombre == null || nombre.isBlank()) {
