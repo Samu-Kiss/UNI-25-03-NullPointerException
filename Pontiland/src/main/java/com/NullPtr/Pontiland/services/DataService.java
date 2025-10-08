@@ -137,7 +137,7 @@ public class DataService implements IDataService {
             try {
               SimpleDateFormat formatoEntrada = new SimpleDateFormat("yyyyMMddHHmmss");
               Date date = formatoEntrada.parse(fechaRepresentada);
-              SimpleDateFormat formatoSalida = new SimpleDateFormat("yyyy-MM-dd HH:mm::ss");
+              SimpleDateFormat formatoSalida = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
               String formattedDate = formatoSalida.format(date);
               mapaArchivo.put(formattedDate, fileName);
 
