@@ -194,7 +194,8 @@ public class MenuCarga extends AbstractAppState {
   }
 
   private void onBack() {
-    // TODO: Review if cleanup and detaching should occur after goToMainMenu(), or if additional error handling is needed.
+    // TODO: Review if cleanup and detaching should occur after goToMainMenu(), or if additional
+    // error handling is needed.
     try {
       if (actions != null) actions.goToMainMenu();
     } finally {
