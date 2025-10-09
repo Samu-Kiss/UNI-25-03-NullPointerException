@@ -1,6 +1,7 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.SavedGame;
+import com.NullPtr.Pontiland.utils.PropertiesReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
@@ -134,7 +135,9 @@ public class DataService implements IDataService {
   public List<SavedGame> listarPartidasPasadas() {
     Map<String, String> mapaArchivo = new LinkedHashMap<>();
 
-    File scriptsPartidas = new File("src/main/resources/SQL/PartidasPasadas/");
+    String ubicacionPartidas = PropertiesReader.getProperty("ubicacionPartidas");
+
+    File scriptsPartidas = new File(ubicacionPartidas);
     File[] archivos = scriptsPartidas.listFiles();
 
     if (archivos != null) {
