@@ -51,9 +51,10 @@ public class MenuCarga extends AbstractAppState {
   private Container rightPane;
   private Container backBar;
 
-  public MenuCarga(List<SavedGame> saves, Consumer<String> onSelect) {
-    this.saves = saves == null ? Collections.emptyList() : saves;
-    this.onSelect = onSelect;
+  public MenuCarga(IMenuActions actions, List<SavedGame> saves, Consumer<String> onSelect) {
+      this.saves = saves == null ? Collections.emptyList() : saves;
+      this.onSelect = onSelect;
+      this.actions = actions;
   }
 
   @Override
@@ -194,11 +195,9 @@ public class MenuCarga extends AbstractAppState {
   }
 
   private void onBack() {
-    // TODO: TOCA REVISAR ESO...
     try {
       if (actions != null) actions.goToMainMenu();
     } finally {
-      cleanup();
       if (app != null) app.getStateManager().detach(this);
     }
   }

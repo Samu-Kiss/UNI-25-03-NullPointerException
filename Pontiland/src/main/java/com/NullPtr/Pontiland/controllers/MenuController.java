@@ -174,7 +174,7 @@ public class MenuController implements IMenuActions {
   /** Muestra el menú de carga con una lista y callback de selección. */
   public void showLoadMenu(List<SavedGame> saves, java.util.function.Consumer<String> onSelect) {
     detachIfAttached(menuCarga);
-    menuCarga = new MenuCarga(saves, onSelect);
+    menuCarga = new MenuCarga(this,saves, onSelect);
     if (!stateManager().hasState(menuCarga)) {
       stateManager().attach(menuCarga);
     }
@@ -199,6 +199,7 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuCreditos);
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuSeleccion);
+
     showStartScreen();
   }
 
