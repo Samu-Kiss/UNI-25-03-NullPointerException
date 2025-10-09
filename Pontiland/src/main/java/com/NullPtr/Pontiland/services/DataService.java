@@ -69,12 +69,23 @@ public class DataService implements IDataService {
     try {
       Statement stmt = conn.createStatement();
       // Cargar y ejecutar DDL.sql
-      String schemaSql = Files.readString(Paths.get("src/main/resources/SQL/NuevaPartida/DDL.sql"));
-      stmt.execute(schemaSql);
+        /* src no existe en tiempo de ejecucion*/
+        String schemaSql = new String(
+                Thread.currentThread().getContextClassLoader()
+                        .getResourceAsStream("SQL/NuevaPartida/DDL.sql")
+                        .readAllBytes()
+        );
+
+        stmt.execute(schemaSql);
       // Cargar y ejecutar data.sql
-      String dataSql =
-          Files.readString(Paths.get("src/main/resources/SQL/NuevaPartida/Insertions.sql"));
-      for (String sql : dataSql.split(";")) {
+        /* src no existe en tiempo de ejecucion*/
+        String dataSql = new String(
+                Thread.currentThread().getContextClassLoader()
+                        .getResourceAsStream("SQL/NuevaPartida/Insertions.sql")
+                        .readAllBytes()
+        );
+
+        for (String sql : dataSql.split(";")) {
         if (!sql.trim().isEmpty()) {
           stmt.execute(sql.trim());
         }
