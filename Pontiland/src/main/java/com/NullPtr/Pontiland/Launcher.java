@@ -19,7 +19,6 @@ import com.jme3.system.AppSettings;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.Toolkit;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class Launcher extends SimpleApplication {
 
@@ -29,9 +28,9 @@ public class Launcher extends SimpleApplication {
 
   private final BulletAppState bulletAppState = new BulletAppState();
   private final DiceService diceService = new DiceService();
-  private final AtomicReferenceArray<Byte> resultados = new AtomicReferenceArray<>(2);
   private LanzamientoDadosController lanzamientoDadosController;
-  private Scene scene;
+    private Byte[] resultados = new Byte[2];
+    private Scene scene;
 
   private IDataService dataService;
   private IStartGameService startGameService;

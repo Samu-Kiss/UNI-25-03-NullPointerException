@@ -2,7 +2,6 @@ package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.Dado;
 import com.jme3.scene.Spatial;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * Servicio encargado de gestionar el lanzamiento de dados.
@@ -27,7 +26,7 @@ public class DiceService {
   private Estado estado = Estado.IDLE;
 
   /** Referencia donde se almacenarán los resultados del lanzamiento no bloqueante. */
-  private AtomicReferenceArray<Byte> resultadosRef;
+  private Byte[] resultadosRef;
 
   /**
    * Inyecta ambos dados en el servicio.
@@ -67,7 +66,7 @@ public class DiceService {
    *
    * @param resultados Objeto atómico donde se escribirán los resultados al finalizar
    */
-  public void lanzamientoDadosNoBloqueante(AtomicReferenceArray<Byte> resultados) {
+  public void lanzamientoDadosNoBloqueante(Byte[] resultados) {
     this.resultadosRef = resultados;
     this.estado = Estado.INIT;
   }
@@ -102,8 +101,8 @@ public class DiceService {
       case READ:
         Byte[] valores = leerDados();
         if (resultadosRef != null) {
-          resultadosRef.set(0, valores[0]);
-          resultadosRef.set(1, valores[1]);
+          resultadosRef[0] = valores[0];
+          resultadosRef[1] = valores[1];
         }
         // Terminar ciclo
         estado = Estado.DONE;

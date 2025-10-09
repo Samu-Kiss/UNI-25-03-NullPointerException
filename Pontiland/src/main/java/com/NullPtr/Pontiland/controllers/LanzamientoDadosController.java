@@ -1,12 +1,12 @@
 package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.services.DiceService;
+import com.NullPtr.Pontiland.services.ITurnService;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.RawInputListener;
 import com.jme3.input.event.*;
 import com.jme3.scene.Spatial;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * Controlador encargado de registrar entradas y orquestar el servicio de dados. No extiende
@@ -14,7 +14,8 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  */
 public class LanzamientoDadosController {
   private final DiceService diceService;
-  private final AtomicReferenceArray<Byte> resultados;
+  private final Byte[] resultados;
+  private ITurnService turnService;
 
   /**
    * Listener de acciones para gestionar las teclas de control del dado. Se registra en el
@@ -27,7 +28,7 @@ public class LanzamientoDadosController {
           if (!evt.isPressed()) return; // reaccionar solo a key-down
 
           int code = evt.getKeyCode();
-          if (code == KeyInput.KEY_Y) {
+          if (code == KeyInput.KEY_Y ) {
             diceService.lanzamientoDadosNoBloqueante(resultados);
           }
         }
@@ -61,7 +62,7 @@ public class LanzamientoDadosController {
    * @param resultados Estructura compartida donde se escribirán resultados no bloqueantes
    */
   public LanzamientoDadosController(
-      DiceService diceService, AtomicReferenceArray<Byte> resultados) {
+          DiceService diceService, Byte[] resultados) {
     this.diceService = diceService;
     this.resultados = resultados;
   }
@@ -76,12 +77,14 @@ public class LanzamientoDadosController {
     diceService.update();
 
     // Si hay resultados listos, imprimirlos y limpiar
-    Byte r0 = resultados.get(0);
-    Byte r1 = resultados.get(1);
+    Byte r0 = resultados[0];
+    Byte r1 = resultados[1];
     if (r0 != null || r1 != null) {
       System.out.println("Resultados dados: [" + r0 + ", " + r1 + "]");
-      resultados.set(0, null);
-      resultados.set(1, null);
+      resultados[0] = null;
+      resultados[1] = null;
     }
   }
+
+
 }
