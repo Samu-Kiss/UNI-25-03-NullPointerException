@@ -4,4 +4,6 @@ public interface IPartidaRepository {
   long newPartida(int numJugadores);
 
   long getPartidaID();
+
+  int numJugadores();
 }

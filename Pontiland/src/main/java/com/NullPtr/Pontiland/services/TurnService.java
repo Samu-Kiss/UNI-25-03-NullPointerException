@@ -3,6 +3,8 @@ package com.NullPtr.Pontiland.services;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 
+import java.sql.SQLException;
+
 public class TurnService implements ITurnService{
     IJugadorRepository jugadorRepository;
     IPartidaRepository partidaRepository;
@@ -15,9 +17,11 @@ public class TurnService implements ITurnService{
 
     @Override
     public void nextTurn() {
-
-
-
+        try {
+            jugadorRepository.changeActivePlayer(partidaRepository.numJugadores());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

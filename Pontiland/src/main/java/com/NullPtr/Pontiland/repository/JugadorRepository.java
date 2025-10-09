@@ -15,6 +15,7 @@ public class JugadorRepository implements IJugadorRepository {
    * Servicio de acceso a datos para la gestión de conexiones y operaciones con la base de datos.
    */
   IDataService dataService;
+  private long partidaID;
 
   /**
    * Constructor que permite la inyección del servicio de datos.
@@ -29,11 +30,10 @@ public class JugadorRepository implements IJugadorRepository {
    * Inserta un nuevo jugador en la base de datos asociado a una partida y un icono.
    *
    * @param newPlayer Objeto Jugador que contiene la información del nuevo jugador.
-   * @param partidaID Identificador de la partida a la que pertenece el jugador.
    * @param icono Identificador del icono asociado al jugador.
    * @throws RuntimeException si ocurre un error de SQL durante la inserción.
    */
-  public void newPlayer(Jugador newPlayer, long partidaID, int icono) throws SQLException {
+  public void newPlayer(Jugador newPlayer, int icono) throws SQLException {
     Connection conn = dataService.createConnection();
     String nuevoJugador =
         "INSERT INTO Jugador(NumJugador, NombreJugador, IconoID, Partida) VALUES(?, ? , ? , ? )";
@@ -57,12 +57,13 @@ public class JugadorRepository implements IJugadorRepository {
 
   /**
    * Actualiza el jugador activo en una partida específica.
-   *
-   * @param id Identificador del nuevo jugador activo.
-   * @param partidaID Identificador de la partida en la que se realiza el cambio.
    * @throws SQLException si ocurre un error al acceder a la base de datos.
    */
-  public void changeActivePlayer(int id, long partidaID) throws SQLException {
+  public void changeActivePlayer(int numJugadores) throws SQLException {
+    int viejo = getNumJugadorByPlayerId(getActivePlayer());
+    int nuevoJugadorActivo = viejo%numJugadores + 1;
+    int id = getPlayerIdByNumJugador(nuevoJugadorActivo);
+
     Connection conn = dataService.createConnection();
     String cambiarTurno = "UPDATE JugadorActivo SET JugadorActualID = ? WHERE PartidaID = ?";
     try {
@@ -81,7 +82,30 @@ public class JugadorRepository implements IJugadorRepository {
     }
   }
 
-  public int getPlayerIdByNumJugador(int numJugador, long partidaID) throws SQLException {
+  public int getActivePlayer() throws SQLException {
+    Connection conn = dataService.createConnection();
+    String consulta = "SELECT JugadorActualID FROM JugadorActivo WHERE PartidaID = ?";
+    try {
+      PreparedStatement stmt = conn.prepareStatement(consulta);
+      stmt.setLong(1, partidaID);
+      var rs = stmt.executeQuery();
+      if (rs.next()) {
+        return rs.getInt("JugadorActualID");
+      } else {
+        throw new RuntimeException("No se encontró un jugador activo para la partida: " + partidaID);
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      try {
+        conn.close();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  public int getPlayerIdByNumJugador(int numJugador) throws SQLException {
     Connection conn = dataService.createConnection();
     String consulta = "SELECT JugadorID FROM Jugador WHERE NumJugador = ? AND Partida = ?";
     try {
@@ -105,7 +129,33 @@ public class JugadorRepository implements IJugadorRepository {
     }
   }
 
-  public void insertActivePlayer(int jugadorID, long partidaID) throws SQLException {
+    public int getNumJugadorByPlayerId(int playerId) throws SQLException {
+        Connection conn = dataService.createConnection();
+        String consulta = "SELECT NumJugador FROM Jugador WHERE JugadorID = ? AND Partida = ?";
+        try {
+            PreparedStatement stmt = conn.prepareStatement(consulta);
+            stmt.setInt(1, playerId);
+            stmt.setLong(2, partidaID);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("NumJugador");
+            } else {
+                throw new RuntimeException("No se encontró el jugador con playerID: " + playerId);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+
+
+  public void insertActivePlayer(int jugadorID) throws SQLException {
     Connection conn = dataService.createConnection();
     String insertarJugadorActivo =
         "INSERT INTO JugadorActivo(JugadorActualID, PartidaID) VALUES(?, ?)";
@@ -134,6 +184,7 @@ public class JugadorRepository implements IJugadorRepository {
    * (SQLException e) { throw new RuntimeException(e); } }
    */
 
-
-
+    public void setPartidaID(long partidaID) {
+        this.partidaID = partidaID;
+    }
 }

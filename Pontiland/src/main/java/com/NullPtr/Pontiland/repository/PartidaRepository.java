@@ -61,6 +61,7 @@ public class PartidaRepository implements IPartidaRepository {
    * @return El identificador de la partida.
    * @throws RuntimeException si ocurre un error de SQL durante la consulta.
    */
+  @Deprecated
   public long getPartidaID() {
     Connection conn = dataService.createConnection();
     String consultarPartida = "SELECT * FROM PARTIDA";
@@ -83,7 +84,33 @@ public class PartidaRepository implements IPartidaRepository {
     }
   }
 
+    @Override
+    public int numJugadores() {
+        Connection conn = dataService.createConnection();
+        String consulta = "SELECT NumeroJugadores FROM Partida WHERE PartidaID = ?";
+        try {
+            PreparedStatement stmt = conn.prepareStatement(consulta);
+            stmt.setLong(1, partidaID);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("NumeroJugadores");
+            } else {
+                throw new RuntimeException("No se encontró un jugador activo para la partida: " + partidaID);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public IDataService getDataService() {
         return dataService;
     }
+
+
 }

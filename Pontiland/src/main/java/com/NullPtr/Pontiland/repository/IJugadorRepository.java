@@ -4,11 +4,11 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import java.sql.SQLException;
 
 public interface IJugadorRepository {
-  void newPlayer(Jugador newPlayer, long partidaID, int icono) throws SQLException;
+  void newPlayer(Jugador newPlayer, int icono) throws SQLException;
 
-  int getPlayerIdByNumJugador(int numJugador, long partidaID) throws SQLException;
+  int getPlayerIdByNumJugador(int numJugador) throws SQLException;
 
-  void changeActivePlayer(int id, long partidaID) throws SQLException;
+  void changeActivePlayer(int numJugadores) throws SQLException;
 
-  void insertActivePlayer(int jugadorID, long partidaID) throws SQLException;
+  void insertActivePlayer(int jugadorID) throws SQLException;
 }

@@ -69,12 +69,15 @@ public class Launcher extends SimpleApplication {
 
     lanzamientoDadosController = new LanzamientoDadosController(diceService, resultados);
     lanzamientoDadosController.registerInputs(getInputManager());
+      partidaRepository = new PartidaRepository(dataService);
 
-    dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
+      //TODO revisar pq da error si no se crea partidaRepository antes
+      //long partidaID = partidaRepository.getPartidaID();
 
-    jugadorRepository = new JugadorRepository(dataService);
+      dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
 
-    partidaRepository = new PartidaRepository(dataService);
+      jugadorRepository = new JugadorRepository(dataService);
+
 
     startGameService = new StartGameService(jugadorRepository, partidaRepository, dataService);
 
