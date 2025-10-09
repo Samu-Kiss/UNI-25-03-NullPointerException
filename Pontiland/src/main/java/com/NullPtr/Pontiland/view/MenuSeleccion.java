@@ -50,7 +50,7 @@ import java.util.Set;
  */
 public class MenuSeleccion extends AbstractAppState {
   /** Dinero inicial de cada jugador. */
-  private static final double STARTING_MONEY = 0.0;
+  private static final int STARTING_MONEY = 0;
 
   /** Nombres de los personajes disponibles. */
   private static final String[] CHARACTER_NAMES = {

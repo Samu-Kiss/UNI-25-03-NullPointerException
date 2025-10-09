@@ -133,4 +133,7 @@ public class JugadorRepository implements IJugadorRepository {
    * Jugador(rsPartida.getInt("Jugador.Dinero"), rsPartida.getString("Jugador.Nombre"), ) } catch
    * (SQLException e) { throw new RuntimeException(e); } }
    */
+
+
+
 }

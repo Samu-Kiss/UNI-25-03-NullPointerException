@@ -17,6 +17,7 @@ public class PartidaRepository implements IPartidaRepository {
    * Servicio de acceso a datos para la gestión de conexiones y operaciones con la base de datos.
    */
   IDataService dataService;
+  long partidaID;
 
   /**
    * Constructor que permite la inyección del servicio de datos.
@@ -40,7 +41,7 @@ public class PartidaRepository implements IPartidaRepository {
     LocalDateTime myDateObj = LocalDateTime.now();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     String formatted = myDateObj.format(formatter);
-    long partidaID = Long.parseLong(formatted);
+    partidaID = Long.parseLong(formatted);
 
     String creacionPartida = "INSERT INTO PARTIDA(PartidaID, NumeroJugadores) VALUES( ? , ? )";
     try {
@@ -81,4 +82,8 @@ public class PartidaRepository implements IPartidaRepository {
       }
     }
   }
+
+    public IDataService getDataService() {
+        return dataService;
+    }
 }

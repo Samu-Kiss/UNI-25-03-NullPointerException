@@ -74,7 +74,7 @@ public class Launcher extends SimpleApplication {
 
     jugadorRepository = new JugadorRepository(dataService);
 
-    partidaRepository = new PartidaRepository(dataService);
+    partidaRepository = new PartidaRepository(dataService, ju);
 
     startGameService = new StartGameService(jugadorRepository, partidaRepository, dataService);
 

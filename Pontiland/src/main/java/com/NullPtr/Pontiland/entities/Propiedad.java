@@ -4,7 +4,7 @@ package com.NullPtr.Pontiland.entities;
 public class Propiedad implements ICasilla {
   private byte idPropiedad = -1;
   // REVIEW: Id grupo podría ser eliminado si se usa una matriz de propiedades para separarlas por
-  // grupo
+  //    grupo
   private byte idGrupo = -1;
   private Tipo tipoCasilla = Tipo.PROPIEDAD;
   private String nombreCasilla = null;
@@ -13,6 +13,7 @@ public class Propiedad implements ICasilla {
   private int precioCompra = -1;
   private int[] rentaPorNivel = null;
   private Jugador dueno = null;
+
 
   /**
    * Constructor de la clase Propiedad
@@ -109,7 +110,7 @@ public class Propiedad implements ICasilla {
   }
 
   @Override
-  public byte getPosicionTablero() {
+  public int getPosicionTablero() {
     return posicionTablero;
   }
 

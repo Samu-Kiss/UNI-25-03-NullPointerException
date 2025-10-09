@@ -13,10 +13,12 @@ package com.NullPtr.Pontiland.entities;
  *   - Salida
  *   - Movimiento/Estacion
  *   - Evento/Suerte
+ *   - Propiedad (Solo para indicar que es una propiedad y hacer la acción
+ *     correspondiente)
  */
-public class Evento implements ICasilla {
+public class Casilla implements ICasilla {
   private Tipo tipoCasilla = null;
-  private Byte posicionTablero = -1;
+  private int posicionTablero = -1;
   private String nombreCasilla = null;
 
   /**
@@ -26,7 +28,7 @@ public class Evento implements ICasilla {
    * @param nombreCasilla Nombre de la casilla
    * @param tipoCasilla Tipo de la casilla
    */
-  public Evento(byte posicionTablero, String nombreCasilla, Tipo tipoCasilla) {
+  public Casilla(int posicionTablero, String nombreCasilla, Tipo tipoCasilla) {
     if (posicionTablero < 1 || posicionTablero > 40) {
       throw new IllegalArgumentException("Posición de casilla inválida");
     }
@@ -47,13 +49,17 @@ public class Evento implements ICasilla {
     return tipoCasilla;
   }
 
-  @Override
-  public byte getPosicionTablero() {
+    @Override
+    public void setPosicionTablero(Byte posicionTablero) {
+        return;
+    }
+
+    @Override
+  public int getPosicionTablero() {
     return posicionTablero;
   }
 
-  @Override
-  public void setPosicionTablero(Byte posicionTablero) {
+  public void setPosicionTablero(int posicionTablero) {
     this.posicionTablero = posicionTablero;
   }
 

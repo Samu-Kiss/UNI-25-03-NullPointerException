@@ -1,19 +1,22 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
+import com.NullPtr.Pontiland.repository.IPartidaRepository;
 
 public class TurnService implements ITurnService{
     IJugadorRepository jugadorRepository;
-    long partidaID;
+    IPartidaRepository partidaRepository;
 
-    public TurnService(IJugadorRepository jugadorRepository, long partidaID) {
+    public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository) {
         this.jugadorRepository = jugadorRepository;
-        this.partidaID = partidaID;
+        this.partidaRepository = partidaRepository;
     }
 
 
     @Override
     public void nextTurn() {
+
+
 
     }
 

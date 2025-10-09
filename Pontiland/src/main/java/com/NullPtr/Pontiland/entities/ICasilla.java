@@ -8,7 +8,7 @@ public interface ICasilla {
 
   void setPosicionTablero(Byte posicionTablero);
 
-  byte getPosicionTablero();
+  int getPosicionTablero();
 
   void setNombreCasilla(String nombreCasilla);
 
