@@ -1,5 +1,7 @@
 package com.NullPtr.Pontiland.services;
 
+import com.NullPtr.Pontiland.entities.SavedGame;
+import com.NullPtr.Pontiland.utils.PropertiesReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
@@ -119,10 +121,12 @@ public class DataService implements IDataService {
    *
    * @return Mapa con fechas formateadas y nombres de archivos de partidas pasadas.
    */
-  public Map<String, String> listarPartidasPasadas() {
+  public List<SavedGame> listarPartidasPasadas() {
     Map<String, String> mapaArchivo = new LinkedHashMap<>();
 
-    File scriptsPartidas = new File("src/main/resources");
+    String ubicacionPartidas = PropertiesReader.getProperty("ubicacionPartidas");
+
+    File scriptsPartidas = new File(ubicacionPartidas);
     File[] archivos = scriptsPartidas.listFiles();
 
     if (archivos != null) {
@@ -148,7 +152,14 @@ public class DataService implements IDataService {
         }
       }
     }
-    return mapaArchivo;
+
+    List<SavedGame> listaPartidas = new ArrayList<>();
+
+    for (Map.Entry<String, String> entry : mapaArchivo.entrySet()) {
+      listaPartidas.add(new SavedGame(entry.getValue(), entry.getKey()));
+    }
+
+    return listaPartidas;
   }
 
   /**
@@ -168,11 +179,10 @@ public class DataService implements IDataService {
       Statement stmt = conn.createStatement();
       String ubicacionArchivo = "src/main/resources/SQL/PartidasPasadas/";
       ubicacionArchivo = ubicacionArchivo + partidaID + ".sql";
-      Path path = Paths.get(ubicacionArchivo);
       String script = "SCRIPT TO ?";
       PreparedStatement guardarPartida = conn.prepareStatement(script);
       guardarPartida.setString(1, ubicacionArchivo);
-      guardarPartida.executeUpdate();
+      guardarPartida.execute();
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
