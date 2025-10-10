@@ -67,14 +67,17 @@ public class Launcher extends SimpleApplication {
     bulletAppState.getPhysicsSpace().setAccuracy(1f / 120f);
     bulletAppState.getPhysicsSpace().setMaxSubSteps(2);
 
-    lanzamientoDadosController = new LanzamientoDadosController(diceService, resultados);
-    lanzamientoDadosController.registerInputs(getInputManager());
+
+      dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
+
+      lanzamientoDadosController = new LanzamientoDadosController(diceService, resultados);
+      lanzamientoDadosController.registerInputs(getInputManager());
       partidaRepository = new PartidaRepository(dataService);
+
 
       //TODO revisar pq da error si no se crea partidaRepository antes
       //long partidaID = partidaRepository.getPartidaID();
 
-      dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
 
       jugadorRepository = new JugadorRepository(dataService);
 

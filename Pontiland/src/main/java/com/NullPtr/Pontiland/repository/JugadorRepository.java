@@ -4,7 +4,9 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.services.IDataService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Repositorio encargado de gestionar las operaciones relacionadas con la entidad Jugador en la base
@@ -174,7 +176,39 @@ public class JugadorRepository implements IJugadorRepository {
       }
     }
   }
-  /**
+
+    @Override
+    public List<Jugador> getAllJugadores() throws SQLException {
+        List<Jugador> jugadores = new java.util.ArrayList<>();
+        Connection conn = dataService.createConnection();
+        String obtenerJugadores = "SELECT * FROM Jugador WHERE Partida = ?";
+
+        try {
+            PreparedStatement preparedStatement = conn.prepareStatement(obtenerJugadores);
+            preparedStatement.setLong(1, partidaID);
+            ResultSet rs = preparedStatement.executeQuery();
+
+            while (rs.next()) {
+                Jugador jugador = new Jugador(
+                        rs.getInt("JugadorID"),
+                        rs.getInt("NumJugador"),
+                        rs.getString("NombreJugador"),
+                        rs.getInt("IconoID"),
+                        rs.getInt("Posicion"),
+                        rs.getBoolean("Encarcelado"),
+                        rs.getInt("Dinero"),
+                        rs.getLong("Posicion")
+                );
+
+                jugadores.add(jugador);
+            }
+            return jugadores;
+        } catch (SQLException e){
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
    * public Jugador obtenerJugador(int id){ Connection conn = dataService.createConnection(); String
    * jugador = "SELECT * FROM JUGADOR LEFT JOIN ADQUISICIONES ON
    * JUGADOR.JUGADORID=ADQUISICIONES.JUGADORID WHERE JUGADOR.JUGADORID= ?"; try { PreparedStatement

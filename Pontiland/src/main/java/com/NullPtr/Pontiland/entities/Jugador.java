@@ -9,10 +9,13 @@ import java.util.List;
  */
 public class Jugador {
   private int jugadorId = -1;
+  private int numJugador = -1;
   private String nombreJugador = "";
+  private int iconoId = -1;
   private int posicion = 1;
   private boolean enCarcel = false;
   private int dinero = 0;
+  private long partidaId = -1;
   private List<Propiedad> propiedades;
 
     public Jugador(int jugadorId, String nombreJugador, int posicion, boolean enCarcel, int dinero, List<Propiedad> propiedades) {
@@ -51,42 +54,56 @@ public class Jugador {
     propiedades = new ArrayList<Propiedad>();
   }
 
+    /**
+     * Constructor completo de la clase Jugador
+     * @param jugadorId Identificador único del jugador
+     * @param numJugador Número del jugador en la partida
+     * @param nombreJugador Nombre del jugador
+     * @param iconoId Identificador del icono del jugador
+     * @param posicion Posición actual del jugador en el tablero
+     * @param enCarcel Estado del jugador (si está en la cárcel o no)
+     * @param dinero Cantidad de dinero que posee el jugador
+     * @param partidaId Identificador de la partida a la que pertenece el jugador
+     */
+    public Jugador(int jugadorId,
+                   int numJugador,
+                   String nombreJugador,
+                   int iconoId,
+                   int posicion,
+                   boolean enCarcel,
+                   int dinero,
+                   long partidaId) {
 
-  /**
-   * Constructor de la clase Jugador por defecto, con posicion variable y con propiedades
-   *
-   * @param dinero Cantidad inicial de dinero del jugador
-   * @param nombreJugador Nombre del jugador
-   * @param jugadorId Identificador único del jugador
-   * @param posicion Posicion del jugador en el tablero
-   * @param propiedades Lista de propiedades que posee el jugador
-   * @throws IllegalArgumentException si el dinero es negativo, los IDs son negativos, el nombre
-   *     está vacío, si la posicion es inválida
-   */
-  public Jugador(
-      int dinero,
-      String nombreJugador,
-      int jugadorId,
-      int posicion,
-      List<Propiedad> propiedades) {
-    if (dinero < 0) {
-      throw new IllegalArgumentException("El dinero no puede ser negativo");
-    }
-    if (nombreJugador == null || nombreJugador.isEmpty()) {
-      throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
-    }
-    if (posicion < 1 || posicion > 40) {
-      throw new IllegalArgumentException("Posicion invalida");
+        if (dinero < 0) {
+            throw new IllegalArgumentException("El dinero no puede ser negativo");
+        }
+        if (nombreJugador == null || nombreJugador.isEmpty()) {
+            throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
+        }
+        if (posicion < 1 || posicion > 40) {
+            throw new IllegalArgumentException("Posicion invalida");
+        }
+        if (partidaId < 0) {
+            throw new IllegalArgumentException("Identificador de la partida es inválido");
+        }
+        if (iconoId < 1 || iconoId > 7) {
+            throw new IllegalArgumentException("Identificador del icono es inválido");
+        }
+        if (numJugador < 1 || numJugador > 4) {
+            throw new IllegalArgumentException("Número de jugador es inválido");
+        }
+
+        this.jugadorId = jugadorId;
+        this.numJugador = numJugador;
+        this.nombreJugador = nombreJugador;
+        this.iconoId = iconoId;
+        this.posicion = posicion;
+        this.enCarcel = enCarcel;
+        this.dinero = dinero;
+        this.partidaId = partidaId;
     }
 
-    this.dinero = dinero;
-    this.nombreJugador = nombreJugador;
-    this.jugadorId = jugadorId;
-    this.posicion = posicion;
-    this.propiedades = propiedades;
-  }
-
-  public int getJugadorId() {
+    public int getJugadorId() {
     return jugadorId;
   }
 
