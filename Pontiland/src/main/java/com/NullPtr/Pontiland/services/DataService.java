@@ -1,6 +1,8 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.SavedGame;
+import com.NullPtr.Pontiland.utils.PropertiesReader;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +19,6 @@ import java.util.Properties;
 public class DataService implements IDataService {
   String url;
 
-    private final Properties props = new Properties();
     private String savesDir;
     private String ddlResource;
     private String insResource;
@@ -29,17 +30,10 @@ public class DataService implements IDataService {
   public DataService(String url) {
 
       this.url = url;
-      try (InputStream in = getClass().getClassLoader().getResourceAsStream("ponti.properties");
-           InputStreamReader r = in != null ? new InputStreamReader(in, StandardCharsets.UTF_8) : null) {
-          if (in != null) {
-              props.load(r);
-          }
-      } catch (Exception ignore) {
-      }
 
-      this.savesDir    = props.getProperty("saves.dir");
-      this.ddlResource = props.getProperty("sql.nuevaPartida.ddl");
-      this.insResource = props.getProperty("sql.nuevaPartida.inserts");
+      this.savesDir    = PropertiesReader.getProperty("saves");
+      this.ddlResource = PropertiesReader.getProperty("nuevaPartida.ddl");
+      this.insResource = PropertiesReader.getProperty("nuevaPartida.inserts");
   }
 
   /**
@@ -88,20 +82,19 @@ public class DataService implements IDataService {
     Connection conn = createConnection();
     try {
         Statement stmt = conn.createStatement();
-        String dataSql = new String(
+        String schemaSql = new String(
             this.getClass()
                     .getResourceAsStream(ddlResource)
                     .readAllBytes(),
             StandardCharsets.UTF_8
     );
-        stmt.execute(dataSql);
-        String schemaSql = new String(
+        stmt.execute(schemaSql);
+        String dataSql = new String(
                 this.getClass()
                         .getResourceAsStream(insResource)
                         .readAllBytes(),
                 StandardCharsets.UTF_8
         );
-        stmt.execute(schemaSql);
 
         for (String sql : dataSql.split(";")) {
         if (!sql.trim().isEmpty()) {

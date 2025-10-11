@@ -1,7 +1,7 @@
 package com.NullPtr.Pontiland.entities;
 
 /** Clase que representa una propiedad en el juego */
-public class Propiedad implements ICasilla {
+public class Propiedad{
   private byte idPropiedad = -1;
   // REVIEW: Id grupo podría ser eliminado si se usa una matriz de propiedades para separarlas por
   //    grupo
@@ -104,17 +104,14 @@ public class Propiedad implements ICasilla {
     this.dueno = dueno;
   }
 
-  @Override
   public void setPosicionTablero(Byte posicionTablero) {
     this.posicionTablero = posicionTablero;
   }
 
-  @Override
   public int getPosicionTablero() {
     return posicionTablero;
   }
 
-  @Override
   public void setNombreCasilla(String nombreCasilla) {
     if (nombreCasilla == null || nombreCasilla.trim().isEmpty()) {
       throw new IllegalArgumentException("El nombre de la casilla no puede ser nulo o vacío");
@@ -122,17 +119,14 @@ public class Propiedad implements ICasilla {
     this.nombreCasilla = nombreCasilla;
   }
 
-  @Override
   public String getNombreCasilla() {
     return this.nombreCasilla;
   }
 
-  @Override
   public void setTipoCasilla(Tipo tipoCasilla) {
     this.tipoCasilla = tipoCasilla;
   }
 
-  @Override
   public Tipo getTipoCasilla() {
     return this.tipoCasilla;
   }
