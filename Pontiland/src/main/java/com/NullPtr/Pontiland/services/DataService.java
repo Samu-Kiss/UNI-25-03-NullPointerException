@@ -87,7 +87,14 @@ public class DataService implements IDataService {
   public void newDataBase() {
     Connection conn = createConnection();
     try {
-      Statement stmt = conn.createStatement();
+        Statement stmt = conn.createStatement();
+        String dataSql = new String(
+            this.getClass()
+                    .getResourceAsStream(ddlResource)
+                    .readAllBytes(),
+            StandardCharsets.UTF_8
+    );
+        stmt.execute(dataSql);
         String schemaSql = new String(
                 this.getClass()
                         .getResourceAsStream(insResource)
@@ -95,13 +102,7 @@ public class DataService implements IDataService {
                 StandardCharsets.UTF_8
         );
         stmt.execute(schemaSql);
-        String dataSql = new String(
-                this.getClass()
-                        .getResourceAsStream(ddlResource)
-                        .readAllBytes(),
-                StandardCharsets.UTF_8
-        );
-        stmt.execute(dataSql);
+
         for (String sql : dataSql.split(";")) {
         if (!sql.trim().isEmpty()) {
           stmt.execute(sql.trim());
