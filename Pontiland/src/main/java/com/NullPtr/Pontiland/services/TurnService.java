@@ -46,6 +46,6 @@ public class TurnService implements ITurnService{
 
     @Override
     public boolean canThrowDice() {
-        return false;
+        return true;
     }
 }
