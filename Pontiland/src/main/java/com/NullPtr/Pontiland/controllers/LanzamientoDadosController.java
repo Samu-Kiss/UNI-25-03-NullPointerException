@@ -28,7 +28,7 @@ public class LanzamientoDadosController {
           if (!evt.isPressed()) return; // reaccionar solo a key-down
 
           int code = evt.getKeyCode();
-          if (code == KeyInput.KEY_Y ) {
+          if (code == KeyInput.KEY_Y && turnService.canThrowDice()) {
             diceService.lanzamientoDadosNoBloqueante(resultados);
           }
         }
@@ -62,9 +62,10 @@ public class LanzamientoDadosController {
    * @param resultados Estructura compartida donde se escribirán resultados no bloqueantes
    */
   public LanzamientoDadosController(
-          DiceService diceService, Byte[] resultados) {
+          DiceService diceService, ITurnService turnService, Byte[] resultados) {
     this.diceService = diceService;
     this.resultados = resultados;
+    this.turnService = turnService;
   }
 
   public void onDadosCreados(Spatial dado1, Spatial dado2) {

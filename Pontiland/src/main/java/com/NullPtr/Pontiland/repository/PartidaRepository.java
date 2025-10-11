@@ -62,6 +62,7 @@ public class PartidaRepository implements IPartidaRepository {
    * @throws RuntimeException si ocurre un error de SQL durante la consulta.
    */
   @Deprecated
+  /*
   public long getPartidaID() {
     Connection conn = dataService.createConnection();
     String consultarPartida = "SELECT * FROM PARTIDA";
@@ -82,7 +83,7 @@ public class PartidaRepository implements IPartidaRepository {
         throw new RuntimeException(e);
       }
     }
-  }
+  }*/
 
     @Override
     public int numJugadores() {

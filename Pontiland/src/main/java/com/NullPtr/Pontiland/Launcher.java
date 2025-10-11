@@ -28,6 +28,7 @@ public class Launcher extends SimpleApplication {
 
   private final BulletAppState bulletAppState = new BulletAppState();
   private final DiceService diceService = new DiceService();
+  private ITurnService turnService;
   private LanzamientoDadosController lanzamientoDadosController;
     private Byte[] resultados = new Byte[2];
     private Scene scene;
@@ -70,7 +71,8 @@ public class Launcher extends SimpleApplication {
 
       dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
 
-      lanzamientoDadosController = new LanzamientoDadosController(diceService, resultados);
+      turnService = new TurnService(jugadorRepository, partidaRepository);
+      lanzamientoDadosController = new LanzamientoDadosController(diceService, turnService, resultados);
       lanzamientoDadosController.registerInputs(getInputManager());
       partidaRepository = new PartidaRepository(dataService);
 
