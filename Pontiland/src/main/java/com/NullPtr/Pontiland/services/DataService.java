@@ -95,12 +95,8 @@ public class DataService implements IDataService {
                         .readAllBytes(),
                 StandardCharsets.UTF_8
         );
+        stmt.execute(dataSql);
 
-        for (String sql : dataSql.split(";")) {
-        if (!sql.trim().isEmpty()) {
-          stmt.execute(sql.trim());
-        }
-      }
     } catch (SQLException e) {
       throw new RuntimeException(e);
     } catch (IOException e) {

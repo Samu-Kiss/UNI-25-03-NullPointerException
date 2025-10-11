@@ -1,7 +1,7 @@
 package com.NullPtr.Pontiland.entities;
 
 /** Clase que representa una propiedad en el juego */
-public class Propiedad{
+public class Propiedad  {
   private byte idPropiedad = -1;
   // REVIEW: Id grupo podría ser eliminado si se usa una matriz de propiedades para separarlas por
   //    grupo
