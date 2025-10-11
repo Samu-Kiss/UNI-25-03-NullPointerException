@@ -1,26 +1,45 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.SavedGame;
-import com.NullPtr.Pontiland.utils.PropertiesReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
+import java.util.Properties;
 
 public class DataService implements IDataService {
   String url;
 
+    private final Properties props = new Properties();
+    private String savesDir;
+    private String ddlResource;
+    private String insResource;
   /**
    * Constructor que inicializa el servicio de datos con una URL de conexión específica.
    *
    * @param url URL de la base de datos a utilizar para la conexión.
    */
   public DataService(String url) {
-    this.url = url;
+
+      this.url = url;
+      try (InputStream in = getClass().getClassLoader().getResourceAsStream("ponti.properties");
+           InputStreamReader r = in != null ? new InputStreamReader(in, StandardCharsets.UTF_8) : null) {
+          if (in != null) {
+              props.load(r);
+          }
+      } catch (Exception ignore) {
+      }
+
+      this.savesDir    = props.getProperty("saves.dir");
+      this.ddlResource = props.getProperty("sql.nuevaPartida.ddl");
+      this.insResource = props.getProperty("sql.nuevaPartida.inserts");
   }
 
   /**
@@ -69,23 +88,20 @@ public class DataService implements IDataService {
     Connection conn = createConnection();
     try {
       Statement stmt = conn.createStatement();
-      // Cargar y ejecutar DDL.sql
-        /* src no existe en tiempo de ejecucion*/
         String schemaSql = new String(
-                Thread.currentThread().getContextClassLoader()
-                        .getResourceAsStream("SQL/NuevaPartida/DDL.sql")
-                        .readAllBytes()
+                this.getClass()
+                        .getResourceAsStream(insResource)
+                        .readAllBytes(),
+                StandardCharsets.UTF_8
         );
-
         stmt.execute(schemaSql);
-      // Cargar y ejecutar data.sql
-        /* src no existe en tiempo de ejecucion*/
         String dataSql = new String(
-                Thread.currentThread().getContextClassLoader()
-                        .getResourceAsStream("SQL/NuevaPartida/Insertions.sql")
-                        .readAllBytes()
+                this.getClass()
+                        .getResourceAsStream(ddlResource)
+                        .readAllBytes(),
+                StandardCharsets.UTF_8
         );
-
+        stmt.execute(dataSql);
         for (String sql : dataSql.split(";")) {
         if (!sql.trim().isEmpty()) {
           stmt.execute(sql.trim());
@@ -110,7 +126,7 @@ public class DataService implements IDataService {
     Connection conn = createConnection();
     try {
       Statement stmt = conn.createStatement();
-      String ubicacionArchivo = "src/main/resources/SQL/PartidasPasadas/";
+      String ubicacionArchivo = savesDir;
       ubicacionArchivo = ubicacionArchivo + archivoSeleccionado;
       Path path = Paths.get(ubicacionArchivo);
       if (Files.exists(path) && Files.isRegularFile(path)) {
@@ -188,7 +204,7 @@ public class DataService implements IDataService {
     Connection conn = createConnection();
     try {
       Statement stmt = conn.createStatement();
-      String ubicacionArchivo = "src/main/resources/SQL/PartidasPasadas/";
+      String ubicacionArchivo = savesDir;
       ubicacionArchivo = ubicacionArchivo + partidaID + ".sql";
       String script = "SCRIPT TO ?";
       PreparedStatement guardarPartida = conn.prepareStatement(script);

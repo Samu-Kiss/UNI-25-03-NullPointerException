@@ -16,7 +16,7 @@ package com.NullPtr.Pontiland.entities;
  *   - Propiedad (Solo para indicar que es una propiedad y hacer la acción
  *     correspondiente)
  */
-public class Casilla implements ICasilla {
+public class Casilla {
   private Tipo tipoCasilla = null;
   private int posicionTablero = -1;
   private String nombreCasilla = null;
@@ -44,17 +44,14 @@ public class Casilla implements ICasilla {
     this.tipoCasilla = tipoCasilla;
   }
 
-  @Override
   public Tipo getTipoCasilla() {
     return tipoCasilla;
   }
 
-    @Override
-    public void setPosicionTablero(Byte posicionTablero) {
+  public void setPosicionTablero(Byte posicionTablero) {
         return;
     }
 
-    @Override
   public int getPosicionTablero() {
     return posicionTablero;
   }
@@ -63,17 +60,14 @@ public class Casilla implements ICasilla {
     this.posicionTablero = posicionTablero;
   }
 
-  @Override
   public String getNombreCasilla() {
     return nombreCasilla;
   }
 
-  @Override
   public void setTipoCasilla(Tipo tipoCasilla) {
     this.tipoCasilla = tipoCasilla;
   }
 
-  @Override
   public void setNombreCasilla(String nombreCasilla) {
     this.nombreCasilla = nombreCasilla;
   }
