@@ -14,4 +14,6 @@ public interface IJugadorRepository {
   void insertActivePlayer(int jugadorID) throws SQLException;
 
   List<Jugador> getAllJugadores() throws SQLException;
+
+  void setPartidaID(long partidaID);
 }

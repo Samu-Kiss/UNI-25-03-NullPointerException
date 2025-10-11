@@ -218,6 +218,7 @@ public class JugadorRepository implements IJugadorRepository {
    * (SQLException e) { throw new RuntimeException(e); } }
    */
 
+    @Override
     public void setPartidaID(long partidaID) {
         this.partidaID = partidaID;
     }
