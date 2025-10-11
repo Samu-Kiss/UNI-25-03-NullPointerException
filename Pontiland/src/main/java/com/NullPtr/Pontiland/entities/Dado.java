@@ -46,7 +46,7 @@ public class Dado {
     rb.clearForces();
     rb.activate();
 
-    Vector3f n = new Vector3f(1, 5, 0.3f);
+    Vector3f n = new Vector3f(0, 5, 0);
     float m = rb.getMass();
     Vector3f impulse = n.mult(1.0f * m);
     impulse.y += 0.5f * m;
