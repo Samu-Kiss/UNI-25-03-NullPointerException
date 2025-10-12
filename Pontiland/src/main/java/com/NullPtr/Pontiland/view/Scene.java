@@ -9,6 +9,7 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.cinematic.MotionPath;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -22,6 +23,11 @@ import com.jme3.scene.shape.Box;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 
+import javax.naming.ldap.Control;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Clase de vista que construye y mantiene la escena 3D de Pontiland.
  *
@@ -32,10 +38,15 @@ import com.jme3.util.SkyFactory;
  */
 public class Scene {
     private static final int TOTAL_CASILLAS = 40;
-    private static final float CELL_SIZE = 2.0f;
-    private static final float Y_PLANO = 0f;
+    private static final float CELL_SIZE = 1.4f;
+    private static final float Y_PLANO = 1f;
     private static final int SIDE = TOTAL_CASILLAS / 4;
     private static final float HALF = (SIDE - 1) * CELL_SIZE * 0.5f;
+    private final Vector3f BOARD_FIRST_POSITION = new Vector3f(8.5f, 1, 8.5f);
+
+    private final ExecutorService animator = Executors.newSingleThreadExecutor(r -> {Thread t = new Thread(r, "SceneAnimator");
+                                                                          t.setDaemon(true);
+                                                                          return t;});
 
   /** Referencias a la aplicación y a sus componentes para cargar assets y manipular la escena. */
   private LegacyApplication app;
@@ -63,6 +74,7 @@ public class Scene {
       LegacyApplication app,
       BulletAppState bullet,
       LanzamientoDadosController lanzamientoController) {
+    this.app = app;
     Launcher L = (Launcher) app;
     this.assetManager = L.getAssetManager();
     this.rootNode = L.getRootNode();
@@ -97,40 +109,146 @@ public class Scene {
           s.setUserData("jugadorId", jugadorId);
 
           s.scale(1f);
-          s.setLocalTranslation(1 + i * 1f, 0, 0);
-          com.jme3.bullet.control.RigidBodyControl rb = new com.jme3.bullet.control.RigidBodyControl(0);
+
+          if (i < 2 ) {
+            s.setLocalTranslation(BOARD_FIRST_POSITION.getX() + i * 0.5f, 1, BOARD_FIRST_POSITION.getZ());
+          } else {
+            s.setLocalTranslation(BOARD_FIRST_POSITION.getX() + i%2 * 0.5f, 1, BOARD_FIRST_POSITION.getZ() + 0.5f);
+          }
+
+
+          com.jme3.bullet.control.RigidBodyControl rb = new com.jme3.bullet.control.RigidBodyControl(0f);
           s.addControl(rb);
           bullet.getPhysicsSpace().add(rb);
           rootNode.attachChild(s);
       }
   }
-    public void replicateFichaPosition(int jugadorId, int casillaIndex) {
-        var s = rootNode.getChild("Ficha_J" + jugadorId);
-        if (s == null) return;
-        var p = posFromCell(casillaIndex);
-        var rb = s.getControl(com.jme3.bullet.control.RigidBodyControl.class);
-        if (rb != null) rb.setPhysicsLocation(p.clone());
-        s.setLocalTranslation(p);
-    }
 
+  /*
+  public void replicateFichaPosition(int jugadorId, int casillaIndex) {
+      Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
+      if (s == null) return;
+      Vector3f p = posFromCell(casillaIndex);
+      RigidBodyControl rb = s.getControl(com.jme3.bullet.control.RigidBodyControl.class);
+      if (rb != null) rb.setPhysicsLocation(p.clone());
+      s.setLocalTranslation(p);
+  }
+  */
 
-    private Vector3f posFromCell(int c) {
-      System.out.print("Casilla: " + c);
-        int idx = ((c % TOTAL_CASILLAS) + TOTAL_CASILLAS) % TOTAL_CASILLAS;
-        float x, z;
-        if (idx < SIDE) {
-            x = -HALF + idx * CELL_SIZE; z = -HALF;
-        } else if (idx < 2 * SIDE) {
-            int k = idx - SIDE;   x =  HALF; z = -HALF + k * CELL_SIZE;
-        } else if (idx < 3 * SIDE) {
-            int k = idx - 2 * SIDE; x =  HALF - k * CELL_SIZE; z =  HALF;
-        } else {
-            int k = idx - 3 * SIDE; x = -HALF; z =  HALF - k * CELL_SIZE;
+  public void replicateFichaPosition(int jugadorId, int casillaIndex) {
+    Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
+    if (s == null) return;
+    Vector3f target = posFromCell(casillaIndex);
+    RigidBodyControl rb = s.getControl(RigidBodyControl.class);
+    // durationSeconds and jumpHeight can be tuned
+    animateMove(s, rb, target, 0.65f, 0.9f);
+  }
+
+  private void animateMove(Spatial s, RigidBodyControl rb, Vector3f target, float durationSeconds, float jumpHeight) {
+    final Vector3f start = (rb != null && rb.getPhysicsLocation() != null)
+            ? rb.getPhysicsLocation().clone()
+            : s.getLocalTranslation().clone();
+    final float startY = start.y;
+    final long startNs = System.nanoTime();
+    final long durationNs = (long) (durationSeconds * 1_000_000_000L);
+
+    animator.submit(() -> {
+      try {
+        while (true) {
+          long nowNs = System.nanoTime();
+          long elapsed = nowNs - startNs;
+          float t = Math.min(1f, (float) elapsed / (float) durationNs);
+
+          float x = start.x + (target.x - start.x) * t;
+          float z = start.z + (target.z - start.z) * t;
+          float y = startY + (float) Math.sin(Math.PI * t) * jumpHeight;
+
+          final Vector3f pos = new Vector3f(x, y, z);
+
+          // schedule scenegraph / physics update on render thread
+          app.enqueue(() -> {
+            if (rb != null) {
+              rb.setPhysicsLocation(pos.clone());
+              // stop any residual motion while teleporting
+              rb.setLinearVelocity(Vector3f.ZERO);
+              rb.setAngularVelocity(Vector3f.ZERO);
+            }
+            s.setLocalTranslation(pos);
+          });
+
+          if (t >= 1f) break;
+          Thread.sleep(16); // ~60 FPS
         }
-        return new Vector3f(x, Y_PLANO, z);
+        // ensure final exact placement on render thread
+        app.enqueue(() -> {
+          if (rb != null) {
+            rb.setPhysicsLocation(target.clone());
+            rb.setLinearVelocity(Vector3f.ZERO);
+            rb.setAngularVelocity(Vector3f.ZERO);
+          }
+          s.setLocalTranslation(target);
+        });
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+      }
+    });
+  }
+
+  private Vector3f posFromCell(int c) {
+    int idx = ((c % TOTAL_CASILLAS) + TOTAL_CASILLAS) % TOTAL_CASILLAS;
+    final float halfStep = CELL_SIZE / 2f;
+    final int slotsPerSide = TOTAL_CASILLAS / 4;
+
+    int side = idx / slotsPerSide;
+    int pos = idx % slotsPerSide;
+
+    float x = 0f;
+    float z = 0f;
+
+    switch (side) {
+      // Bottom side: right -> left
+      case 0:
+        x = -pos * CELL_SIZE;
+        break;
+
+      // Left side: bottom -> top
+      case 1:
+        x = -BOARD_FIRST_POSITION.getX() * 1.95f;
+        if (pos == 0) {
+          z = -((pos * CELL_SIZE));
+        } else {
+          z = -((pos * CELL_SIZE) + pos * 0.23f);
+        }
+        break;
+
+
+      // Top side: left -> right
+      case 2:
+        z = -BOARD_FIRST_POSITION.getZ() * 1.9f;
+        if (pos == 0) {
+          x = (-BOARD_FIRST_POSITION.getX() * 1.95f) + (pos * CELL_SIZE);
+          break;
+        } else {
+          x = (-BOARD_FIRST_POSITION.getX() * 1.95f) + (pos * CELL_SIZE) + pos * 0.24f;
+          break;
+        }
+
+      // Right side: top -> bottom
+      case 3:
+        z = (-BOARD_FIRST_POSITION.getZ() * 1.95f) + (pos * CELL_SIZE) + pos * 0.24f;
+        break;
     }
 
-    /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
+    return new Vector3f(
+            BOARD_FIRST_POSITION.x + x,
+            BOARD_FIRST_POSITION.y,
+            BOARD_FIRST_POSITION.z + z
+    );
+  }
+
+
+
+  /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
   private void loadBoardModel() {
     try {
       Spatial board = assetManager.loadModel("graphics/models/Board.glb");
@@ -159,6 +277,7 @@ public class Scene {
       Spatial conito = assetManager.loadModel("graphics/models/Conito.glb");
       conito.scale(10f);
       conito.setLocalTranslation(0, 0, 0);
+      conito.setName("Conito");
       rootNode.attachChild(conito);
       RigidBodyControl conitoPhysics = new RigidBodyControl(0f);
       conito.addControl(conitoPhysics);
@@ -253,8 +372,32 @@ public class Scene {
 
   /** Posiciona la cámara y ajusta su perspectiva y velocidad de movimiento. */
   private void setupCamera() {
-    cam.setLocation(new Vector3f(9, 20, 10));
+    cam.setLocation(new Vector3f(15, 15, 15));
     cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
     cam.setFrustumPerspective(60f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 500f);
+    createCameraPath();
+
+  }
+
+  private MotionPath createCameraPath() {
+      MotionPath path = new MotionPath();
+      path.addWayPoint(new Vector3f(10, 0, 0));
+      path.addWayPoint(new Vector3f(10, 0, 2));
+      path.enableDebugShape(assetManager, rootNode);
+      //path.setCycle(true);
+      return path;
+  }
+
+  public void cleanup() {
+    animator.shutdownNow();
+    try {
+      if (!animator.awaitTermination(500, TimeUnit.MILLISECONDS)) {
+        animator.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 }
+
+
