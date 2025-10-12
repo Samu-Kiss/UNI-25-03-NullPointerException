@@ -138,6 +138,7 @@ public class DataService implements IDataService {
   public List<SavedGame> listarPartidasPasadas() {
     Map<String, String> mapaArchivo = new LinkedHashMap<>();
 
+    String ubicacionPartidas = PropertiesReader.getProperty("saves");
 
     File scriptsPartidas = new File(savesDir);
     File[] archivos = scriptsPartidas.listFiles();

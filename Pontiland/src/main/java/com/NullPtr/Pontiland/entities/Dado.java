@@ -59,7 +59,7 @@ public class Dado {
     RigidBodyControl control = spatial.getControl(RigidBodyControl.class);
     if (control != null) {
       Vector3f velocidad = control.getLinearVelocity();
-      return velocidad.length() > 0.04f;
+      return velocidad.length() > 0.02f;
     }
     return false;
   }
