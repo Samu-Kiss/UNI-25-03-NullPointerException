@@ -92,20 +92,16 @@ public class JugadorRepository implements IJugadorRepository {
    */
   @Override
   public int getActivePlayer() throws SQLException {
-      final String sql = "SELECT j.NumJugador FROM JugadorActivo ja JOIN Jugador j ON j.JugadorID = ja.JugadorActualID WHERE ja.PartidaID = ?";
+      final String sql = "SELECT JugadorActualID FROM JugadorActivo WHERE PartidaID = ?";
       try (Connection conn = dataService.createConnection();
            PreparedStatement ps = conn.prepareStatement(sql)) {
           ps.setLong(1, partidaID);
           try (ResultSet rs = ps.executeQuery()) {
-              if (rs.next()) {
-                  return rs.getInt("NumJugador"); // <- ahora sí existe
-              }
-              throw new IllegalStateException(
-                      "[JUGADOR] No hay jugador activo para PartidaID=" + partidaID);
+              if (rs.next()) return rs.getInt("JugadorActualID");
+              throw new IllegalStateException("[JUGADOR] No hay jugador activo para PartidaID=" + partidaID);
           }
       }
   }
-
 
   /**
    * Obtiene el ID del jugador asociado a un número de jugador específico dentro de la partida actual.
