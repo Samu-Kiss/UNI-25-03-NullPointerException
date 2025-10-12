@@ -101,44 +101,51 @@ public class Scene {
   }
 
   public void loadFichasModels(Ficha[] data) {
-      for (int i = 0; i < data.length; i++) {
-          com.jme3.scene.Spatial s = assetManager.loadModel(data[i].getRutaFicha());
+    for (int i = 0; i < data.length; i++) {
+      Spatial s = assetManager.loadModel(data[i].getRutaFicha());
 
-          int jugadorId = data[i].getJugadorId();
-          s.setName("Ficha_J" + jugadorId);
-          s.setUserData("jugadorId", jugadorId);
+      int jugadorId = data[i].getJugadorId();
+      s.setName("Ficha_J" + jugadorId);
+      s.setUserData("jugadorId", jugadorId);
 
-          s.scale(1f);
+      s.scale(1f);
 
-          if (i < 2 ) {
-            s.setLocalTranslation(BOARD_FIRST_POSITION.getX() + i * 0.5f, 1, BOARD_FIRST_POSITION.getZ());
-          } else {
-            s.setLocalTranslation(BOARD_FIRST_POSITION.getX() + i%2 * 0.5f, 1, BOARD_FIRST_POSITION.getZ() + 0.5f);
-          }
-
-
-          com.jme3.bullet.control.RigidBodyControl rb = new com.jme3.bullet.control.RigidBodyControl(0f);
-          s.addControl(rb);
-          bullet.getPhysicsSpace().add(rb);
-          rootNode.attachChild(s);
+      Vector3f placed;
+      if (i < 2) {
+        placed = new Vector3f(BOARD_FIRST_POSITION.getX() + i * 0.5f, 1, BOARD_FIRST_POSITION.getZ());
+      } else {
+        placed = new Vector3f(BOARD_FIRST_POSITION.getX() + i % 2 * 0.5f, 1, BOARD_FIRST_POSITION.getZ() + 0.5f);
       }
-  }
 
-  /*
-  public void replicateFichaPosition(int jugadorId, int casillaIndex) {
-      Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
-      if (s == null) return;
-      Vector3f p = posFromCell(casillaIndex);
-      RigidBodyControl rb = s.getControl(com.jme3.bullet.control.RigidBodyControl.class);
-      if (rb != null) rb.setPhysicsLocation(p.clone());
-      s.setLocalTranslation(p);
+      s.setLocalTranslation(placed);
+
+      // store the per-spatial initial offset relative to cell 0 so future moves reuse it
+      Vector3f cell0 = posFromCell(0);
+      Vector3f initialOffset = placed.subtract(cell0);
+      s.setUserData("initialOffset", initialOffset);
+
+      com.jme3.bullet.control.RigidBodyControl rb = new com.jme3.bullet.control.RigidBodyControl(0f);
+      s.addControl(rb);
+      rb.setPhysicsLocation(placed.clone());
+      bullet.getPhysicsSpace().add(rb);
+      rootNode.attachChild(s);
+    }
   }
-  */
 
   public void replicateFichaPosition(int jugadorId, int casillaIndex) {
     Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
     if (s == null) return;
-    Vector3f target = posFromCell(casillaIndex);
+    Vector3f cellCenter = posFromCell(casillaIndex);
+
+    Object ud = s.getUserData("initialOffset");
+    Vector3f target;
+    if (ud instanceof Vector3f) {
+      // add stored initial offset to the target cell center
+      target = cellCenter.add((Vector3f) ud);
+    } else {
+      target = cellCenter;
+    }
+
     RigidBodyControl rb = s.getControl(RigidBodyControl.class);
     // durationSeconds and jumpHeight can be tuned
     animateMove(s, rb, target, 0.65f, 0.9f);
