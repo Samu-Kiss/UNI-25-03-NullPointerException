@@ -12,7 +12,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
-import java.util.Properties;
 
 public class DataService implements IDataService {
   String url;
@@ -79,7 +78,10 @@ public class DataService implements IDataService {
   public void newDataBase() {
     Connection conn = createConnection();
     try {
-        Statement stmt = conn.createStatement();
+      Statement stmt = conn.createStatement();
+
+      // Cargar y ejecutar DDL.sql
+        /* src no existe en tiempo de ejecucion*/
         String schemaSql = new String(
             this.getClass()
                     .getResourceAsStream(ddlResource)
@@ -87,6 +89,8 @@ public class DataService implements IDataService {
             StandardCharsets.UTF_8
     );
         stmt.execute(schemaSql);
+      // Cargar y ejecutar data.sql
+        /* src no existe en tiempo de ejecucion*/
         String dataSql = new String(
                 this.getClass()
                         .getResourceAsStream(insResource)
@@ -138,9 +142,9 @@ public class DataService implements IDataService {
   public List<SavedGame> listarPartidasPasadas() {
     Map<String, String> mapaArchivo = new LinkedHashMap<>();
 
-    String ubicacionPartidas = PropertiesReader.getProperty("saves");
-
-    File scriptsPartidas = new File(savesDir);
+    File scriptsPartidas = new File(
+            this.getClass().getResource(PropertiesReader.getProperty("saves")).getFile()
+            );
     File[] archivos = scriptsPartidas.listFiles();
 
     if (archivos != null) {

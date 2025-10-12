@@ -202,7 +202,7 @@ public class Scene {
 
   /** Posiciona la cámara y ajusta su perspectiva y velocidad de movimiento. */
   private void setupCamera() {
-    cam.setLocation(new Vector3f(6, 6, 10));
+    cam.setLocation(new Vector3f(9, 7, 10));
     cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
     cam.setFrustumPerspective(60f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 500f);
   }

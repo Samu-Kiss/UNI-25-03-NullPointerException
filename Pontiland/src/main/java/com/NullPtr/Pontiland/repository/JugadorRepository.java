@@ -6,7 +6,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Repositorio encargado de gestionar las operaciones relacionadas con la entidad Jugador en la base
@@ -35,6 +34,7 @@ public class JugadorRepository implements IJugadorRepository {
    * @param icono Identificador del icono asociado al jugador.
    * @throws RuntimeException si ocurre un error de SQL durante la inserción.
    */
+  @Override
   public void newPlayer(Jugador newPlayer, int icono) throws SQLException {
     Connection conn = dataService.createConnection();
     String nuevoJugador =
@@ -61,6 +61,7 @@ public class JugadorRepository implements IJugadorRepository {
    * Actualiza el jugador activo en una partida específica.
    * @throws SQLException si ocurre un error al acceder a la base de datos.
    */
+  @Override
   public void changeActivePlayer(int numJugadores) throws SQLException {
     int viejo = getNumJugadorByPlayerId(getActivePlayer());
     int nuevoJugadorActivo = viejo%numJugadores + 1;
@@ -84,6 +85,14 @@ public class JugadorRepository implements IJugadorRepository {
     }
   }
 
+  /**
+   * Obtiene el ID del jugador activo en la partida actual.
+   *
+   * @return ID del jugador activo.
+   * @throws SQLException si ocurre un error al acceder a la base de datos o si no se encuentra un
+   *     jugador activo.
+   */
+  @Override
   public int getActivePlayer() throws SQLException {
     Connection conn = dataService.createConnection();
     String consulta = "SELECT JugadorActualID FROM JugadorActivo WHERE PartidaID = ?";
@@ -107,6 +116,14 @@ public class JugadorRepository implements IJugadorRepository {
     }
   }
 
+  /**
+   * Obtiene el ID del jugador asociado a un número de jugador específico dentro de la partida actual.
+   *
+   * @param numJugador Número del jugador cuyo ID se desea obtener.
+   * @return ID del jugador correspondiente al número de jugador proporcionado.
+   * @throws SQLException si ocurre un error al acceder a la base de datos o si no se encuentra el jugador.
+   */
+  @Override
   public int getPlayerIdByNumJugador(int numJugador) throws SQLException {
     Connection conn = dataService.createConnection();
     String consulta = "SELECT JugadorID FROM Jugador WHERE NumJugador = ? AND Partida = ?";
@@ -131,32 +148,45 @@ public class JugadorRepository implements IJugadorRepository {
     }
   }
 
-    public int getNumJugadorByPlayerId(int playerId) throws SQLException {
-        Connection conn = dataService.createConnection();
-        String consulta = "SELECT NumJugador FROM Jugador WHERE JugadorID = ? AND Partida = ?";
-        try {
-            PreparedStatement stmt = conn.prepareStatement(consulta);
-            stmt.setInt(1, playerId);
-            stmt.setLong(2, partidaID);
-            var rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("NumJugador");
-            } else {
-                throw new RuntimeException("No se encontró el jugador con playerID: " + playerId);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
+  /**
+   * Obtiene el número de jugadores (NumJugador) asociado a un ID de jugador específico dentro de la partida actual.
+   *
+   * @param playerId ID del jugador cuyo número de jugador se desea obtener.
+   * @return Número de jugadores (NumJugador) correspondiente al ID proporcionado.
+   * @throws SQLException si ocurre un error al acceder a la base de datos o si no se encuentra el jugador.
+   */
+  @Override
+  public int getNumJugadorByPlayerId(int playerId) throws SQLException {
+      Connection conn = dataService.createConnection();
+      String consulta = "SELECT NumJugador FROM Jugador WHERE JugadorID = ? AND Partida = ?";
+      try {
+          PreparedStatement stmt = conn.prepareStatement(consulta);
+          stmt.setInt(1, playerId);
+          stmt.setLong(2, partidaID);
+          var rs = stmt.executeQuery();
+          if (rs.next()) {
+              return rs.getInt("NumJugador");
+          } else {
+              throw new RuntimeException("No se encontró el jugador con playerID: " + playerId);
+          }
+      } catch (SQLException e) {
+          throw new RuntimeException(e);
+      } finally {
+          try {
+              conn.close();
+          } catch (SQLException e) {
+              throw new RuntimeException(e);
+          }
+      }
+  }
 
-
-
+  /**
+   * Inserta un jugador activo en la tabla JugadorActivo para la partida actual.
+   *
+   * @param jugadorID ID del jugador que se va a establecer como activo.
+   * @throws SQLException si ocurre un error al acceder a la base de datos.
+   */
+  @Override
   public void insertActivePlayer(int jugadorID) throws SQLException {
     Connection conn = dataService.createConnection();
     String insertarJugadorActivo =
@@ -177,49 +207,47 @@ public class JugadorRepository implements IJugadorRepository {
     }
   }
 
-    @Override
-    public Jugador getJugadorByID(int jugadorID) throws SQLException {
-        Connection conn = dataService.createConnection();
-        String obtenerJugadores = "SELECT JugadorID, NumJugador, NombreJugador, IconoID, Posicion, Encarcelado, Dinero, Partida " +
-                "FROM JUGADOR WHERE Partida = ? AND JugadorID = ?";
-
-        try {
-            PreparedStatement preparedStatement = conn.prepareStatement(obtenerJugadores);
-            preparedStatement.setLong(1, partidaID);
-            preparedStatement.setInt(2, jugadorID);
-            ResultSet rs = preparedStatement.executeQuery();
-            if (!rs.next()) {
-                throw new SQLException("Jugador no encontrado (partida=" + partidaID + ", id=" + jugadorID + ")");
-            }
-                Jugador jugador = new Jugador(
-                        rs.getInt("JugadorID"),
-                        rs.getInt("NumJugador"),
-                        rs.getString("NombreJugador"),
-                        rs.getInt("IconoID"),
-                        rs.getInt("Posicion"),
-                        rs.getBoolean("Encarcelado"),
-                        rs.getInt("Dinero"),
-                        rs.getLong("Partida")
-                );
-
-                return jugador;
-        } catch (SQLException e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-   * public Jugador obtenerJugador(int id){ Connection conn = dataService.createConnection(); String
-   * jugador = "SELECT * FROM JUGADOR LEFT JOIN ADQUISICIONES ON
-   * JUGADOR.JUGADORID=ADQUISICIONES.JUGADORID WHERE JUGADOR.JUGADORID= ?"; try { PreparedStatement
-   * consultarJugador = conn.prepareStatement(jugador); consultarJugador.setInt(1, id); ResultSet
-   * rsPartida = consultarJugador.executeQuery(); Jugador jugador1 = new
-   * Jugador(rsPartida.getInt("Jugador.Dinero"), rsPartida.getString("Jugador.Nombre"), ) } catch
-   * (SQLException e) { throw new RuntimeException(e); } }
+  /**
+   * Obtiene un jugador por su ID dentro de la partida actual.
+   *
+   * @param jugadorID ID del jugador a buscar.
+   * @return Objeto Jugador con la información del jugador encontrado.
+   * @throws SQLException si ocurre un error al acceder a la base de datos o si el jugador no se encuentra.
    */
+  @Override
+  public Jugador getJugadorByID(int jugadorID) throws SQLException {
+      Connection conn = dataService.createConnection();
+      String obtenerJugadores = "SELECT JugadorID, NumJugador, NombreJugador, IconoID, Posicion, Encarcelado, Dinero, Partida " +
+              "FROM JUGADOR WHERE Partida = ? AND JugadorID = ?";
 
-    @Override
-    public void setPartidaID(long partidaID) {
-        this.partidaID = partidaID;
-    }
+      try {
+          PreparedStatement preparedStatement = conn.prepareStatement(obtenerJugadores);
+          preparedStatement.setLong(1, partidaID);
+          preparedStatement.setInt(2, jugadorID);
+          ResultSet rs = preparedStatement.executeQuery();
+          if (!rs.next()) {
+              throw new SQLException("Jugador no encontrado (partida=" + partidaID + ", id=" + jugadorID + ")");
+          }
+              Jugador jugador = new Jugador(
+                      rs.getInt("JugadorID"),
+                      rs.getInt("NumJugador"),
+                      rs.getString("NombreJugador"),
+                      rs.getInt("IconoID"),
+                      rs.getInt("Posicion"),
+                      rs.getBoolean("Encarcelado"),
+                      rs.getInt("Dinero"),
+                      rs.getLong("Partida")
+              );
+
+              return jugador;
+      } catch (SQLException e){
+          throw new RuntimeException(e);
+      }
+  }
+
+
+  @Override
+  public void setPartidaID(long partidaID) {
+      this.partidaID = partidaID;
+  }
 }

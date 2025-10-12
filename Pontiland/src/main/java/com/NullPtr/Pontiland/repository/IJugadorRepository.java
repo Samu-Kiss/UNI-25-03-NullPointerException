@@ -7,6 +7,8 @@ import java.util.List;
 public interface IJugadorRepository {
   void newPlayer(Jugador newPlayer, int icono) throws SQLException;
 
+  int getActivePlayer() throws SQLException;
+
   int getPlayerIdByNumJugador(int numJugador) throws SQLException;
 
   void changeActivePlayer(int numJugadores) throws SQLException;
@@ -16,4 +18,6 @@ public interface IJugadorRepository {
   Jugador getJugadorByID(int jugadorID) throws SQLException;
 
   void setPartidaID(long partidaID);
+
+  int getNumJugadorByPlayerId(int playerId) throws SQLException;
 }
