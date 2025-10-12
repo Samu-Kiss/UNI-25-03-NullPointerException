@@ -24,6 +24,8 @@ import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 
 import javax.naming.ldap.Control;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -124,6 +126,9 @@ public class Scene {
       Vector3f initialOffset = placed.subtract(cell0);
       s.setUserData("initialOffset", initialOffset);
 
+      // authoritative logical position (start at cell 0)
+      s.setUserData("cellIndex", 0);
+
       com.jme3.bullet.control.RigidBodyControl rb = new com.jme3.bullet.control.RigidBodyControl(0f);
       s.addControl(rb);
       rb.setPhysicsLocation(placed.clone());
@@ -135,66 +140,88 @@ public class Scene {
   public void replicateFichaPosition(int jugadorId, int casillaIndex) {
     Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
     if (s == null) return;
-    Vector3f cellCenter = posFromCell(casillaIndex);
 
+    // get authoritative logical index (default to 0)
+    int currentIndex = 0;
+    Object ciUd = s.getUserData("cellIndex");
+    if (ciUd instanceof Integer) currentIndex = (Integer) ciUd;
+
+    // compute number of forward steps on the circular board
+    int steps = (casillaIndex - currentIndex + TOTAL_CASILLAS) % TOTAL_CASILLAS;
+
+    // prepare per-step targets and indices
     Object ud = s.getUserData("initialOffset");
-    Vector3f target;
-    if (ud instanceof Vector3f) {
-      // add stored initial offset to the target cell center
-      target = cellCenter.add((Vector3f) ud);
-    } else {
-      target = cellCenter;
+    List<Vector3f> targets = new ArrayList<>();
+    List<Integer> indices = new ArrayList<>();
+    for (int i = 1; i <= steps; i++) {
+      int idx = (currentIndex + i) % TOTAL_CASILLAS;
+      Vector3f center = posFromCell(idx);
+      Vector3f offset = (ud instanceof Vector3f) ? ((Vector3f) ud).clone() : new Vector3f(0f, 0f, 0f);
+      Vector3f target = center.add(offset); // returns a new Vector3f
+      targets.add(target);
+      indices.add(idx);
     }
 
     RigidBodyControl rb = s.getControl(RigidBodyControl.class);
-    // durationSeconds and jumpHeight can be tuned
-    animateMove(s, rb, target, 0.65f, 0.9f);
+    // animate through each intermediate cell sequentially
+    animateMoveAlongPath(s, rb, targets, indices, 0.45f, 0.9f);
   }
 
-  private void animateMove(Spatial s, RigidBodyControl rb, Vector3f target, float durationSeconds, float jumpHeight) {
-    final Vector3f start = (rb != null && rb.getPhysicsLocation() != null)
-            ? rb.getPhysicsLocation().clone()
-            : s.getLocalTranslation().clone();
-    final float startY = start.y;
-    final long startNs = System.nanoTime();
-    final long durationNs = (long) (durationSeconds * 1_000_000_000L);
-
+  /**
+   * Animate a spatial sequentially through the provided targets.
+   * Updates the spatial's `cellIndex` after each reached target.
+   */
+  private void animateMoveAlongPath(Spatial s, RigidBodyControl rb, List<Vector3f> targets, List<Integer> indices, float durationSeconds, float jumpHeight) {
     animator.submit(() -> {
       try {
-        while (true) {
-          long nowNs = System.nanoTime();
-          long elapsed = nowNs - startNs;
-          float t = Math.min(1f, (float) elapsed / (float) durationNs);
+        for (int seg = 0; seg < targets.size(); seg++) {
+          Vector3f target = targets.get(seg);
+          final Vector3f start = (rb != null && rb.getPhysicsLocation() != null)
+                  ? rb.getPhysicsLocation().clone()
+                  : s.getLocalTranslation().clone();
+          final float startY = start.y;
+          final long startNs = System.nanoTime();
+          final long durationNs = (long) (durationSeconds * 1_000_000_000L);
 
-          float x = start.x + (target.x - start.x) * t;
-          float z = start.z + (target.z - start.z) * t;
-          float y = startY + (float) Math.sin(Math.PI * t) * jumpHeight;
+          while (true) {
+            long nowNs = System.nanoTime();
+            long elapsed = nowNs - startNs;
+            float t = Math.min(1f, (float) elapsed / (float) durationNs);
 
-          final Vector3f pos = new Vector3f(x, y, z);
+            float x = start.x + (target.x - start.x) * t;
+            float z = start.z + (target.z - start.z) * t;
+            float y = startY + (float) Math.sin(Math.PI * t) * jumpHeight;
 
-          // schedule scenegraph / physics update on render thread
+            final Vector3f pos = new Vector3f(x, y, z);
+
+            app.enqueue(() -> {
+              if (rb != null) {
+                rb.setPhysicsLocation(pos.clone());
+                rb.setLinearVelocity(Vector3f.ZERO);
+                rb.setAngularVelocity(Vector3f.ZERO);
+              }
+              s.setLocalTranslation(pos);
+            });
+
+            if (t >= 1f) break;
+            Thread.sleep(16); // ~60 FPS
+          }
+
+          // finalize exact placement and update authoritative cellIndex on render thread
+          final int finalIdx = indices.get(seg);
           app.enqueue(() -> {
             if (rb != null) {
-              rb.setPhysicsLocation(pos.clone());
-              // stop any residual motion while teleporting
+              rb.setPhysicsLocation(target.clone());
               rb.setLinearVelocity(Vector3f.ZERO);
               rb.setAngularVelocity(Vector3f.ZERO);
             }
-            s.setLocalTranslation(pos);
+            s.setLocalTranslation(target);
+            s.setUserData("cellIndex", finalIdx);
           });
 
-          if (t >= 1f) break;
-          Thread.sleep(16); // ~60 FPS
+          // small pause to ensure render thread applied final placement before next segment
+          Thread.sleep(8);
         }
-        // ensure final exact placement on render thread
-        app.enqueue(() -> {
-          if (rb != null) {
-            rb.setPhysicsLocation(target.clone());
-            rb.setLinearVelocity(Vector3f.ZERO);
-            rb.setAngularVelocity(Vector3f.ZERO);
-          }
-          s.setLocalTranslation(target);
-        });
       } catch (InterruptedException ex) {
         Thread.currentThread().interrupt();
       }
