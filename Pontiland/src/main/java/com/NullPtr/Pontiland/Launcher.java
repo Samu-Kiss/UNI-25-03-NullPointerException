@@ -88,12 +88,19 @@ public class Launcher extends SimpleApplication {
 
   @Override
   public void simpleUpdate(float tpf) {
-    if (scene != null) {
-      scene.update(tpf);
-    }
-    turnService.update();
-    lanzamientoDadosController.update();
+      if (scene != null) scene.update(tpf);
 
+      turnService.update();
+
+      if (scene != null && turnService.hasMovePending()) {
+          int[] mv = turnService.consumeLastMove();
+          if (mv != null) {
+              scene.replicateFichaPosition(mv[0], mv[1]);
+          }
+      }
+
+      lanzamientoDadosController.update();
   }
+
 
 }

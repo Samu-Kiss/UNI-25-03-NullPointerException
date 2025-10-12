@@ -14,6 +14,9 @@ public class TurnService implements ITurnService{
     private int playerID = 0;
     private boolean canThrowDice = true;
     private Ficha[] fichas = null;
+    private boolean movePending = false;
+    private int lastMovedJugadorId = -1;
+    private int lastMovedPos = -1;
 
     public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository, DiceService diceService) {
         this.diceService = diceService;
@@ -65,6 +68,7 @@ public class TurnService implements ITurnService{
         throw new RuntimeException(e);
       }
 
+      markLastMove(jugadorActual.getJugadorId(), nuevaPosicion);
       canThrowDice = true;
     }
 
@@ -96,6 +100,22 @@ public class TurnService implements ITurnService{
     @Override
     public boolean canThrowDice() {
         return canThrowDice;
+    }
+
+    @Override
+    public boolean hasMovePending() { return movePending; }
+
+    @Override
+    public int[] consumeLastMove() {
+        if (!movePending) return null;
+        movePending = false;
+        return new int[]{ lastMovedJugadorId, lastMovedPos };
+    }
+
+    private void markLastMove(int jugadorId, int nuevaPos) {
+        movePending = true;
+        lastMovedJugadorId = jugadorId;
+        lastMovedPos = nuevaPos;
     }
 
 }

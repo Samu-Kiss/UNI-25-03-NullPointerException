@@ -16,18 +16,18 @@ import java.util.Random;
  */
 public class StartGameService implements IStartGameService {
   /** Repositorio para la gestión de jugadores. */
-  IJugadorRepository jugadorRepository;
+  private IJugadorRepository jugadorRepository;
 
   /** Repositorio para la gestión de partidas. */
-  IPartidaRepository partidaRepository;
+  private IPartidaRepository partidaRepository;
 
   /** Servicio para la gestión de la base de datos y persistencia. */
-  IDataService dataService;
+  private IDataService dataService;
 
-  Scene scene;
+  private Scene scene;
 
 
-  /**
+    /**
    * Constructor que permite la inyección de dependencias.
    *
    * @param jugadorRepository Repositorio de jugadores.

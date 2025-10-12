@@ -31,6 +31,12 @@ import com.jme3.util.SkyFactory;
  * lógica.
  */
 public class Scene {
+    private static final int TOTAL_CASILLAS = 40;
+    private static final float CELL_SIZE = 2.0f;
+    private static final float Y_PLANO = 0f;
+    private static final int SIDE = TOTAL_CASILLAS / 4;
+    private static final float HALF = (SIDE - 1) * CELL_SIZE * 0.5f;
+
   /** Referencias a la aplicación y a sus componentes para cargar assets y manipular la escena. */
   private LegacyApplication app;
 
@@ -91,13 +97,38 @@ public class Scene {
           s.setUserData("jugadorId", jugadorId);
 
           s.scale(1f);
-          s.setLocalTranslation(10 + i * 2f, 0, 0);
+          s.setLocalTranslation(1 + i * 1f, 0, 0);
           com.jme3.bullet.control.RigidBodyControl rb = new com.jme3.bullet.control.RigidBodyControl(0);
           s.addControl(rb);
           bullet.getPhysicsSpace().add(rb);
           rootNode.attachChild(s);
       }
   }
+    public void replicateFichaPosition(int jugadorId, int casillaIndex) {
+        var s = rootNode.getChild("Ficha_J" + jugadorId);
+        if (s == null) return;
+        var p = posFromCell(casillaIndex);
+        var rb = s.getControl(com.jme3.bullet.control.RigidBodyControl.class);
+        if (rb != null) rb.setPhysicsLocation(p.clone());
+        s.setLocalTranslation(p);
+    }
+
+
+    private com.jme3.math.Vector3f posFromCell(int c) {
+        int idx = ((c % TOTAL_CASILLAS) + TOTAL_CASILLAS) % TOTAL_CASILLAS;
+        float x, z;
+        if (idx < SIDE) {                       // lado inferior: +X
+            x = -HALF + idx * CELL_SIZE; z = -HALF;
+        } else if (idx < 2 * SIDE) {            // derecho: +Z
+            int k = idx - SIDE;   x =  HALF; z = -HALF + k * CELL_SIZE;
+        } else if (idx < 3 * SIDE) {            // superior: -X
+            int k = idx - 2 * SIDE; x =  HALF - k * CELL_SIZE; z =  HALF;
+        } else {                                 // izquierdo: -Z
+            int k = idx - 3 * SIDE; x = -HALF; z =  HALF - k * CELL_SIZE;
+        }
+        return new com.jme3.math.Vector3f(x, Y_PLANO, z);
+    }
+
     /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
   private void loadBoardModel() {
     try {
@@ -221,7 +252,7 @@ public class Scene {
 
   /** Posiciona la cámara y ajusta su perspectiva y velocidad de movimiento. */
   private void setupCamera() {
-    cam.setLocation(new Vector3f(9, 7, 10));
+    cam.setLocation(new Vector3f(9, 20, 10));
     cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
     cam.setFrustumPerspective(60f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 500f);
   }
