@@ -3,7 +3,6 @@ package com.NullPtr.Pontiland.repository;
 import com.NullPtr.Pontiland.services.IDataService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -53,6 +52,7 @@ public class PartidaRepository implements IPartidaRepository {
       throw new RuntimeException(e);
     }
     return partidaID;
+
   }
 
   /**
@@ -86,7 +86,7 @@ public class PartidaRepository implements IPartidaRepository {
   }*/
 
     @Override
-    public int numJugadores() {
+    public int getNumJugadores() {
         Connection conn = dataService.createConnection();
         String consulta = "SELECT NumeroJugadores FROM Partida WHERE PartidaID = ?";
         try {

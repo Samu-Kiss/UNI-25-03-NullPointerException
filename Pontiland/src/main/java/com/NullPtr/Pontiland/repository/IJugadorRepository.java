@@ -7,19 +7,19 @@ import java.sql.SQLException;
 public interface IJugadorRepository {
   void newPlayer(Jugador newPlayer, int icono) throws SQLException;
 
-  int getActivePlayerID() throws SQLException;
+  void changeActivePlayer(int nuevoID) throws SQLException;
+
+  int getActivePlayer() throws SQLException;
 
   int getPlayerIdByNumJugador(int numJugador) throws SQLException;
 
-  void changeActivePlayer(int numJugadores) throws SQLException;
+  int getNumJugadorByPlayerId(int playerId) throws SQLException;
 
-  void insertActivePlayer(int jugadorID) throws SQLException;
+  void newActivePlayer(int jugadorID) throws SQLException;
 
   Jugador getJugadorByID(int jugadorID) throws SQLException;
 
   void setPartidaID(long partidaID);
-
-  int getNumJugadorByPlayerId(int playerId) throws SQLException;
 
   Ficha[] getFichas() throws SQLException;
 

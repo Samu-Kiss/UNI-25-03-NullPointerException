@@ -38,6 +38,7 @@ public class DataService implements IDataService {
    *
    * @param url Nueva URL de la base de datos.
    */
+
   public void setUrl(String url) {
     this.url = url;
   }
@@ -61,6 +62,7 @@ public class DataService implements IDataService {
     Connection conn = null;
     try {
       return conn = DriverManager.getConnection(url, "sa", "");
+
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }

@@ -68,12 +68,13 @@ public class Launcher extends SimpleApplication {
     bulletAppState.getPhysicsSpace().setAccuracy(1f / 120f);
     bulletAppState.getPhysicsSpace().setMaxSubSteps(2);
 
-
     dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
 
     partidaRepository = new PartidaRepository(dataService);
     jugadorRepository = new JugadorRepository(dataService);
     turnService = new TurnService(jugadorRepository, partidaRepository, diceService);
+
+    diceService.setTurnService(turnService);
 
     lanzamientoDadosController = new LanzamientoDadosController(diceService, turnService);
     lanzamientoDadosController.registerInputs(getInputManager());
