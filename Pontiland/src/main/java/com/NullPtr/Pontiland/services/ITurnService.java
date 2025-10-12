@@ -11,4 +11,5 @@ public interface ITurnService {
 
     boolean canThrowDice();
 
+  void loadFichas();
 }

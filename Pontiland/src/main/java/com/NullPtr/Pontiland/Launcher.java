@@ -69,19 +69,18 @@ public class Launcher extends SimpleApplication {
     bulletAppState.getPhysicsSpace().setMaxSubSteps(2);
 
 
-      dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
+    dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
 
-      partidaRepository = new PartidaRepository(dataService);
-      jugadorRepository = new JugadorRepository(dataService);
-      turnService = new TurnService(jugadorRepository, partidaRepository, diceService);
-      lanzamientoDadosController = new LanzamientoDadosController(diceService, turnService);
-      lanzamientoDadosController.registerInputs(getInputManager());
+    partidaRepository = new PartidaRepository(dataService);
+    jugadorRepository = new JugadorRepository(dataService);
+    turnService = new TurnService(jugadorRepository, partidaRepository, diceService);
 
-
-      //TODO revisar pq da error si no se crea partidaRepository antes
-      //long partidaID = partidaRepository.getPartidaID();
+    lanzamientoDadosController = new LanzamientoDadosController(diceService, turnService);
+    lanzamientoDadosController.registerInputs(getInputManager());
 
 
+    //TODO revisar pq da error si no se crea partidaRepository antes
+    //long partidaID = partidaRepository.getPartidaID();
 
 
     startGameService = new StartGameService(jugadorRepository, partidaRepository, dataService);
@@ -104,5 +103,6 @@ public class Launcher extends SimpleApplication {
     if (scene == null) {
       scene = new Scene(this, bulletAppState, lanzamientoDadosController);
     }
+    turnService.loadFichas();
   }
 }

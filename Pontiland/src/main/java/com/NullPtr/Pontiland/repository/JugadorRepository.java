@@ -1,5 +1,6 @@
 package com.NullPtr.Pontiland.repository;
 
+import com.NullPtr.Pontiland.entities.Ficha;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.services.IDataService;
 import java.sql.Connection;
@@ -63,7 +64,7 @@ public class JugadorRepository implements IJugadorRepository {
    */
   @Override
   public void changeActivePlayer(int numJugadores) throws SQLException {
-    int viejo = getNumJugadorByPlayerId(getActivePlayer());
+    int viejo = getNumJugadorByPlayerId(getActivePlayerID());
     int nuevoJugadorActivo = viejo%numJugadores + 1;
     int id = getPlayerIdByNumJugador(nuevoJugadorActivo);
 
@@ -93,7 +94,7 @@ public class JugadorRepository implements IJugadorRepository {
    *     jugador activo.
    */
   @Override
-  public int getActivePlayer() throws SQLException {
+  public int getActivePlayerID() throws SQLException {
     Connection conn = dataService.createConnection();
     String consulta = "SELECT JugadorActualID FROM JugadorActivo WHERE PartidaID = ?";
     try {
@@ -250,4 +251,88 @@ public class JugadorRepository implements IJugadorRepository {
   public void setPartidaID(long partidaID) {
       this.partidaID = partidaID;
   }
+
+  @Override
+  public Ficha[] getFichas() throws SQLException {
+      Connection conn = dataService.createConnection();
+      Ficha[] fichas = new Ficha[numJugadores()];
+      String consulta = "SELECT Jugador.NumJugador, Icono.IconoID, Icono.IconoNombre " +
+              "FROM Jugador " +
+              "INNER JOIN Icono ON Icono.IconoID = Jugador.IconoID " +
+              "WHERE Partida = ? ORDER BY NumJugador ASC";
+      try {
+          PreparedStatement stmt = conn.prepareStatement(consulta);
+          stmt.setLong(1, partidaID);
+          var rs = stmt.executeQuery();
+          int index = 0;
+          while (rs.next()) {
+              fichas[index] = new Ficha(rs.getInt("IconoID"), rs.getString("IconoNombre"));
+              index++;
+          }
+          return fichas;
+      } catch (SQLException e) {
+          throw new RuntimeException(e);
+      } finally {
+          try {
+              conn.close();
+          } catch (SQLException e) {
+              throw new RuntimeException(e);
+          }
+      }
+
+
+  }
+
+  @Override
+  public int numJugadores() throws SQLException {
+      Connection conn = dataService.createConnection();
+      String consulta = "SELECT COUNT(*) AS NumJugadores FROM Jugador WHERE Partida = ?";
+      try {
+          PreparedStatement stmt = conn.prepareStatement(consulta);
+          stmt.setLong(1, partidaID);
+          var rs = stmt.executeQuery();
+          if (rs.next()) {
+              return rs.getInt("NumJugadores");
+          } else {
+              throw new RuntimeException("No se pudo contar los jugadores para la partida: " + partidaID);
+          }
+      } catch (SQLException e) {
+          throw new RuntimeException(e);
+      } finally {
+          try {
+              conn.close();
+          } catch (SQLException e) {
+              throw new RuntimeException(e);
+          }
+      }
+  }
+
+  @Override
+  public void updateJugadorByID(Jugador jugador) throws SQLException {
+
+    Connection conn = dataService.createConnection();
+    String consulta = "UPDATE Jugador " +
+            "SET Posicion = ?, Encarcelado = ?, Dinero = ? " +
+            "WHERE JugadorID = ? AND Partida = ?";
+    try {
+      PreparedStatement stmt = conn.prepareStatement(consulta);
+      stmt.setInt(1, jugador.getPosicion());
+      stmt.setBoolean(2, jugador.getEstado());
+      stmt.setInt(3, jugador.getDinero());
+      stmt.setInt(4, jugador.getJugadorId());
+      stmt.setLong(5, partidaID);
+
+      stmt.executeUpdate();
+
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      try {
+        conn.close();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
 }

@@ -1,13 +1,13 @@
 package com.NullPtr.Pontiland.repository;
 
+import com.NullPtr.Pontiland.entities.Ficha;
 import com.NullPtr.Pontiland.entities.Jugador;
 import java.sql.SQLException;
-import java.util.List;
 
 public interface IJugadorRepository {
   void newPlayer(Jugador newPlayer, int icono) throws SQLException;
 
-  int getActivePlayer() throws SQLException;
+  int getActivePlayerID() throws SQLException;
 
   int getPlayerIdByNumJugador(int numJugador) throws SQLException;
 
@@ -20,4 +20,10 @@ public interface IJugadorRepository {
   void setPartidaID(long partidaID);
 
   int getNumJugadorByPlayerId(int playerId) throws SQLException;
+
+  Ficha[] getFichas() throws SQLException;
+
+  int numJugadores() throws SQLException;
+
+  void updateJugadorByID(Jugador jugador) throws SQLException;
 }

@@ -10,8 +10,9 @@ import com.jme3.scene.Spatial;
  * sólo invoque sus métodos sin conocer detalles de la implementación interna. Incluye una máquina
  * de estados para permitir lanzamientos no bloqueantes en jMonkeyEngine.
  */
-public class DiceService {
+public class DiceService implements IDiceService {
   private final Dado[] dados = new Dado[2];
+  ITurnService turnService;
 
   /** Máquina de estados interna para el lanzamiento no bloqueante. */
   private enum Estado {
@@ -32,6 +33,7 @@ public class DiceService {
    * @param dado1 Spatial que representa el modelo 3D del primer dado
    * @param dado2 Spatial que representa el modelo 3D del segundo dado
    */
+  @Override
   public void setDados(Spatial dado1, Spatial dado2) {
 
     dados[0] = new Dado(dado1);
@@ -39,9 +41,10 @@ public class DiceService {
   }
 
   /** Realiza el lanzamiento simultáneo de todos los dados cargados. */
+  @Override
   public void lanzarDados() {
     for (Dado dado : dados) {
-      if (dado != null) {
+      if (dado != null && turnService.canThrowDice()) {
         dado.lanzar();
       }
     }
@@ -52,6 +55,7 @@ public class DiceService {
    *
    * @return Un array de dos bytes con los valores de los dados, o null si el dado no está definido
    */
+  @Override
   public Byte[] leerDados() {
     Byte[] resultados = new Byte[2];
     resultados[0] = (dados[0] != null) ? dados[0].getCaraSuperior() : null;
@@ -59,17 +63,20 @@ public class DiceService {
     return resultados;
   }
 
-    public Byte[] getResultados() {
-        return  (resultados[0] != null && resultados[1] != null) ? resultados : new Byte[]{null, null};
-    }
+  @Override
+  public Byte[] getResultados() {
+      return  (resultados[0] != null && resultados[1] != null) ? resultados : new Byte[]{null, null};
+  }
 
     /**
    * Inicia la secuencia de lanzamiento no bloqueante.
    */
-  public void lanzamientoDados() {
+    @Override
+    public void lanzamientoDados() {
     this.estado = Estado.LAUNCH;
   }
 
+  @Override
   public void update() {
     switch (estado) {
       case IDLE:
@@ -103,4 +110,10 @@ public class DiceService {
         break;
     }
   }
+
+  @Override
+  public void setTurnService(ITurnService turnService) {
+    this.turnService = turnService;
+  }
 }
+

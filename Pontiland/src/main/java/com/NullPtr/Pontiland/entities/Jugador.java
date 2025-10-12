@@ -114,6 +114,10 @@ public class Jugador {
     this.jugadorId = jugadorId;
   }
 
+  public int getNumJugador(){
+      return numJugador;
+  }
+
   public String getNombreJugador() {
     return nombreJugador;
   }
