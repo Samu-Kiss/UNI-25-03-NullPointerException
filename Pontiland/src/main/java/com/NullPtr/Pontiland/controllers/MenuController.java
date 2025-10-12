@@ -160,7 +160,6 @@ public class MenuController implements IMenuActions {
           System.out.println("[Pontiland] Seleccionado guardado: " + id);
           dataService.loadDataBase(id);
 
-          // Desconectar cualquier menú de UI
           detachIfAttached(menuPrincipal);
           detachIfAttached(menuJugadores);
           detachIfAttached(menuCarga);

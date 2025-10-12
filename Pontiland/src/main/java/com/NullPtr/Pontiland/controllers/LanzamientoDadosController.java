@@ -14,7 +14,6 @@ import com.jme3.scene.Spatial;
  */
 public class LanzamientoDadosController {
   private final DiceService diceService;
-  private final Byte[] resultados;
   private ITurnService turnService;
 
   /**
@@ -25,15 +24,14 @@ public class LanzamientoDadosController {
       new RawInputListener() {
         @Override
         public void onKeyEvent(KeyInputEvent evt) {
-          if (!evt.isPressed()) return; // reaccionar solo a key-down
+          if (!evt.isPressed()) return;
 
           int code = evt.getKeyCode();
           if (code == KeyInput.KEY_Y && turnService.canThrowDice()) {
-            diceService.lanzamientoDadosNoBloqueante(resultados);
+            diceService.lanzamientoDados();
           }
         }
 
-        // Métodos requeridos por la interfaz (sin uso)
         public void beginInput() {}
 
         public void endInput() {}
@@ -59,12 +57,10 @@ public class LanzamientoDadosController {
    * Constructor con inyección de dependencias.
    *
    * @param diceService Servicio encargado de la lógica de dados
-   * @param resultados Estructura compartida donde se escribirán resultados no bloqueantes
    */
   public LanzamientoDadosController(
-          DiceService diceService, ITurnService turnService, Byte[] resultados) {
+          DiceService diceService, ITurnService turnService) {
     this.diceService = diceService;
-    this.resultados = resultados;
     this.turnService = turnService;
   }
 
@@ -72,19 +68,8 @@ public class LanzamientoDadosController {
     diceService.setDados(dado1, dado2);
   }
 
-  /** Actualización por frame. Se debe llamar desde el método simpleUpdate() de la aplicación. */
   public void update() {
-    // Actualizar la lógica de lanzamiento del servicio
     diceService.update();
-
-    // Si hay resultados listos, imprimirlos y limpiar
-    Byte r0 = resultados[0];
-    Byte r1 = resultados[1];
-    if (r0 != null || r1 != null) {
-      System.out.println("Resultados dados: [" + r0 + ", " + r1 + "]");
-      resultados[0] = null;
-      resultados[1] = null;
-    }
   }
 
 

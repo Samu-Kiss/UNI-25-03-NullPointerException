@@ -1,15 +1,20 @@
 package com.NullPtr.Pontiland.services;
 
+import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
+import com.NullPtr.Pontiland.repository.JugadorRepository;
 
 import java.sql.SQLException;
 
 public class TurnService implements ITurnService{
-    IJugadorRepository jugadorRepository;
-    IPartidaRepository partidaRepository;
+    private IJugadorRepository jugadorRepository;
+    private IPartidaRepository partidaRepository;
+    private DiceService diceService;
+    private int playerID = 0; // ID del jugador actual
 
-    public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository) {
+    public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository, DiceService diceService) {
+        this.diceService = diceService;
         this.jugadorRepository = jugadorRepository;
         this.partidaRepository = partidaRepository;
     }
@@ -24,23 +29,34 @@ public class TurnService implements ITurnService{
         }
     }
 
+    public void movePlayer(int numCasillas) {
+        try {
+            Jugador jugadorActual = jugadorRepository.getJugadorByID(playerID);
+            int nuevaPosicion = (jugadorActual.getPosicion() + numCasillas) % 40;
+            jugadorActual.setPosicion(nuevaPosicion);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
-    public void movePlayer(int numCasillas, int playerID) {
+    public void update() {
+        Byte[] dados = diceService.getResultados();
+        if(dados[0] != null && dados[1] != null){
+            int movimiento = dados[0] + dados[1];
+
+            System.out.println("Resultados dados: [" + dados[0] + ", " + dados[1] + "]");
+            movePlayer(movimiento);
+        }
+    }
+
+    @Override
+    public void buyProperty() {
 
     }
 
     @Override
-    public void throwDice(int playerID) {
-
-    }
-
-    @Override
-    public void buyProperty(int playerID) {
-
-    }
-
-    @Override
-    public void payRent(int playerID) {
+    public void payRent() {
 
     }
 

@@ -178,17 +178,16 @@ public class JugadorRepository implements IJugadorRepository {
   }
 
     @Override
-    public List<Jugador> getAllJugadores() throws SQLException {
-        List<Jugador> jugadores = new java.util.ArrayList<>();
+    public Jugador getJugadorByID(int jugadorID) throws SQLException {
         Connection conn = dataService.createConnection();
-        String obtenerJugadores = "SELECT * FROM Jugador WHERE Partida = ?";
+        String obtenerJugadores = "SELECT * FROM Jugador WHERE Partida = ? AND JugadorID = ?";
 
         try {
             PreparedStatement preparedStatement = conn.prepareStatement(obtenerJugadores);
             preparedStatement.setLong(1, partidaID);
+            preparedStatement.setInt(2, jugadorID);
             ResultSet rs = preparedStatement.executeQuery();
 
-            while (rs.next()) {
                 Jugador jugador = new Jugador(
                         rs.getInt("JugadorID"),
                         rs.getInt("NumJugador"),
@@ -200,9 +199,7 @@ public class JugadorRepository implements IJugadorRepository {
                         rs.getLong("Posicion")
                 );
 
-                jugadores.add(jugador);
-            }
-            return jugadores;
+                return jugador;
         } catch (SQLException e){
             throw new RuntimeException(e);
         }
