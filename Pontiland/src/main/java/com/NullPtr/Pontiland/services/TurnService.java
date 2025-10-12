@@ -12,6 +12,7 @@ public class TurnService implements ITurnService{
     private IPartidaRepository partidaRepository;
     private DiceService diceService;
     private int playerID = 0; // ID del jugador actual
+    private boolean canThrowDice = true;
 
     public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository, DiceService diceService) {
         this.diceService = diceService;
@@ -31,7 +32,7 @@ public class TurnService implements ITurnService{
 
     public void movePlayer(int numCasillas) {
         try {
-            Jugador jugadorActual = jugadorRepository.getJugadorByID(playerID);
+            Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getPlayerIdByNumJugador(2));
             int nuevaPosicion = (jugadorActual.getPosicion() + numCasillas) % 40;
             jugadorActual.setPosicion(nuevaPosicion);
         } catch (SQLException e) {
@@ -46,6 +47,8 @@ public class TurnService implements ITurnService{
             int movimiento = dados[0] + dados[1];
 
             System.out.println("Resultados dados: [" + dados[0] + ", " + dados[1] + "]");
+            canThrowDice = false;
+
             movePlayer(movimiento);
         }
     }
@@ -62,6 +65,6 @@ public class TurnService implements ITurnService{
 
     @Override
     public boolean canThrowDice() {
-        return true;
+        return canThrowDice;
     }
 }

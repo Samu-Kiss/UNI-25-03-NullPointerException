@@ -180,14 +180,17 @@ public class JugadorRepository implements IJugadorRepository {
     @Override
     public Jugador getJugadorByID(int jugadorID) throws SQLException {
         Connection conn = dataService.createConnection();
-        String obtenerJugadores = "SELECT * FROM Jugador WHERE Partida = ? AND JugadorID = ?";
+        String obtenerJugadores = "SELECT JugadorID, NumJugador, NombreJugador, IconoID, Posicion, Encarcelado, Dinero, Partida " +
+                "FROM JUGADOR WHERE Partida = ? AND JugadorID = ?";
 
         try {
             PreparedStatement preparedStatement = conn.prepareStatement(obtenerJugadores);
             preparedStatement.setLong(1, partidaID);
             preparedStatement.setInt(2, jugadorID);
             ResultSet rs = preparedStatement.executeQuery();
-
+            if (!rs.next()) {
+                throw new SQLException("Jugador no encontrado (partida=" + partidaID + ", id=" + jugadorID + ")");
+            }
                 Jugador jugador = new Jugador(
                         rs.getInt("JugadorID"),
                         rs.getInt("NumJugador"),
@@ -196,7 +199,7 @@ public class JugadorRepository implements IJugadorRepository {
                         rs.getInt("Posicion"),
                         rs.getBoolean("Encarcelado"),
                         rs.getInt("Dinero"),
-                        rs.getLong("Posicion")
+                        rs.getLong("Partida")
                 );
 
                 return jugador;
