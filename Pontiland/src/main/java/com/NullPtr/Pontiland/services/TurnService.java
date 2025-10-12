@@ -1,7 +1,9 @@
 package com.NullPtr.Pontiland.services;
 
+import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
+import com.NullPtr.Pontiland.repository.JugadorRepository;
 
 import java.sql.SQLException;
 
@@ -28,7 +30,13 @@ public class TurnService implements ITurnService{
     }
 
     public void movePlayer(int numCasillas) {
-
+        try {
+            Jugador jugadorActual = jugadorRepository.getJugadorByID(playerID);
+            int nuevaPosicion = (jugadorActual.getPosicion() + numCasillas) % 40;
+            jugadorActual.setPosicion(nuevaPosicion);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
