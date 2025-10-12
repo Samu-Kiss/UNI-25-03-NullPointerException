@@ -79,12 +79,8 @@ public class Launcher extends SimpleApplication {
     lanzamientoDadosController = new LanzamientoDadosController(diceService, turnService);
     lanzamientoDadosController.registerInputs(getInputManager());
 
-
-    //TODO revisar pq da error si no se crea partidaRepository antes
-    //long partidaID = partidaRepository.getPartidaID();
-
-
-    startGameService = new StartGameService(jugadorRepository, partidaRepository, dataService);
+    scene = new Scene(this, bulletAppState, lanzamientoDadosController);
+    startGameService = new StartGameService(jugadorRepository, partidaRepository, dataService, scene);
 
     IMenuActions actions = new MenuController(this, startGameService, dataService);
     stateManager.attach(new MenuPrincipal(actions));
@@ -95,15 +91,9 @@ public class Launcher extends SimpleApplication {
     if (scene != null) {
       scene.update(tpf);
     }
-    lanzamientoDadosController.update();
     turnService.update();
+    lanzamientoDadosController.update();
 
   }
 
-  public void initializeGame3D() {
-    if (scene == null) {
-      scene = new Scene(this, bulletAppState, lanzamientoDadosController);
-    }
-    turnService.loadFichas();
-  }
 }

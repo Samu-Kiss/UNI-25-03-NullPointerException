@@ -5,7 +5,6 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 
-import javax.xml.transform.stream.StreamSource;
 import java.sql.SQLException;
 
 public class TurnService implements ITurnService{
@@ -27,8 +26,6 @@ public class TurnService implements ITurnService{
     @Override
     public void nextTurn() {
         try {
-            System.out.print("activeplayer" + jugadorRepository.getActivePlayer());
-            System.out.print("numJugadores" + partidaRepository.getNumJugadores());
             playerID = jugadorRepository.getPlayerIdByNumJugador((jugadorRepository.getActivePlayer()%partidaRepository.getNumJugadores()) + 1);
             jugadorRepository.changeActivePlayer(playerID);
 
@@ -63,13 +60,9 @@ public class TurnService implements ITurnService{
       }
 
       try {
-        jugadorRepository.updateJugadorByID(jugadorActual);
+        jugadorRepository.updateJugador(jugadorActual);
       } catch (SQLException e) {
         throw new RuntimeException(e);
-      }
-
-      for (Ficha ficha : fichas) {
-        System.out.println(ficha.toString());
       }
 
       canThrowDice = true;
@@ -105,12 +98,4 @@ public class TurnService implements ITurnService{
         return canThrowDice;
     }
 
-    @Override
-    public void loadFichas(){
-      try {
-        fichas = jugadorRepository.getFichas();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
-    }
 }

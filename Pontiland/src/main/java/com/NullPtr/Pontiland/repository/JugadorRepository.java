@@ -239,17 +239,24 @@ public class JugadorRepository implements IJugadorRepository {
 
 
     @Override
-    public Ficha[] getFichas() throws SQLException {
+    public Ficha[] getFichas(int numJugadores) throws SQLException {
         Connection conn = dataService.createConnection();
-        Ficha[] fichas = new Ficha[numJugadores()];
-        String consulta = "SELECT Jugador.NumJugador, Icono.IconoID, Icono.IconoNombre FROM Jugador INNER JOIN Icono ON Icono.IconoID = Jugador.IconoID WHERE Partida = ? ORDER BY NumJugador ASC";
+        Ficha[] fichas = new Ficha[numJugadores];    String consulta =
+                "SELECT Jugador.JugadorID, Jugador.NumJugador, Icono.IconoID, Icono.IconoNombre " +
+                        "FROM Jugador " +
+                        "INNER JOIN Icono ON Icono.IconoID = Jugador.IconoID " +
+                        "WHERE Partida = ? ORDER BY NumJugador ASC";
         try {
             PreparedStatement stmt = conn.prepareStatement(consulta);
             stmt.setLong(1, partidaID);
             var rs = stmt.executeQuery();
             int index = 0;
             while (rs.next()) {
-                fichas[index] = new Ficha(rs.getInt("IconoID"), rs.getString("IconoNombre"));
+                fichas[index] = new Ficha(
+                        rs.getInt("JugadorID"),
+                        rs.getInt("IconoID"),
+                        rs.getString("IconoNombre")
+                );
                 index++;
             }
             return fichas;
@@ -267,36 +274,10 @@ public class JugadorRepository implements IJugadorRepository {
     }
 
     @Override
-    public int numJugadores() throws SQLException {
-        Connection conn = dataService.createConnection();
-        String consulta = "SELECT COUNT(*) AS NumJugadores FROM Jugador WHERE Partida = ?";
-        try {
-            PreparedStatement stmt = conn.prepareStatement(consulta);
-            stmt.setLong(1, partidaID);
-            var rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("NumJugadores");
-            } else {
-                throw new RuntimeException("No se pudo contar los jugadores para la partida: " + partidaID);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    @Override
-    public void updateJugadorByID(Jugador jugador) throws SQLException {
+    public void updateJugador(Jugador jugador) throws SQLException {
 
         Connection conn = dataService.createConnection();
-        String consulta = "UPDATE Jugador " +
-                "SET Posicion = ?, Encarcelado = ?, Dinero = ? " +
-                "WHERE JugadorID = ? AND Partida = ?";
+        String consulta = "UPDATE Jugador SET Posicion = ?, Encarcelado = ?, Dinero = ? WHERE JugadorID = ? AND Partida = ?";
         try {
             PreparedStatement stmt = conn.prepareStatement(consulta);
             stmt.setInt(1, jugador.getPosicion());

@@ -43,9 +43,6 @@ public class MenuController implements IMenuActions {
     if (app == null) {
       throw new IllegalArgumentException("app no puede ser null");
     }
-    if (startGameService == null) {
-      throw new IllegalArgumentException("startGameService no puede ser null");
-    }
     this.startGameService = startGameService;
     this.app = app;
   }
@@ -121,8 +118,6 @@ public class MenuController implements IMenuActions {
     this.selectedPlayerCount = playerCount;
     this.gameStarted = true;
 
-    // Aquí podría persistirse/prepararse la información (jugadores/personajes) si se requiere.
-    // Por ahora solo se imprime para debug.
     System.out.println("[Pontiland] Jugadores seleccionados: " + jugadores.size());
     for (int i = 0; i < jugadores.size(); i++) {
       Jugador j = jugadores.get(i);
@@ -140,8 +135,8 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuCreditos);
     detachIfAttached(menuSeleccion);
 
-    // Delegar a la app la preparación de la escena 3D
-    app.initializeGame3D();
+      //TODO controller no puede comunicarse directamente con app
+      startGameService.ensureSceneReady();
 
     System.out.println("Juego iniciado con " + playerCount + " jugadores");
   }
@@ -166,7 +161,8 @@ public class MenuController implements IMenuActions {
           detachIfAttached(menuCreditos);
           detachIfAttached(menuSeleccion);
 
-          app.initializeGame3D();
+            //TODO controller no puede comunicarse directamente con app
+            startGameService.ensureSceneReady();
         });
   }
 

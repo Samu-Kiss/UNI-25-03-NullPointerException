@@ -3,6 +3,8 @@ package com.NullPtr.Pontiland.services;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
+import com.NullPtr.Pontiland.view.Scene;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Random;
@@ -22,8 +24,8 @@ public class StartGameService implements IStartGameService {
   /** Servicio para la gestión de la base de datos y persistencia. */
   IDataService dataService;
 
-  /** Constructor por defecto. */
-  public StartGameService() {}
+  Scene scene;
+
 
   /**
    * Constructor que permite la inyección de dependencias.
@@ -32,21 +34,26 @@ public class StartGameService implements IStartGameService {
    * @param partidaRepository Repositorio de partidas.
    * @param dataService Servicio de datos.
    */
-  public StartGameService(
-      IJugadorRepository jugadorRepository,
-      IPartidaRepository partidaRepository,
-      IDataService dataService) {
+  public StartGameService( IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository, IDataService dataService, Scene scene) {
     this.jugadorRepository = jugadorRepository;
     this.partidaRepository = partidaRepository;
     this.dataService = dataService;
+    this.scene = scene;
   }
 
-  /**
+    /**
+     * Constructs a new object.
+     */
+    public StartGameService() {
+    }
+
+    /**
    * Crea una nueva partida en la base de datos, registrando los jugadores y sus iconos.
    *
    * @param jugadores Lista de jugadores que participarán en la partida.
    * @param iconos Lista de identificadores de iconos asociados a cada jugador.
    */
+    @Override
   public void creatingNewGame(ArrayList<Jugador> jugadores, ArrayList<Integer> iconos)
       throws SQLException {
     dataService.newDataBase();
@@ -57,6 +64,9 @@ public class StartGameService implements IStartGameService {
     };
     int playerID = jugadorRepository.getPlayerIdByNumJugador(1);
     jugadorRepository.newActivePlayer(playerID);
+
+    scene.loadFichasModels(jugadorRepository.getFichas(partidaRepository.getNumJugadores()));
+
   }
 
   /**
@@ -64,7 +74,17 @@ public class StartGameService implements IStartGameService {
    *
    * @param archivoSeleccionado Nombre o ruta del archivo de la partida a cargar.
    */
+  @Override
   public void loadingOldGame(String archivoSeleccionado) {
     dataService.loadDataBase(archivoSeleccionado);
   }
+    @Override
+    public void ensureSceneReady() {
+        if (this.scene == null) {
+            throw new IllegalStateException(
+                    "Scene no inyectada en StartGameService. " +
+                            "Inyéctala en el constructor o llama startGameService.setScene(scene) antes de continuar."
+            );
+        }
+    }
 }

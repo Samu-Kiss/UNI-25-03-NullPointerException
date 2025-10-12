@@ -4,19 +4,23 @@ import com.NullPtr.Pontiland.utils.PropertiesReader;
 import com.jme3.scene.Spatial;
 
 import java.io.File;
-import java.nio.file.Path;
 
 public class Ficha {
     private Spatial spatial = null;
     private int idFicha = -1;
+    private int jugadorId = -1;
     private String nombreFicha = "";
-    private File rutaFicha = null;
+    private String rutaFicha = null;
 
-    public Ficha(int idFicha, String nombreFicha) {
+    public Ficha(int idFicha,int jugadorId, String nombreFicha) {
         this.idFicha = idFicha;
+        this.jugadorId = jugadorId;
         this.nombreFicha = nombreFicha;
-        this.rutaFicha = new File(getClass().getResource(PropertiesReader.getProperty("Modelo"+nombreFicha)).getFile());
+        this.rutaFicha = PropertiesReader.getProperty("Modelo"+nombreFicha);
     }
+
+    public int getJugadorId() { return jugadorId; }
+    public void setJugadorId(int jugadorId) { this.jugadorId = jugadorId; }
 
     public int getIdFicha() {
         return idFicha;
@@ -26,7 +30,7 @@ public class Ficha {
         return nombreFicha;
     }
 
-    public File getRutaFicha() {
+    public String getRutaFicha() {
         return rutaFicha;
     }
 

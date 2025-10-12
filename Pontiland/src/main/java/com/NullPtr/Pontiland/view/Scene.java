@@ -2,6 +2,7 @@ package com.NullPtr.Pontiland.view;
 
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.controllers.LanzamientoDadosController;
+import com.NullPtr.Pontiland.entities.Ficha;
 import com.NullPtr.Pontiland.services.DiceService;
 import com.jme3.app.LegacyApplication;
 import com.jme3.app.SimpleApplication;
@@ -39,6 +40,7 @@ public class Scene {
   private LanzamientoDadosController lanzamientoController;
   private BulletAppState bullet;
 
+
   /**
    * Servicio de dados que gestionará la lógica; se inyecta para poder establecer el Spatial del
    * dado.
@@ -67,6 +69,7 @@ public class Scene {
     setupSkyEnvironment();
     setupLighting();
     setupCamera();
+
   }
 
   /**
@@ -79,7 +82,23 @@ public class Scene {
     // Este método queda disponible para futuras animaciones u otras actualizaciones visuales.
   }
 
-  /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
+  public void loadFichasModels(Ficha[] data) {
+      for (int i = 0; i < data.length; i++) {
+          com.jme3.scene.Spatial s = assetManager.loadModel(data[i].getRutaFicha());
+
+          int jugadorId = data[i].getJugadorId();
+          s.setName("Ficha_J" + jugadorId);
+          s.setUserData("jugadorId", jugadorId);
+
+          s.scale(1f);
+          s.setLocalTranslation(10 + i * 2f, 0, 0);
+          com.jme3.bullet.control.RigidBodyControl rb = new com.jme3.bullet.control.RigidBodyControl(0);
+          s.addControl(rb);
+          bullet.getPhysicsSpace().add(rb);
+          rootNode.attachChild(s);
+      }
+  }
+    /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
   private void loadBoardModel() {
     try {
       Spatial board = assetManager.loadModel("graphics/models/Board.glb");

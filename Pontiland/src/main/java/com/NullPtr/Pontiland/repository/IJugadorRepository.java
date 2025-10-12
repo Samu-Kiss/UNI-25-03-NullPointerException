@@ -21,9 +21,7 @@ public interface IJugadorRepository {
 
   void setPartidaID(long partidaID);
 
-  Ficha[] getFichas() throws SQLException;
+  Ficha[] getFichas(int numJugadores) throws SQLException;
 
-  int numJugadores() throws SQLException;
-
-  void updateJugadorByID(Jugador jugador) throws SQLException;
+  void updateJugador(Jugador jugador) throws SQLException;
 }

@@ -8,4 +8,6 @@ public interface IStartGameService {
   void creatingNewGame(ArrayList<Jugador> jugadores, ArrayList<Integer> iconos) throws SQLException;
 
   void loadingOldGame(String archivoSeleccionado);
+
+  void ensureSceneReady();
 }
