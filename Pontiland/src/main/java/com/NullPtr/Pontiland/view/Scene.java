@@ -114,19 +114,20 @@ public class Scene {
     }
 
 
-    private com.jme3.math.Vector3f posFromCell(int c) {
+    private Vector3f posFromCell(int c) {
+      System.out.print("Casilla: " + c);
         int idx = ((c % TOTAL_CASILLAS) + TOTAL_CASILLAS) % TOTAL_CASILLAS;
         float x, z;
-        if (idx < SIDE) {                       // lado inferior: +X
+        if (idx < SIDE) {
             x = -HALF + idx * CELL_SIZE; z = -HALF;
-        } else if (idx < 2 * SIDE) {            // derecho: +Z
+        } else if (idx < 2 * SIDE) {
             int k = idx - SIDE;   x =  HALF; z = -HALF + k * CELL_SIZE;
-        } else if (idx < 3 * SIDE) {            // superior: -X
+        } else if (idx < 3 * SIDE) {
             int k = idx - 2 * SIDE; x =  HALF - k * CELL_SIZE; z =  HALF;
-        } else {                                 // izquierdo: -Z
+        } else {
             int k = idx - 3 * SIDE; x = -HALF; z =  HALF - k * CELL_SIZE;
         }
-        return new com.jme3.math.Vector3f(x, Y_PLANO, z);
+        return new Vector3f(x, Y_PLANO, z);
     }
 
     /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
