@@ -10,7 +10,6 @@ import com.NullPtr.Pontiland.repository.PartidaRepository;
 import com.NullPtr.Pontiland.services.*;
 import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
-import com.NullPtr.Pontiland.utils.PropertiesReader;
 import com.NullPtr.Pontiland.view.MenuPrincipal;
 import com.NullPtr.Pontiland.view.Scene;
 import com.jme3.app.SimpleApplication;
@@ -31,8 +30,8 @@ public class Launcher extends SimpleApplication {
   private final DiceService diceService = new DiceService();
   private ITurnService turnService;
   private LanzamientoDadosController lanzamientoDadosController;
-    private Byte[] resultados = new Byte[2];
-    private Scene scene;
+  private Byte[] resultados = new Byte[2];
+  private Scene scene;
 
   private IDataService dataService;
   private IStartGameService startGameService;
@@ -72,8 +71,8 @@ public class Launcher extends SimpleApplication {
 
       dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
 
-      turnService = new TurnService(jugadorRepository, partidaRepository);
-      lanzamientoDadosController = new LanzamientoDadosController(diceService, turnService, resultados);
+      turnService = new TurnService(jugadorRepository, partidaRepository, diceService);
+      lanzamientoDadosController = new LanzamientoDadosController(diceService, turnService);
       lanzamientoDadosController.registerInputs(getInputManager());
       partidaRepository = new PartidaRepository(dataService);
 
@@ -96,9 +95,9 @@ public class Launcher extends SimpleApplication {
     if (scene != null) {
       scene.update(tpf);
     }
-    if (lanzamientoDadosController != null) {
-      lanzamientoDadosController.update();
-    }
+    lanzamientoDadosController.update();
+    turnService.update();
+
   }
 
   public void initializeGame3D() {

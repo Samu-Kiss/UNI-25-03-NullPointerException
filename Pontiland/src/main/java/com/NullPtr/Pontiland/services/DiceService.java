@@ -16,7 +16,6 @@ public class DiceService {
   /** Máquina de estados interna para el lanzamiento no bloqueante. */
   private enum Estado {
     IDLE,
-    INIT,
     LAUNCH,
     CHECK_MOVIMIENTO,
     READ,
@@ -25,8 +24,7 @@ public class DiceService {
 
   private Estado estado = Estado.IDLE;
 
-  /** Referencia donde se almacenarán los resultados del lanzamiento no bloqueante. */
-  private Byte[] resultadosRef;
+  private Byte[] resultados = new Byte[2];
 
   /**
    * Inyecta ambos dados en el servicio.
@@ -61,26 +59,20 @@ public class DiceService {
     return resultados;
   }
 
-  /**
+    public Byte[] getResultados() {
+        return  (resultados[0] != null && resultados[1] != null) ? resultados : new Byte[]{null, null};
+    }
+
+    /**
    * Inicia la secuencia de lanzamiento no bloqueante.
-   *
-   * @param resultados Objeto atómico donde se escribirán los resultados al finalizar
    */
-  public void lanzamientoDadosNoBloqueante(Byte[] resultados) {
-    this.resultadosRef = resultados;
-    this.estado = Estado.INIT;
+  public void lanzamientoDados() {
+    this.estado = Estado.LAUNCH;
   }
 
-  /**
-   * Actualiza la máquina de estados del lanzamiento no bloqueante. Este método debe llamarse en
-   * cada frame para que el lanzamiento avance.
-   */
   public void update() {
     switch (estado) {
       case IDLE:
-        break;
-      case INIT:
-        estado = Estado.LAUNCH;
         break;
       case LAUNCH:
         lanzarDados();
@@ -100,17 +92,14 @@ public class DiceService {
         break;
       case READ:
         Byte[] valores = leerDados();
-        if (resultadosRef != null) {
-          resultadosRef[0] = valores[0];
-          resultadosRef[1] = valores[1];
-        }
-        // Terminar ciclo
+        resultados[0] = valores[0];
+        resultados[1] = valores[1];
         estado = Estado.DONE;
+
         break;
       case DONE:
-        // Resetear al estado inicial y limpiar referencia a resultados
         estado = Estado.IDLE;
-        resultadosRef = null;
+          resultados = new Byte[]{null, null};
         break;
     }
   }

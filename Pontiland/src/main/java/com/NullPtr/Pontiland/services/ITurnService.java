@@ -3,13 +3,11 @@ package com.NullPtr.Pontiland.services;
 public interface ITurnService {
 
     void nextTurn();
-    void movePlayer(int numCasillas, int playerID);
 
+    void update();
 
-    void throwDice(int playerID);
-
-    void buyProperty(int playerID);
-    void payRent(int playerID);
+    void buyProperty();
+    void payRent();
 
     boolean canThrowDice();
 

@@ -5,8 +5,6 @@ import com.NullPtr.Pontiland.utils.PropertiesReader;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.sql.*;
@@ -115,7 +113,6 @@ public class DataService implements IDataService {
   public void loadDataBase(String archivoSeleccionado) {
     Connection conn = createConnection();
     try {
-      Statement stmt = conn.createStatement();
       String ubicacionArchivo = savesDir;
       ubicacionArchivo = ubicacionArchivo + archivoSeleccionado;
       Path path = Paths.get(ubicacionArchivo);
@@ -141,9 +138,8 @@ public class DataService implements IDataService {
   public List<SavedGame> listarPartidasPasadas() {
     Map<String, String> mapaArchivo = new LinkedHashMap<>();
 
-    String ubicacionPartidas = "src/main/resources/SQL/PartidasPasadas";
 
-    File scriptsPartidas = new File(ubicacionPartidas);
+    File scriptsPartidas = new File(savesDir);
     File[] archivos = scriptsPartidas.listFiles();
 
     if (archivos != null) {
