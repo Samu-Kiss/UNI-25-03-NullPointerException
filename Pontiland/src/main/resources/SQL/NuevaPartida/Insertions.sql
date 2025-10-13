@@ -170,7 +170,7 @@ INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Pequeña Donación',
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Campaña de Reciclaje','Recolectas materiales y obtienes ganancias. Ganas $50.',7);
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Curso de Verano','Dictas un taller y ganas $100.',8);
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Premio al Mejor Proyecto','Tus estudiantes te ayudan a obtener un cheque. Ganas $100.',8);
-INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Venta de Entradas a un Evento','Organizar un concierto en el campus deja ingresos. Ganas $100. txn',8);
+INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Venta de Entradas a un Evento','Organizar un concierto en el campus deja ingresos. Ganas $100.',8);
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Campaña de Donaciones','La comunidad universitaria apoya tu trabajo. Ganas $100.',8);
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Arriendo del Teatro','Cedes el auditorio para una obra. Ganas $100.',8);
 INSERT INTO EVENTO(Nombre, Descripcion, TipoEvento) VALUES('Venta de Insignias','Souvenirs oficiales del campus generan $100.',8);
