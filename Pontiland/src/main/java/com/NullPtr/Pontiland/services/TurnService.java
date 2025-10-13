@@ -13,7 +13,6 @@ public class TurnService implements ITurnService{
     private DiceService diceService;
     private int playerID = 0;
     private boolean canThrowDice = true;
-    private Ficha[] fichas = null;
     private boolean movePending = false;
     private int lastMovedJugadorId = -1;
     private int lastMovedPos = -1;
@@ -56,11 +55,6 @@ public class TurnService implements ITurnService{
         throw new RuntimeException(e);
       }
 
-      try {
-        Thread.sleep(2000);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
 
       try {
         jugadorRepository.updateJugador(jugadorActual);
@@ -70,6 +64,13 @@ public class TurnService implements ITurnService{
 
       markLastMove(jugadorActual.getJugadorId(), nuevaPosicion);
       canThrowDice = true;
+
+
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     @Override

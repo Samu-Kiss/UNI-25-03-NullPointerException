@@ -44,7 +44,7 @@ public class Scene {
     private static final float Y_PLANO = 1f;
     private static final int SIDE = TOTAL_CASILLAS / 4;
     private static final float HALF = (SIDE - 1) * CELL_SIZE * 0.5f;
-    private final Vector3f BOARD_FIRST_POSITION = new Vector3f(8.5f, 1, 8.5f);
+    private final Vector3f BOARD_FIRST_POSITION = new Vector3f(8.3f, 0.5f, 8.5f);
 
     private final ExecutorService animator = Executors.newSingleThreadExecutor(r -> {Thread t = new Thread(r, "SceneAnimator");
                                                                           t.setDaemon(true);
@@ -114,12 +114,14 @@ public class Scene {
 
       Vector3f placed;
       if (i < 2) {
-        placed = new Vector3f(BOARD_FIRST_POSITION.getX() + i * 0.5f, 1, BOARD_FIRST_POSITION.getZ());
+        placed = new Vector3f(BOARD_FIRST_POSITION.getX() + i * 0.5f, 0.5f, BOARD_FIRST_POSITION.getZ());
       } else {
-        placed = new Vector3f(BOARD_FIRST_POSITION.getX() + i % 2 * 0.5f, 1, BOARD_FIRST_POSITION.getZ() + 0.5f);
+        placed = new Vector3f(BOARD_FIRST_POSITION.getX() + i % 2 * 0.5f, 0.5f, BOARD_FIRST_POSITION.getZ() + 0.5f);
       }
 
       s.setLocalTranslation(placed);
+
+      s.setUserData("startPosition", placed.clone());
 
       // store the per-spatial initial offset relative to cell 0 so future moves reuse it
       Vector3f cell0 = posFromCell(0);
@@ -129,7 +131,7 @@ public class Scene {
       // authoritative logical position (start at cell 0)
       s.setUserData("cellIndex", 0);
 
-      com.jme3.bullet.control.RigidBodyControl rb = new com.jme3.bullet.control.RigidBodyControl(0f);
+      com.jme3.bullet.control.RigidBodyControl rb = new com.jme3.bullet.control.RigidBodyControl(1f);
       s.addControl(rb);
       rb.setPhysicsLocation(placed.clone());
       bullet.getPhysicsSpace().add(rb);
@@ -146,19 +148,24 @@ public class Scene {
     Object ciUd = s.getUserData("cellIndex");
     if (ciUd instanceof Integer) currentIndex = (Integer) ciUd;
 
+    // keep the same key used at load time
+    s.setUserData("jugadorId", jugadorId);
+
     // compute number of forward steps on the circular board
     int steps = (casillaIndex - currentIndex + TOTAL_CASILLAS) % TOTAL_CASILLAS;
+    if (steps == 0) {
+      // already there, ensure authoritative index is set
+      s.setUserData("cellIndex", casillaIndex);
+      return;
+    }
 
-    // prepare per-step targets and indices
-    Object ud = s.getUserData("initialOffset");
+    // prepare per-step targets and indices using posFromCell directly
     List<Vector3f> targets = new ArrayList<>();
     List<Integer> indices = new ArrayList<>();
     for (int i = 1; i <= steps; i++) {
       int idx = (currentIndex + i) % TOTAL_CASILLAS;
       Vector3f center = posFromCell(idx);
-      Vector3f offset = (ud instanceof Vector3f) ? ((Vector3f) ud).clone() : new Vector3f(0f, 0f, 0f);
-      Vector3f target = center.add(offset); // returns a new Vector3f
-      targets.add(target);
+      targets.add(center);
       indices.add(idx);
     }
 
@@ -201,6 +208,7 @@ public class Scene {
                 rb.setAngularVelocity(Vector3f.ZERO);
               }
               s.setLocalTranslation(pos);
+              focusCameraOnFicha(s.getUserData("jugadorId"));
             });
 
             if (t >= 1f) break;
@@ -231,7 +239,7 @@ public class Scene {
   private Vector3f posFromCell(int c) {
     int idx = ((c % TOTAL_CASILLAS) + TOTAL_CASILLAS) % TOTAL_CASILLAS;
     final float halfStep = CELL_SIZE / 2f;
-    final int slotsPerSide = TOTAL_CASILLAS / 4;
+    final int slotsPerSide = SIDE;
 
     int side = idx / slotsPerSide;
     int pos = idx % slotsPerSide;
@@ -243,33 +251,30 @@ public class Scene {
       // Bottom side: right -> left
       case 0:
         x = -pos * CELL_SIZE;
+        z = 0;
         break;
 
       // Left side: bottom -> top
       case 1:
-        x = -BOARD_FIRST_POSITION.getX() * 1.95f;
-        if (pos == 0) {
-          z = -((pos * CELL_SIZE));
-        } else {
-          z = -((pos * CELL_SIZE) + pos * 0.23f);
-        }
+        x = -BOARD_FIRST_POSITION.getX() * 2f;
+        z = -((pos * CELL_SIZE) + pos * 0.23f);
         break;
 
 
       // Top side: left -> right
       case 2:
-        z = -BOARD_FIRST_POSITION.getZ() * 1.9f;
+        z = -BOARD_FIRST_POSITION.getZ() * 2f;
         if (pos == 0) {
-          x = (-BOARD_FIRST_POSITION.getX() * 1.95f) + (pos * CELL_SIZE);
+          x = (-BOARD_FIRST_POSITION.getX() * 2f) + (pos * CELL_SIZE);
           break;
         } else {
-          x = (-BOARD_FIRST_POSITION.getX() * 1.95f) + (pos * CELL_SIZE) + pos * 0.24f;
+          x = (-BOARD_FIRST_POSITION.getX() * 2f) + (pos * CELL_SIZE) + pos * 0.24f;
           break;
         }
 
       // Right side: top -> bottom
       case 3:
-        z = (-BOARD_FIRST_POSITION.getZ() * 1.95f) + (pos * CELL_SIZE) + pos * 0.24f;
+        z = (-BOARD_FIRST_POSITION.getZ() * 2f) + (pos * CELL_SIZE) + pos * 0.24f;
         break;
     }
 
@@ -430,6 +435,21 @@ public class Scene {
       }
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
+    }
+  }
+
+  public void resetCamera() {
+    cam.setLocation(new Vector3f(15, 15, 0));
+    cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
+  }
+
+  public void focusCameraOnFicha(int jugadorId) {
+    Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
+    if (s != null) {
+      Vector3f fichaPos = s.getLocalTranslation();
+      Vector3f camPos = fichaPos.add(new Vector3f(5, 5, 5));
+      cam.setLocation(camPos);
+      cam.lookAt(fichaPos, Vector3f.UNIT_Y);
     }
   }
 }
