@@ -5,11 +5,7 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
-import com.NullPtr.Pontiland.view.MenuCarga;
-import com.NullPtr.Pontiland.view.MenuCreditos;
-import com.NullPtr.Pontiland.view.MenuJugadores;
-import com.NullPtr.Pontiland.view.MenuPrincipal;
-import com.NullPtr.Pontiland.view.MenuSeleccion;
+import com.NullPtr.Pontiland.view.*;
 import com.jme3.app.state.AppStateManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -24,6 +20,7 @@ import java.util.List;
 public class MenuController implements IMenuActions {
 
   private final Launcher app;
+  private HUD hud;
 
   private MenuPrincipal menuPrincipal;
   private MenuJugadores menuJugadores;
@@ -137,6 +134,10 @@ public class MenuController implements IMenuActions {
 
       //TODO controller no puede comunicarse directamente con app
       startGameService.ensureSceneReady();
+    Launcher launcher = this.app;
+    hud = new HUD(jugadores, personajeIds);
+    launcher.getStateManager().attach(hud);
+    hud.setEnabled(true);
 
     System.out.println("Juego iniciado con " + playerCount + " jugadores");
   }

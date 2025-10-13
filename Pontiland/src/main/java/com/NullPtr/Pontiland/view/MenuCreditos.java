@@ -153,7 +153,7 @@ public class MenuCreditos extends AbstractAppState {
           "QA / Testing: Maria Alejandra García ✨",
           "Backend Developer: Thomas Leal 🧩, Nicolas Torres 🏢",
           "Data Base Administrator: Juan David Ortiz ☕",
-          "Frontend Developer: Samuel Pico ✒️",
+          "Frontend Developer: Samuel Pico ✒️,Santiago Mendez 💀",
           "Escritor Técnico UML: Nicolas Torres 🏢, Santiago Mendez 💀",
           "Diseñador: Samuel Pico ✒️",
         });
