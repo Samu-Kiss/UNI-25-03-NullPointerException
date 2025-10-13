@@ -19,9 +19,9 @@ public class CasillaRepository implements ICasillaRepository{
             throw new RuntimeException("No existen casillas antes de 0 o después de 40");
         }
 
-        String obtenerCasillaPosicion = "SELECT Casilla.NombreCasilla TipoCasilla.TipoNombre " +
+        String obtenerCasillaPosicion = "SELECT Casilla.NombreCasilla, TipoCasilla.TipoNombre " +
                                             "FROM Casilla " +
-                                            "JOIN TipoCasilla ON Casilla.TipoCasilla=TipoCasilla.TipoID" +
+                                            "JOIN TipoCasilla ON Casilla.TipoCasilla=TipoCasilla.TipoID " +
                                             "WHERE Casilla.PosicionTablero = ?";
 
         try (Connection connect = dataService.createConnection()){
