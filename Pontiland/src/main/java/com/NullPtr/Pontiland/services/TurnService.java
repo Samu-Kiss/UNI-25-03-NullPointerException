@@ -65,12 +65,6 @@ public class TurnService implements ITurnService{
       markLastMove(jugadorActual.getJugadorId(), nuevaPosicion);
       canThrowDice = true;
 
-
-      try {
-        Thread.sleep(2000);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
     }
 
     @Override

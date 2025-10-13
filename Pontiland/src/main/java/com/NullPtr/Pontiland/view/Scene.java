@@ -9,7 +9,6 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.cinematic.MotionPath;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -23,12 +22,8 @@ import com.jme3.scene.shape.Box;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 
-import javax.naming.ldap.Control;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Clase de vista que construye y mantiene la escena 3D de Pontiland.
@@ -41,16 +36,20 @@ import java.util.concurrent.TimeUnit;
 public class Scene {
     private static final int TOTAL_CASILLAS = 40;
     private static final float CELL_SIZE = 1.4f;
-    private static final float Y_PLANO = 1f;
     private static final int SIDE = TOTAL_CASILLAS / 4;
-    private static final float HALF = (SIDE - 1) * CELL_SIZE * 0.5f;
     private final Vector3f BOARD_FIRST_POSITION = new Vector3f(8.3f, 0.5f, 8.5f);
 
-    private final ExecutorService animator = Executors.newSingleThreadExecutor(r -> {Thread t = new Thread(r, "SceneAnimator");
-                                                                          t.setDaemon(true);
-                                                                          return t;});
+    // --- Cámara suave ---
+    private final Vector3f camLookTarget = new Vector3f(0, 0, 0); // a dónde mirar (dado o ficha)
+    private final Vector3f camLookCurr   = new Vector3f(0, 0, 0); // se interpola hacia camLookTarget
+    private final Vector3f camPosTarget  = new Vector3f(15, 15, 15); // posición deseada (lookTarget + offset)
+    private final Vector3f camPosCurr    = new Vector3f(15, 15, 15); // se interpola hacia camPosTarget
 
-  /** Referencias a la aplicación y a sus componentes para cargar assets y manipular la escena. */
+    // Factor de suavizado (tweak: 4–8 da buen resultado)
+    private float camLerpSpeed = 6f;
+
+
+    /** Referencias a la aplicación y a sus componentes para cargar assets y manipular la escena. */
   private LegacyApplication app;
 
   private AssetManager assetManager;
@@ -59,6 +58,16 @@ public class Scene {
   private LanzamientoDadosController lanzamientoController;
   private BulletAppState bullet;
 
+
+  private Spatial mvSpatial;
+  private RigidBodyControl mvRb;
+  private final List<Vector3f> mvTargets = new ArrayList<>();
+  private final List<Integer>  mvIndices = new ArrayList<>();
+  private int   mvSeg = -1;           // -1 = inactivo
+    private float mvTimer = 0f;         // acumulador de tiempo del segmento actual
+    private float mvDuration = 0.45f;   // duración de cada segmento (s)
+    private float mvJump = 0.9f;        // altura del “salto”
+    private final Vector3f mvStart = new Vector3f(); // inicio del segmento
 
   /**
    * Servicio de dados que gestionará la lógica; se inyecta para poder establecer el Spatial del
@@ -99,7 +108,65 @@ public class Scene {
    * @param tpf Tiempo por frame
    */
   public void update(float tpf) {
-    // Este método queda disponible para futuras animaciones u otras actualizaciones visuales.
+      if (mvSeg >= 0 && mvSeg < mvTargets.size() && mvSpatial != null) {
+          mvTimer += tpf;
+          float t = Math.min(1f, mvTimer / mvDuration);
+
+          Vector3f target = mvTargets.get(mvSeg);
+          // Lerp en XZ
+          float nx = mvStart.x + (target.x - mvStart.x) * t;
+          float nz = mvStart.z + (target.z - mvStart.z) * t;
+          // Arco en Y con seno (salto)
+          float ny = mvStart.y + (float) Math.sin(Math.PI * t) * mvJump;
+
+          Vector3f pos = new Vector3f(nx, ny, nz);
+
+          if (mvRb != null) {
+              mvRb.setPhysicsLocation(pos);
+              mvRb.setLinearVelocity(Vector3f.ZERO);
+              mvRb.setAngularVelocity(Vector3f.ZERO);
+          }
+          mvSpatial.setLocalTranslation(pos);
+
+          // Cámara: sigue a la ficha de forma suave (tu focus actual ya hace target/lerp)
+          Object jid = mvSpatial.getUserData("jugadorId");
+          if (jid instanceof Integer) {
+              focusCameraOnFicha((Integer) jid);
+          }
+
+          if (t >= 1f) {
+              if (mvRb != null) {
+                  mvRb.setPhysicsLocation(target);
+                  mvRb.setLinearVelocity(Vector3f.ZERO);
+                  mvRb.setAngularVelocity(Vector3f.ZERO);
+              }
+              mvSpatial.setLocalTranslation(target);
+
+              // Actualiza cellIndex autoritativo
+              Integer finalIdx = mvIndices.get(mvSeg);
+              mvSpatial.setUserData("cellIndex", finalIdx);
+
+              // Siguiente segmento
+              mvSeg++;
+              mvTimer = 0f;
+              if (mvSeg < mvTargets.size()) {
+                  // nuevo inicio = posición actual
+                  mvStart.set(target);
+              } else {
+                  // fin del path
+                  mvSeg = -1;
+                  resetCamera();
+              }
+          }
+      }
+      // Lerp lineal controlado por tpf
+      float a = Math.min(1f, camLerpSpeed * tpf);
+
+      camPosCurr.interpolateLocal(camPosTarget, a);
+      camLookCurr.interpolateLocal(camLookTarget, a);
+
+      cam.setLocation(camPosCurr);
+      cam.lookAt(camLookCurr, Vector3f.UNIT_Y);
   }
 
   public void loadFichasModels(Ficha[] data) {
@@ -170,73 +237,39 @@ public class Scene {
     }
 
     RigidBodyControl rb = s.getControl(RigidBodyControl.class);
-    // animate through each intermediate cell sequentially
     animateMoveAlongPath(s, rb, targets, indices, 0.45f, 0.9f);
-    //TODO: No resetea la cámara al mover la ficha
-    resetCamera();
   }
+
 
   /**
    * Animate a spatial sequentially through the provided targets.
    * Updates the spatial's `cellIndex` after each reached target.
    */
-  private void animateMoveAlongPath(Spatial s, RigidBodyControl rb, List<Vector3f> targets, List<Integer> indices, float durationSeconds, float jumpHeight) {
-    animator.submit(() -> {
-      try {
-        for (int seg = 0; seg < targets.size(); seg++) {
-          Vector3f target = targets.get(seg);
-          final Vector3f start = (rb != null && rb.getPhysicsLocation() != null)
-                  ? rb.getPhysicsLocation().clone()
-                  : s.getLocalTranslation().clone();
-          final float startY = start.y;
-          final long startNs = System.nanoTime();
-          final long durationNs = (long) (durationSeconds * 1_000_000_000L);
+  private void animateMoveAlongPath(Spatial s, RigidBodyControl rb, List<Vector3f> targets, List<Integer> indices, float durationSeconds, float jumpHeight)
+  {
+      this.mvSpatial  = s;
+      this.mvRb       = rb;
 
-          while (true) {
-            long nowNs = System.nanoTime();
-            long elapsed = nowNs - startNs;
-            float t = Math.min(1f, (float) elapsed / (float) durationNs);
+      this.mvTargets.clear();
+      this.mvTargets.addAll(targets);
 
-            float x = start.x + (target.x - start.x) * t;
-            float z = start.z + (target.z - start.z) * t;
-            float y = startY + (float) Math.sin(Math.PI * t) * jumpHeight;
+      this.mvIndices.clear();
+      this.mvIndices.addAll(indices);
 
-            final Vector3f pos = new Vector3f(x, y, z);
+      this.mvDuration = durationSeconds;
+      this.mvJump     = jumpHeight;
 
-            app.enqueue(() -> {
-              if (rb != null) {
-                rb.setPhysicsLocation(pos.clone());
-                rb.setLinearVelocity(Vector3f.ZERO);
-                rb.setAngularVelocity(Vector3f.ZERO);
-              }
-              s.setLocalTranslation(pos);
-              focusCameraOnFicha(s.getUserData("jugadorId"));
-            });
+      // Punto de partida del primer segmento
+      Vector3f start = (rb != null && rb.getPhysicsLocation() != null)
+              ? rb.getPhysicsLocation()
+              : s.getLocalTranslation();
+      this.mvStart.set(start);
 
-            if (t >= 1f) break;
-            Thread.sleep(16); // ~60 FPS
-          }
-
-          // finalize exact placement and update authoritative cellIndex on render thread
-          final int finalIdx = indices.get(seg);
-          app.enqueue(() -> {
-            if (rb != null) {
-              rb.setPhysicsLocation(target.clone());
-              rb.setLinearVelocity(Vector3f.ZERO);
-              rb.setAngularVelocity(Vector3f.ZERO);
-            }
-            s.setLocalTranslation(target);
-            s.setUserData("cellIndex", finalIdx);
-          });
-
-          // small pause to ensure render thread applied final placement before next segment
-          Thread.sleep(8);
-        }
-      } catch (InterruptedException ex) {
-        Thread.currentThread().interrupt();
-      }
-    });
+      // Arrancar en el primer segmento
+      this.mvSeg   = (targets.isEmpty() ? -1 : 0);
+      this.mvTimer = 0f;
   }
+
 
   private Vector3f posFromCell(int c) {
     int idx = ((c % TOTAL_CASILLAS) + TOTAL_CASILLAS) % TOTAL_CASILLAS;
@@ -249,7 +282,6 @@ public class Scene {
     float z = 0f;
 
     switch (side) {
-      // Bottom side: right -> left
       case 0:
         x = -pos * CELL_SIZE;
         z = 0;
@@ -342,6 +374,7 @@ public class Scene {
     try {
       Spatial dice1 = assetManager.loadModel("graphics/models/Dice.glb");
       dice1.scale(10f);
+      dice1.setName("Dice1");
       RigidBodyControl dice1Physics = new RigidBodyControl(1.5f);
       dice1.addControl(dice1Physics);
       dice1Physics.setRestitution(1f);
@@ -354,7 +387,7 @@ public class Scene {
 
       // === DADO 2 ===
       Spatial dice2 = assetManager.loadModel("graphics/models/Dice.glb");
-
+      dice2.setName("Dice2");
       dice2.scale(10f);
       RigidBodyControl dice2Physics = new RigidBodyControl(1.5f);
       dice2.addControl(dice2Physics);
@@ -417,20 +450,31 @@ public class Scene {
     cam.setFrustumPerspective(60f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 500f);
   }
 
-  public void resetCamera() {
-    cam.setLocation(new Vector3f(0, 15, 15));
-    cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
-  }
+    public void resetCamera() {
+        Vector3f offset = new Vector3f(0, 7, 3);
 
-  public void focusCameraOnFicha(int jugadorId) {
-    Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
-    if (s != null) {
-      Vector3f fichaPos = s.getLocalTranslation();
-      Vector3f camPos = fichaPos.add(new Vector3f(5, 5, 5));
-      cam.setLocation(camPos);
-      cam.lookAt(fichaPos, Vector3f.UNIT_Y);
+        Spatial d1 = rootNode.getChild("Dice1");
+        if (d1 == null) d1 = rootNode.getChild("FallbackDice1");
+        Spatial d2 = rootNode.getChild("Dice2");
+        if (d2 == null) d2 = rootNode.getChild("FallbackDice2");
+
+        if (d1 != null && d2 != null) {
+            Vector3f mid = d1.getWorldTranslation().add(d2.getWorldTranslation()).multLocal(0.5f);
+            setCamTarget(mid, offset);   // <- objetivo suave
+        }
     }
-  }
+
+
+    public void focusCameraOnFicha(int jugadorId) {
+        Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
+        if (s != null) {
+            Vector3f fichaPos = s.getLocalTranslation();
+            setCamTarget(fichaPos, new Vector3f(5, 5, 5));  // misma toma oblicua, pero con lerp
+        }
+    }
+
+    private void setCamTarget(Vector3f lookAt, Vector3f offset) {
+        camLookTarget.set(lookAt);
+        camPosTarget.set(lookAt).addLocal(offset);
+    }
 }
-
-
