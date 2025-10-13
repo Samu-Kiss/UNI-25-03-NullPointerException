@@ -12,7 +12,7 @@ import com.jme3.scene.Spatial;
  */
 public class DiceService implements IDiceService {
   private final Dado[] dados = new Dado[2];
-  ITurnService turnService;
+  private ITurnService turnService;
 
   /** Máquina de estados interna para el lanzamiento no bloqueante. */
   private enum Estado {
