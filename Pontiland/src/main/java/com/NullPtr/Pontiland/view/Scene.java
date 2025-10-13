@@ -172,6 +172,8 @@ public class Scene {
     RigidBodyControl rb = s.getControl(RigidBodyControl.class);
     // animate through each intermediate cell sequentially
     animateMoveAlongPath(s, rb, targets, indices, 0.45f, 0.9f);
+    //TODO: No resetea la cámara al mover la ficha
+    resetCamera();
   }
 
   /**
@@ -238,7 +240,6 @@ public class Scene {
 
   private Vector3f posFromCell(int c) {
     int idx = ((c % TOTAL_CASILLAS) + TOTAL_CASILLAS) % TOTAL_CASILLAS;
-    final float halfStep = CELL_SIZE / 2f;
     final int slotsPerSide = SIDE;
 
     int side = idx / slotsPerSide;
@@ -414,32 +415,10 @@ public class Scene {
     cam.setLocation(new Vector3f(15, 15, 15));
     cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
     cam.setFrustumPerspective(60f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 500f);
-    createCameraPath();
-
-  }
-
-  private MotionPath createCameraPath() {
-      MotionPath path = new MotionPath();
-      path.addWayPoint(new Vector3f(10, 0, 0));
-      path.addWayPoint(new Vector3f(10, 0, 2));
-      path.enableDebugShape(assetManager, rootNode);
-      //path.setCycle(true);
-      return path;
-  }
-
-  public void cleanup() {
-    animator.shutdownNow();
-    try {
-      if (!animator.awaitTermination(500, TimeUnit.MILLISECONDS)) {
-        animator.shutdownNow();
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
   }
 
   public void resetCamera() {
-    cam.setLocation(new Vector3f(15, 15, 0));
+    cam.setLocation(new Vector3f(0, 15, 15));
     cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
   }
 
