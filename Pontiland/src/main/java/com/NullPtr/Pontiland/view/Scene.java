@@ -7,6 +7,7 @@ import com.NullPtr.Pontiland.services.DiceService;
 import com.jme3.app.LegacyApplication;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
+import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.light.AmbientLight;
@@ -34,19 +35,18 @@ import java.util.List;
  * lógica.
  */
 public class Scene {
-    private static final int TOTAL_CASILLAS = 40;
-    private static final float CELL_SIZE = 1.4f;
-    private static final int SIDE = TOTAL_CASILLAS / 4;
-    private final Vector3f BOARD_FIRST_POSITION = new Vector3f(8.3f, 0.5f, 8.5f);
+  private static final int TOTAL_CASILLAS = 40;
+  private static final float CELL_SIZE = 1.6999993f;
+  private static final int SIDE = TOTAL_CASILLAS / 4;
+  private final Vector3f BOARD_FIRST_POSITION = new Vector3f(8.3f, 0.5f, 8.5f);
 
-    // --- Cámara suave ---
-    private final Vector3f camLookTarget = new Vector3f(0, 0, 0); // a dónde mirar (dado o ficha)
-    private final Vector3f camLookCurr   = new Vector3f(0, 0, 0); // se interpola hacia camLookTarget
-    private final Vector3f camPosTarget  = new Vector3f(15, 15, 15); // posición deseada (lookTarget + offset)
-    private final Vector3f camPosCurr    = new Vector3f(15, 15, 15); // se interpola hacia camPosTarget
+  // --- Cámara suave ---
+  private final Vector3f camLookTarget = new Vector3f(0 , 0 , 0 ); // a dónde mirar (dado o ficha)
+  private final Vector3f camLookCurr   = new Vector3f(0 , 0 , 0 ); // se interpola hacia camLookTarget
+  private final Vector3f camPosTarget  = new Vector3f(15, 15, 15); // posición deseada (lookTarget + offset)
+  private final Vector3f camPosCurr    = new Vector3f(15, 15, 15); // se interpola hacia camPosTarget
 
-    // Factor de suavizado (tweak: 4–8 da buen resultado)
-    private float camLerpSpeed = 6f;
+  private float camLerpSpeed = 6f;
 
 
     /** Referencias a la aplicación y a sus componentes para cargar assets y manipular la escena. */
@@ -63,16 +63,11 @@ public class Scene {
   private RigidBodyControl mvRb;
   private final List<Vector3f> mvTargets = new ArrayList<>();
   private final List<Integer>  mvIndices = new ArrayList<>();
-  private int   mvSeg = -1;           // -1 = inactivo
-    private float mvTimer = 0f;         // acumulador de tiempo del segmento actual
-    private float mvDuration = 0.45f;   // duración de cada segmento (s)
-    private float mvJump = 0.9f;        // altura del “salto”
-    private final Vector3f mvStart = new Vector3f(); // inicio del segmento
-
-  /**
-   * Servicio de dados que gestionará la lógica; se inyecta para poder establecer el Spatial del
-   * dado.
-   */
+  private int   mvSeg = -1;
+  private float mvTimer = 0f;
+  private float mvDuration = 0.45f;
+  private float mvJump = 0.9f;
+  private final Vector3f mvStart = new Vector3f();
 
   /**
    * Inicializa la escena cargando modelos, creando luces y configurando la cámara.
@@ -82,9 +77,9 @@ public class Scene {
    * @param bullet Estado de físicas adjunto al stateManager de la aplicación
    */
   public Scene(
-      LegacyApplication app,
-      BulletAppState bullet,
-      LanzamientoDadosController lanzamientoController) {
+    LegacyApplication app,
+    BulletAppState bullet,
+    LanzamientoDadosController lanzamientoController) {
     this.app = app;
     Launcher L = (Launcher) app;
     this.assetManager = L.getAssetManager();
@@ -128,7 +123,6 @@ public class Scene {
           }
           mvSpatial.setLocalTranslation(pos);
 
-          // Cámara: sigue a la ficha de forma suave (tu focus actual ya hace target/lerp)
           Object jid = mvSpatial.getUserData("jugadorId");
           if (jid instanceof Integer) {
               focusCameraOnFicha((Integer) jid);
@@ -150,10 +144,8 @@ public class Scene {
               mvSeg++;
               mvTimer = 0f;
               if (mvSeg < mvTargets.size()) {
-                  // nuevo inicio = posición actual
                   mvStart.set(target);
               } else {
-                  // fin del path
                   mvSeg = -1;
                   resetCamera();
               }
@@ -210,23 +202,18 @@ public class Scene {
     Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
     if (s == null) return;
 
-    // get authoritative logical index (default to 0)
     int currentIndex = 0;
     Object ciUd = s.getUserData("cellIndex");
     if (ciUd instanceof Integer) currentIndex = (Integer) ciUd;
 
-    // keep the same key used at load time
     s.setUserData("jugadorId", jugadorId);
 
-    // compute number of forward steps on the circular board
     int steps = (casillaIndex - currentIndex + TOTAL_CASILLAS) % TOTAL_CASILLAS;
     if (steps == 0) {
-      // already there, ensure authoritative index is set
       s.setUserData("cellIndex", casillaIndex);
       return;
     }
 
-    // prepare per-step targets and indices using posFromCell directly
     List<Vector3f> targets = new ArrayList<>();
     List<Integer> indices = new ArrayList<>();
     for (int i = 1; i <= steps; i++) {
@@ -273,10 +260,9 @@ public class Scene {
 
   private Vector3f posFromCell(int c) {
     int idx = ((c % TOTAL_CASILLAS) + TOTAL_CASILLAS) % TOTAL_CASILLAS;
-    final int slotsPerSide = SIDE;
 
-    int side = idx / slotsPerSide;
-    int pos = idx % slotsPerSide;
+    int side = idx / SIDE;
+    int pos = idx % SIDE;
 
     float x = 0f;
     float z = 0f;
@@ -328,6 +314,10 @@ public class Scene {
       board.scale(5f);
       board.setLocalTranslation(0, 0, 0);
       rootNode.attachChild(board);
+
+        float tamCasilla = medirTamanoCasilla(board);
+        System.out.println("≈ tamaño casilla: " + tamCasilla);
+
       // Añadir un RigidBodyControl con masa cero para que colisione pero no se mueva
       RigidBodyControl boardPhysics = new RigidBodyControl(0f);
       board.addControl(boardPhysics);
@@ -343,7 +333,48 @@ public class Scene {
     }
   }
 
-  /** Carga el modelo del peón (conito) con cuerpo físico estático. */
+    private float medirTamanoCasilla(Spatial board) {
+        Geometry markA = (Geometry) rootNode.getChild("MeasureA");
+        Geometry markB = (Geometry) rootNode.getChild("MeasureB");
+
+        if (markA == null || markB == null) {
+            Box bx = new Box(0.1f, 0.1f, 0.1f);
+
+            if (markA == null) {
+                markA = new Geometry("MeasureA", bx);
+                Material mA = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                mA.setColor("Color", ColorRGBA.Green);
+                markA.setMaterial(mA);
+                markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-0.68f, -0.4f, -0.68f)); // a prueba y error :ccccc
+                rootNode.attachChild(markA);
+            }
+            if (markB == null) {
+                markB = new Geometry("MeasureB", bx);
+                Material mB = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                mB.setColor("Color", ColorRGBA.Yellow);
+                markB.setMaterial(mB);
+                markB.setLocalTranslation(BOARD_FIRST_POSITION.add(1.02f, -0.4f, -0.68f)); // a prueba y error :ccccc
+                rootNode.attachChild(markB);
+            }
+        }
+
+        Vector3f a = markA.getWorldTranslation();
+        Vector3f b = markB.getWorldTranslation();
+        float distXZ = a.subtract(b).setY(0).length();
+
+        float cellDiv10 = distXZ / 10f;
+        float cellDiv9  = distXZ / 9f;
+
+        System.out.printf("MeasureA=%s  MeasureB=%s  DistXZ=%.4f  cell(/10)=%.4f  cell(/9)=%.4f%n",
+                a.toString(), b.toString(), distXZ, cellDiv10, cellDiv9);
+
+        return cellDiv10;
+    }
+
+
+
+
+    /** Carga el modelo del peón (conito) con cuerpo físico estático. */
   private void loadConitoModel() {
     try {
       Spatial conito = assetManager.loadModel("graphics/models/Conito.glb");
@@ -460,7 +491,7 @@ public class Scene {
 
         if (d1 != null && d2 != null) {
             Vector3f mid = d1.getWorldTranslation().add(d2.getWorldTranslation()).multLocal(0.5f);
-            setCamTarget(mid, offset);   // <- objetivo suave
+            setCamTarget(mid, offset);
         }
     }
 
