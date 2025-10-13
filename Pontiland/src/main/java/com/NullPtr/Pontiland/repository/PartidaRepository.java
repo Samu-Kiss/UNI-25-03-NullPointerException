@@ -55,35 +55,6 @@ public class PartidaRepository implements IPartidaRepository {
 
   }
 
-  /**
-   * Obtiene el identificador de la partida almacenada en la base de datos.
-   *
-   * @return El identificador de la partida.
-   * @throws RuntimeException si ocurre un error de SQL durante la consulta.
-   */
-  @Deprecated
-  /*
-  public long getPartidaID() {
-    Connection conn = dataService.createConnection();
-    String consultarPartida = "SELECT * FROM PARTIDA";
-    try {
-      PreparedStatement partida = conn.prepareStatement(consultarPartida);
-      ResultSet rsPartida = partida.executeQuery();
-      if (rsPartida.next()) {
-        return rsPartida.getLong("PartidaID");
-      } else {
-        throw new RuntimeException("No partida found in the database.");
-      }
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    } finally {
-      try {
-        conn.close();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }*/
 
     @Override
     public int getNumJugadores() {

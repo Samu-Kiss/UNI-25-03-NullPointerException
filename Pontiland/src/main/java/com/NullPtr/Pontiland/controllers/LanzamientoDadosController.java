@@ -14,7 +14,6 @@ import com.jme3.scene.Spatial;
  */
 public class LanzamientoDadosController {
   private final DiceService diceService;
-  private ITurnService turnService;
 
   /**
    * Listener de acciones para gestionar las teclas de control del dado. Se registra en el
@@ -27,7 +26,7 @@ public class LanzamientoDadosController {
           if (!evt.isPressed()) return;
 
           int code = evt.getKeyCode();
-          if (code == KeyInput.KEY_Y && turnService.canThrowDice()) {
+          if (code == KeyInput.KEY_Y && diceService.canThrowDice()) {
             diceService.lanzamientoDados();
           }
         }
@@ -59,9 +58,8 @@ public class LanzamientoDadosController {
    * @param diceService Servicio encargado de la lógica de dados
    */
   public LanzamientoDadosController(
-          DiceService diceService, ITurnService turnService) {
+          DiceService diceService) {
     this.diceService = diceService;
-    this.turnService = turnService;
   }
 
   public void onDadosCreados(Spatial dado1, Spatial dado2) {

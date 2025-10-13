@@ -112,6 +112,11 @@ public class DiceService implements IDiceService {
   }
 
   @Override
+  public boolean canThrowDice(){
+        return turnService.canThrowDice();
+  }
+
+  @Override
   public void setTurnService(ITurnService turnService) {
     this.turnService = turnService;
   }

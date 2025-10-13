@@ -7,7 +7,6 @@ import com.NullPtr.Pontiland.services.DiceService;
 import com.jme3.app.LegacyApplication;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
-import com.jme3.bounding.BoundingBox;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.light.AmbientLight;
@@ -337,6 +336,7 @@ public class Scene {
         Geometry markA = (Geometry) rootNode.getChild("MeasureA");
         Geometry markB = (Geometry) rootNode.getChild("MeasureB");
 
+        // Si no existen, se crean una vez (tú los colocas en LOS DOS BORDES de LA MISMA casilla)
         if (markA == null || markB == null) {
             Box bx = new Box(0.1f, 0.1f, 0.1f);
 
@@ -345,7 +345,7 @@ public class Scene {
                 Material mA = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
                 mA.setColor("Color", ColorRGBA.Green);
                 markA.setMaterial(mA);
-                markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-0.68f, -0.4f, -0.68f)); // a prueba y error :ccccc
+                markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-0.68f, -0.4f, -0.68f));
                 rootNode.attachChild(markA);
             }
             if (markB == null) {
@@ -353,23 +353,24 @@ public class Scene {
                 Material mB = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
                 mB.setColor("Color", ColorRGBA.Yellow);
                 markB.setMaterial(mB);
-                markB.setLocalTranslation(BOARD_FIRST_POSITION.add(1.02f, -0.4f, -0.68f)); // a prueba y error :ccccc
+                markB.setLocalTranslation(BOARD_FIRST_POSITION.add( 1.02f, -0.4f, -0.68f));
                 rootNode.attachChild(markB);
             }
         }
 
+        board.updateGeometricState();
+
         Vector3f a = markA.getWorldTranslation();
         Vector3f b = markB.getWorldTranslation();
-        float distXZ = a.subtract(b).setY(0).length();
+        float dx = Math.abs(b.x - a.x);
+        float dz = Math.abs(b.z - a.z);
 
-        float cellDiv10 = distXZ / 10f;
-        float cellDiv9  = distXZ / 9f;
+        float cellSize = (dx >= dz) ? dx : dz;
 
-        System.out.printf("MeasureA=%s  MeasureB=%s  DistXZ=%.4f  cell(/10)=%.4f  cell(/9)=%.4f%n",
-                a.toString(), b.toString(), distXZ, cellDiv10, cellDiv9);
-
-        return cellDiv10;
+        System.out.printf("CellSize(UNA casilla) = %.4f  | dx=%.4f  dz=%.4f%n", cellSize, dx, dz);
+        return cellSize;
     }
+
 
 
 

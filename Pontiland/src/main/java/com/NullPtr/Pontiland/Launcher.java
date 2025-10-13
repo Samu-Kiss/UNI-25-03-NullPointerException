@@ -76,7 +76,7 @@ public class Launcher extends SimpleApplication {
 
     diceService.setTurnService(turnService);
 
-    lanzamientoDadosController = new LanzamientoDadosController(diceService, turnService);
+    lanzamientoDadosController = new LanzamientoDadosController(diceService);
     lanzamientoDadosController.registerInputs(getInputManager());
 
     scene = new Scene(this, bulletAppState, lanzamientoDadosController);

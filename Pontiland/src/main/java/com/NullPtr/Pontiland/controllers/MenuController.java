@@ -29,8 +29,7 @@ public class MenuController implements IMenuActions {
   private MenuJugadores menuJugadores;
   private MenuCarga menuCarga;
   private MenuCreditos menuCreditos;
-  private MenuSeleccion menuSeleccion; // nueva pantalla de selección de personajes
-
+  private MenuSeleccion menuSeleccion;
   private boolean gameStarted = false;
   private int selectedPlayerCount = 0;
 
