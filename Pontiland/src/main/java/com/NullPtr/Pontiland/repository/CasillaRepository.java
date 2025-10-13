@@ -11,8 +11,11 @@ import java.sql.SQLException;
 
 public class CasillaRepository implements ICasillaRepository{
 
-    IDataService dataService;
+    private final IDataService dataService;
 
+    public CasillaRepository(IDataService dataService) {
+        this.dataService = dataService;
+    }
     @Override
     public Casilla casillaFromPosition(int posicion) {
         if ( posicion < 1 || posicion > 40){
