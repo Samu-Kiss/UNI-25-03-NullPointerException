@@ -241,7 +241,8 @@ public class JugadorRepository implements IJugadorRepository {
     @Override
     public Ficha[] getFichas(int numJugadores) throws SQLException {
         Connection conn = dataService.createConnection();
-        Ficha[] fichas = new Ficha[numJugadores];    String consulta =
+        Ficha[] fichas = new Ficha[numJugadores];
+        String consulta =
                 "SELECT Jugador.JugadorID, Jugador.NumJugador, Icono.IconoID, Icono.IconoNombre " +
                         "FROM Jugador " +
                         "INNER JOIN Icono ON Icono.IconoID = Jugador.IconoID " +

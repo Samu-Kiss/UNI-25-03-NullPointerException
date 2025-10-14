@@ -11,17 +11,20 @@ import java.sql.SQLException;
 
 public class CasillaRepository implements ICasillaRepository{
 
-    IDataService dataService;
+    private final IDataService dataService;
 
+    public CasillaRepository(IDataService dataService) {
+        this.dataService = dataService;
+    }
     @Override
     public Casilla casillaFromPosition(int posicion) {
         if ( posicion < 1 || posicion > 40){
             throw new RuntimeException("No existen casillas antes de 0 o después de 40");
         }
 
-        String obtenerCasillaPosicion = "SELECT Casilla.NombreCasilla TipoCasilla.TipoNombre " +
+        String obtenerCasillaPosicion = "SELECT Casilla.NombreCasilla, TipoCasilla.TipoNombre " +
                                             "FROM Casilla " +
-                                            "JOIN TipoCasilla ON Casilla.TipoCasilla=TipoCasilla.TipoID" +
+                                            "JOIN TipoCasilla ON Casilla.TipoCasilla=TipoCasilla.TipoID " +
                                             "WHERE Casilla.PosicionTablero = ?";
 
         try (Connection connect = dataService.createConnection()){

@@ -10,6 +10,6 @@ public interface ITurnService {
     void payRent();
 
     boolean canThrowDice();
-    public int[] consumeLastMove();
-    public boolean hasMovePending();
+    int[] consumeLastMove();
+    boolean hasMovePending();
 }

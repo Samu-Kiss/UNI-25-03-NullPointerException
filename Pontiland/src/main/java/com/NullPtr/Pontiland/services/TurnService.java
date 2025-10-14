@@ -6,6 +6,7 @@ import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class TurnService implements ITurnService{
     private IJugadorRepository jugadorRepository;
@@ -16,6 +17,7 @@ public class TurnService implements ITurnService{
     private boolean movePending = false;
     private int lastMovedJugadorId = -1;
     private int lastMovedPos = -1;
+    private int tiradas = 1;
 
     public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository, DiceService diceService) {
         this.diceService = diceService;
@@ -67,20 +69,40 @@ public class TurnService implements ITurnService{
 
     }
 
-    @Override
-    public void update() {
-        Byte[] dados = diceService.getResultados();
-        if(dados[0] != null && dados[1] != null){
-            int movimiento = dados[0] + dados[1];
+  @Override
+  public void update() {
+    Byte[] dados = diceService.getResultados();
+    if(dados == null) return;
 
-            System.out.println("Resultados dados: [" + dados[0] + ", " + dados[1] + "]");
-            dados[0] = dados[1] = null;
-            canThrowDice = false;
+    Byte d1 = dados[0];
+    Byte d2 = dados[1];
 
-            movePlayer(movimiento);
-            nextTurn();
+    if(d1 != null && d2 != null){
+      int movimiento = d1 + d2;
+
+      System.out.println("Resultados dados: [" + d1 + ", " + d2 + "]");
+      canThrowDice = false;
+
+      movePlayer(movimiento);
+
+      if (d1.equals(d2)) {
+        if (tiradas == 2) {
+          System.out.println( "3 dobles seguidos, vas a la cárcel!" );
+          tiradas = 1;
+          nextTurn();
+        } else {
+          tiradas++;
+          System.out.println("Doble! Tira de nuevo");
+          canThrowDice = true;
         }
+      } else {
+        tiradas = 1;
+        nextTurn();
+      }
+
+      dados[0] = dados[1] = null;
     }
+  }
 
     @Override
     public void buyProperty() {

@@ -48,9 +48,6 @@ public class Casilla {
     return tipoCasilla;
   }
 
-  public void setPosicionTablero(Byte posicionTablero) {
-        return;
-    }
 
   public int getPosicionTablero() {
     return posicionTablero;
