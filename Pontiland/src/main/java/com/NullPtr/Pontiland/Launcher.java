@@ -95,7 +95,7 @@ public class Launcher extends SimpleApplication {
       if (scene != null && turnService.hasMovePending()) {
           int[] mv = turnService.consumeLastMove();
           if (mv != null) {
-              scene.replicateFichaPosition(mv[0], mv[1]);
+              scene.replicateFichaPosition(mv[0], mv[1]-1);
           }
       }
 

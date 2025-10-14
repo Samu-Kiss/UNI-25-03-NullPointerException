@@ -272,7 +272,7 @@ public class Scene {
         break;
 
       // Left side: bottom -> top
-      case 1:cellSize = 1.4399996f;
+      case 1:cellSize = 1.5f;
         x = -BOARD_FIRST_POSITION.getX() * 2f;
         z = -((pos * cellSize) + pos * 0.23f);
         break;
@@ -291,7 +291,7 @@ public class Scene {
         }
 
       // Right side: top -> bottom
-      case 3:cellSize = 1.4399996f;
+      case 3:cellSize = 1.5f;
         z = (-BOARD_FIRST_POSITION.getZ() * 2f) + (pos * cellSize) + pos * 0.24f;
         break;
     }
@@ -303,8 +303,6 @@ public class Scene {
     );
   }
 
-
-
   /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
   private void loadBoardModel() {
     try {
@@ -314,8 +312,7 @@ public class Scene {
       board.setLocalTranslation(0, 0, 0);
       rootNode.attachChild(board);
 
-        float tamCasilla = medirTamanoCasilla(board);
-        System.out.println("≈ tamaño casilla: " + tamCasilla);
+      //float tamCasilla = medirTamanoCasilla(board); System.out.println("≈ tamaño casilla: " + tamCasilla);
 
       // Añadir un RigidBodyControl con masa cero para que colisione pero no se mueva
       RigidBodyControl boardPhysics = new RigidBodyControl(0f);
@@ -331,6 +328,7 @@ public class Scene {
       rootNode.attachChild(geom);
     }
   }
+
 /*  // Mide la distancia entre dos marcas en el tablero para calcular el tamaño de una casilla
     private float medirTamanoCasilla(Spatial board) {
         Geometry markA = (Geometry) rootNode.getChild("MeasureA");
@@ -345,6 +343,7 @@ public class Scene {
                 mA.setColor("Color", ColorRGBA.Green);
                 markA.setMaterial(mA);
                 markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-0.68f, -0.4f, -0.68f));
+                markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-0.68f, -0.4f, -0.88f));
                 rootNode.attachChild(markA);
             }
             if (markB == null) {
@@ -353,6 +352,7 @@ public class Scene {
                 mB.setColor("Color", ColorRGBA.Yellow);
                 markB.setMaterial(mB);
                 markB.setLocalTranslation(BOARD_FIRST_POSITION.add( 1.02f, -0.4f, -0.68f));
+                markB.setLocalTranslation(BOARD_FIRST_POSITION.add( -0.68f, -0.4f, -2.38f));
                 rootNode.attachChild(markB);
             }
         }
@@ -369,46 +369,6 @@ public class Scene {
         System.out.printf("CellSize(UNA casilla) = %.4f  | dx=%.4f  dz=%.4f%n", cellSize, dx, dz);
         return cellSize;
     }*/
-
-    private float medirTamanoCasilla(Spatial board) {
-        Geometry markA = (Geometry) rootNode.getChild("MeasureA");
-        Geometry markB = (Geometry) rootNode.getChild("MeasureB");
-
-        if (markA == null || markB == null) {
-            Box bx = new Box(0.1f, 0.1f, 0.1f);
-
-            if (markA == null) {
-                markA = new Geometry("MeasureA", bx);
-                Material mA = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-                mA.setColor("Color", ColorRGBA.Green);
-                markA.setMaterial(mA);
-                markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-0.68f, -0.4f, -0.88f));
-                rootNode.attachChild(markA);
-            }
-            if (markB == null) {
-                markB = new Geometry("MeasureB", bx);
-                Material mB = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-                mB.setColor("Color", ColorRGBA.Yellow);
-                markB.setMaterial(mB);
-                markB.setLocalTranslation(BOARD_FIRST_POSITION.add( -0.68f, -0.4f, -2.32f));
-                rootNode.attachChild(markB);
-            }
-        }
-
-        board.updateGeometricState();
-
-        Vector3f a = markA.getWorldTranslation();
-        Vector3f b = markB.getWorldTranslation();
-        float dx = Math.abs(b.x - a.x);
-        float dz = Math.abs(b.z - a.z);
-
-        float cellSize = (dx >= dz) ? dx : dz;
-
-        System.out.printf("CellSize(UNA casilla) = %.4f  | dx=%.4f  dz=%.4f%n", cellSize, dx, dz);
-        return cellSize;
-    }
-
-
 
 
 
