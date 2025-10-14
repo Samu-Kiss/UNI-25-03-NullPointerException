@@ -2,8 +2,10 @@ package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.utils.PropertiesReader;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.sql.*;
 import java.text.ParseException;
@@ -11,16 +13,25 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 
+
 public class DataService implements IDataService {
   String url;
 
+    private String savesDir;
+    private String ddlResource;
+    private String insResource;
   /**
    * Constructor que inicializa el servicio de datos con una URL de conexión específica.
    *
    * @param url URL de la base de datos a utilizar para la conexión.
    */
   public DataService(String url) {
-    this.url = url;
+
+      this.url = url;
+
+      this.savesDir    = PropertiesReader.getProperty("saves");
+      this.ddlResource = PropertiesReader.getProperty("nuevaPartida.ddl");
+      this.insResource = PropertiesReader.getProperty("nuevaPartida.inserts");
   }
 
   /**
@@ -28,6 +39,7 @@ public class DataService implements IDataService {
    *
    * @param url Nueva URL de la base de datos.
    */
+
   public void setUrl(String url) {
     this.url = url;
   }
@@ -51,6 +63,7 @@ public class DataService implements IDataService {
     Connection conn = null;
     try {
       return conn = DriverManager.getConnection(url, "sa", "");
+
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -69,17 +82,26 @@ public class DataService implements IDataService {
     Connection conn = createConnection();
     try {
       Statement stmt = conn.createStatement();
+
       // Cargar y ejecutar DDL.sql
-      String schemaSql = Files.readString(Paths.get("src/main/resources/SQL/NuevaPartida/DDL.sql"));
-      stmt.execute(schemaSql);
+        /* src no existe en tiempo de ejecucion*/
+        String schemaSql = new String(
+            this.getClass()
+                    .getResourceAsStream(ddlResource)
+                    .readAllBytes(),
+            StandardCharsets.UTF_8
+    );
+        stmt.execute(schemaSql);
       // Cargar y ejecutar data.sql
-      String dataSql =
-          Files.readString(Paths.get("src/main/resources/SQL/NuevaPartida/Insertions.sql"));
-      for (String sql : dataSql.split(";")) {
-        if (!sql.trim().isEmpty()) {
-          stmt.execute(sql.trim());
-        }
-      }
+        /* src no existe en tiempo de ejecucion*/
+        String dataSql = new String(
+                this.getClass()
+                        .getResourceAsStream(insResource)
+                        .readAllBytes(),
+                StandardCharsets.UTF_8
+        );
+        stmt.execute(dataSql);
+
     } catch (SQLException e) {
       throw new RuntimeException(e);
     } catch (IOException e) {
@@ -98,8 +120,7 @@ public class DataService implements IDataService {
   public void loadDataBase(String archivoSeleccionado) {
     Connection conn = createConnection();
     try {
-      Statement stmt = conn.createStatement();
-      String ubicacionArchivo = "src/main/resources/SQL/PartidasPasadas/";
+      String ubicacionArchivo = savesDir;
       ubicacionArchivo = ubicacionArchivo + archivoSeleccionado;
       Path path = Paths.get(ubicacionArchivo);
       if (Files.exists(path) && Files.isRegularFile(path)) {
@@ -124,9 +145,9 @@ public class DataService implements IDataService {
   public List<SavedGame> listarPartidasPasadas() {
     Map<String, String> mapaArchivo = new LinkedHashMap<>();
 
-    String ubicacionPartidas = PropertiesReader.getProperty("ubicacionPartidas");
-
-    File scriptsPartidas = new File(ubicacionPartidas);
+    File scriptsPartidas = new File(
+            this.getClass().getResource(PropertiesReader.getProperty("saves")).getFile()
+            );
     File[] archivos = scriptsPartidas.listFiles();
 
     if (archivos != null) {
@@ -177,7 +198,7 @@ public class DataService implements IDataService {
     Connection conn = createConnection();
     try {
       Statement stmt = conn.createStatement();
-      String ubicacionArchivo = "src/main/resources/SQL/PartidasPasadas/";
+      String ubicacionArchivo = savesDir;
       ubicacionArchivo = ubicacionArchivo + partidaID + ".sql";
       String script = "SCRIPT TO ?";
       PreparedStatement guardarPartida = conn.prepareStatement(script);

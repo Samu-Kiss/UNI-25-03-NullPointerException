@@ -29,8 +29,7 @@ public class MenuController implements IMenuActions {
   private MenuJugadores menuJugadores;
   private MenuCarga menuCarga;
   private MenuCreditos menuCreditos;
-  private MenuSeleccion menuSeleccion; // nueva pantalla de selección de personajes
-
+  private MenuSeleccion menuSeleccion;
   private boolean gameStarted = false;
   private int selectedPlayerCount = 0;
 
@@ -42,9 +41,6 @@ public class MenuController implements IMenuActions {
     this.dataService = dataService;
     if (app == null) {
       throw new IllegalArgumentException("app no puede ser null");
-    }
-    if (startGameService == null) {
-      throw new IllegalArgumentException("startGameService no puede ser null");
     }
     this.startGameService = startGameService;
     this.app = app;
@@ -121,8 +117,6 @@ public class MenuController implements IMenuActions {
     this.selectedPlayerCount = playerCount;
     this.gameStarted = true;
 
-    // Aquí podría persistirse/prepararse la información (jugadores/personajes) si se requiere.
-    // Por ahora solo se imprime para debug.
     System.out.println("[Pontiland] Jugadores seleccionados: " + jugadores.size());
     for (int i = 0; i < jugadores.size(); i++) {
       Jugador j = jugadores.get(i);
@@ -140,8 +134,8 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuCreditos);
     detachIfAttached(menuSeleccion);
 
-    // Delegar a la app la preparación de la escena 3D
-    app.initializeGame3D();
+      //TODO controller no puede comunicarse directamente con app
+      startGameService.ensureSceneReady();
 
     System.out.println("Juego iniciado con " + playerCount + " jugadores");
   }
@@ -160,21 +154,21 @@ public class MenuController implements IMenuActions {
           System.out.println("[Pontiland] Seleccionado guardado: " + id);
           dataService.loadDataBase(id);
 
-          // Desconectar cualquier menú de UI
           detachIfAttached(menuPrincipal);
           detachIfAttached(menuJugadores);
           detachIfAttached(menuCarga);
           detachIfAttached(menuCreditos);
           detachIfAttached(menuSeleccion);
 
-          app.initializeGame3D();
+            //TODO controller no puede comunicarse directamente con app
+            startGameService.ensureSceneReady();
         });
   }
 
   /** Muestra el menú de carga con una lista y callback de selección. */
   public void showLoadMenu(List<SavedGame> saves, java.util.function.Consumer<String> onSelect) {
     detachIfAttached(menuCarga);
-    menuCarga = new MenuCarga(saves, onSelect);
+    menuCarga = new MenuCarga(this,saves, onSelect);
     if (!stateManager().hasState(menuCarga)) {
       stateManager().attach(menuCarga);
     }
@@ -199,6 +193,7 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuCreditos);
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuSeleccion);
+
     showStartScreen();
   }
 

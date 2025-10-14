@@ -19,7 +19,6 @@ import com.jme3.system.AppSettings;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.Toolkit;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class Launcher extends SimpleApplication {
 
@@ -29,8 +28,9 @@ public class Launcher extends SimpleApplication {
 
   private final BulletAppState bulletAppState = new BulletAppState();
   private final DiceService diceService = new DiceService();
-  private final AtomicReferenceArray<Byte> resultados = new AtomicReferenceArray<>(2);
+  private ITurnService turnService;
   private LanzamientoDadosController lanzamientoDadosController;
+  private Byte[] resultados = new Byte[2];
   private Scene scene;
 
   private IDataService dataService;
@@ -68,16 +68,19 @@ public class Launcher extends SimpleApplication {
     bulletAppState.getPhysicsSpace().setAccuracy(1f / 120f);
     bulletAppState.getPhysicsSpace().setMaxSubSteps(2);
 
-    lanzamientoDadosController = new LanzamientoDadosController(diceService, resultados);
-    lanzamientoDadosController.registerInputs(getInputManager());
-
     dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
 
-    jugadorRepository = new JugadorRepository(dataService);
-
     partidaRepository = new PartidaRepository(dataService);
+    jugadorRepository = new JugadorRepository(dataService);
+    turnService = new TurnService(jugadorRepository, partidaRepository, diceService);
 
-    startGameService = new StartGameService(jugadorRepository, partidaRepository, dataService);
+    diceService.setTurnService(turnService);
+
+    lanzamientoDadosController = new LanzamientoDadosController(diceService);
+    lanzamientoDadosController.registerInputs(getInputManager());
+
+    scene = new Scene(this, bulletAppState, lanzamientoDadosController);
+    startGameService = new StartGameService(jugadorRepository, partidaRepository, dataService, scene);
 
     IMenuActions actions = new MenuController(this, startGameService, dataService);
     stateManager.attach(new MenuPrincipal(actions));
@@ -85,17 +88,19 @@ public class Launcher extends SimpleApplication {
 
   @Override
   public void simpleUpdate(float tpf) {
-    if (scene != null) {
-      scene.update(tpf);
-    }
-    if (lanzamientoDadosController != null) {
+      if (scene != null) scene.update(tpf);
+
+      turnService.update();
+
+      if (scene != null && turnService.hasMovePending()) {
+          int[] mv = turnService.consumeLastMove();
+          if (mv != null) {
+              scene.replicateFichaPosition(mv[0], mv[1]-1);
+          }
+      }
+
       lanzamientoDadosController.update();
-    }
   }
 
-  public void initializeGame3D() {
-    if (scene == null) {
-      scene = new Scene(this, bulletAppState, lanzamientoDadosController);
-    }
-  }
+
 }

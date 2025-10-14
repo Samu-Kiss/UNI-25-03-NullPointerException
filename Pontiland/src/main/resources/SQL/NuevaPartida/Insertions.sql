@@ -2,7 +2,7 @@
 -- A continuación se hacen las inserciones para los datos del tablero y por defecto de la partida
 -- Poblar Tabla TipoCasilla (Si es evento, salida, parada libre, propiedad, cárcel, movimiento o ir a la carcel)
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(1,'Salida');
-INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(2,'Cárcel');
+INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(2,'Carcel');
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(3,'ParadaLibre');
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(4,'Evento');
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(5,'Propiedad');

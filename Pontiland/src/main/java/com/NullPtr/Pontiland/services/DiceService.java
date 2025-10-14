@@ -2,7 +2,6 @@ package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.Dado;
 import com.jme3.scene.Spatial;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * Servicio encargado de gestionar el lanzamiento de dados.
@@ -11,13 +10,13 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  * sólo invoque sus métodos sin conocer detalles de la implementación interna. Incluye una máquina
  * de estados para permitir lanzamientos no bloqueantes en jMonkeyEngine.
  */
-public class DiceService {
+public class DiceService implements IDiceService {
   private final Dado[] dados = new Dado[2];
+  private ITurnService turnService;
 
   /** Máquina de estados interna para el lanzamiento no bloqueante. */
   private enum Estado {
     IDLE,
-    INIT,
     LAUNCH,
     CHECK_MOVIMIENTO,
     READ,
@@ -26,8 +25,7 @@ public class DiceService {
 
   private Estado estado = Estado.IDLE;
 
-  /** Referencia donde se almacenarán los resultados del lanzamiento no bloqueante. */
-  private AtomicReferenceArray<Byte> resultadosRef;
+  private Byte[] resultados = new Byte[2];
 
   /**
    * Inyecta ambos dados en el servicio.
@@ -35,6 +33,7 @@ public class DiceService {
    * @param dado1 Spatial que representa el modelo 3D del primer dado
    * @param dado2 Spatial que representa el modelo 3D del segundo dado
    */
+  @Override
   public void setDados(Spatial dado1, Spatial dado2) {
 
     dados[0] = new Dado(dado1);
@@ -42,9 +41,10 @@ public class DiceService {
   }
 
   /** Realiza el lanzamiento simultáneo de todos los dados cargados. */
+  @Override
   public void lanzarDados() {
     for (Dado dado : dados) {
-      if (dado != null) {
+      if (dado != null && turnService.canThrowDice()) {
         dado.lanzar();
       }
     }
@@ -55,6 +55,7 @@ public class DiceService {
    *
    * @return Un array de dos bytes con los valores de los dados, o null si el dado no está definido
    */
+  @Override
   public Byte[] leerDados() {
     Byte[] resultados = new Byte[2];
     resultados[0] = (dados[0] != null) ? dados[0].getCaraSuperior() : null;
@@ -62,26 +63,23 @@ public class DiceService {
     return resultados;
   }
 
-  /**
-   * Inicia la secuencia de lanzamiento no bloqueante.
-   *
-   * @param resultados Objeto atómico donde se escribirán los resultados al finalizar
-   */
-  public void lanzamientoDadosNoBloqueante(AtomicReferenceArray<Byte> resultados) {
-    this.resultadosRef = resultados;
-    this.estado = Estado.INIT;
+  @Override
+  public Byte[] getResultados() {
+      return  (resultados[0] != null && resultados[1] != null) ? resultados : new Byte[]{null, null};
   }
 
-  /**
-   * Actualiza la máquina de estados del lanzamiento no bloqueante. Este método debe llamarse en
-   * cada frame para que el lanzamiento avance.
+    /**
+   * Inicia la secuencia de lanzamiento no bloqueante.
    */
+    @Override
+    public void lanzamientoDados() {
+    this.estado = Estado.LAUNCH;
+  }
+
+  @Override
   public void update() {
     switch (estado) {
       case IDLE:
-        break;
-      case INIT:
-        estado = Estado.LAUNCH;
         break;
       case LAUNCH:
         lanzarDados();
@@ -101,18 +99,26 @@ public class DiceService {
         break;
       case READ:
         Byte[] valores = leerDados();
-        if (resultadosRef != null) {
-          resultadosRef.set(0, valores[0]);
-          resultadosRef.set(1, valores[1]);
-        }
-        // Terminar ciclo
+        resultados[0] = valores[0];
+        resultados[1] = valores[1];
         estado = Estado.DONE;
+
         break;
       case DONE:
-        // Resetear al estado inicial y limpiar referencia a resultados
         estado = Estado.IDLE;
-        resultadosRef = null;
+          resultados = new Byte[]{null, null};
         break;
     }
   }
+
+  @Override
+  public boolean canThrowDice(){
+        return turnService.canThrowDice();
+  }
+
+  @Override
+  public void setTurnService(ITurnService turnService) {
+    this.turnService = turnService;
+  }
 }
+
