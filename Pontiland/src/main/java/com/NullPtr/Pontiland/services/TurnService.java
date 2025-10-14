@@ -1,12 +1,10 @@
 package com.NullPtr.Pontiland.services;
 
-import com.NullPtr.Pontiland.entities.Ficha;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 
 import java.sql.SQLException;
-import java.util.Objects;
 
 public class TurnService implements ITurnService{
     private IJugadorRepository jugadorRepository;

@@ -34,9 +34,9 @@ import java.util.List;
  * lógica.
  */
 public class Scene {
-  private static final int TOTAL_CASILLAS = 40;
-  private static final float CELL_SIZE = 1.6999993f;
-  private static final int SIDE = TOTAL_CASILLAS / 4;
+  private final int TOTAL_CASILLAS = 40;
+  private float cellSize = 1.6999993f;
+  private final int SIDE = TOTAL_CASILLAS / 4;
   private final Vector3f BOARD_FIRST_POSITION = new Vector3f(8.3f, 0.5f, 8.5f);
 
   // --- Cámara suave ---
@@ -268,31 +268,33 @@ public class Scene {
 
     switch (side) {
       case 0:
-        x = -pos * CELL_SIZE;
+          cellSize = 1.6999993f;
+        x = -pos * cellSize;
         z = 0;
         break;
 
       // Left side: bottom -> top
-      case 1:
+      case 1:cellSize = 1.4399996f;
         x = -BOARD_FIRST_POSITION.getX() * 2f;
-        z = -((pos * CELL_SIZE) + pos * 0.23f);
+        z = -((pos * cellSize) + pos * 0.23f);
         break;
 
 
       // Top side: left -> right
       case 2:
+        cellSize = 1.6999993f;
         z = -BOARD_FIRST_POSITION.getZ() * 2f;
         if (pos == 0) {
-          x = (-BOARD_FIRST_POSITION.getX() * 2f) + (pos * CELL_SIZE);
+          x = (-BOARD_FIRST_POSITION.getX() * 2f) + (pos * cellSize);
           break;
         } else {
-          x = (-BOARD_FIRST_POSITION.getX() * 2f) + (pos * CELL_SIZE) + pos * 0.24f;
+          x = (-BOARD_FIRST_POSITION.getX() * 2f) + (pos * cellSize) + pos * 0.24f;
           break;
         }
 
       // Right side: top -> bottom
-      case 3:
-        z = (-BOARD_FIRST_POSITION.getZ() * 2f) + (pos * CELL_SIZE) + pos * 0.24f;
+      case 3:cellSize = 1.4399996f;
+        z = (-BOARD_FIRST_POSITION.getZ() * 2f) + (pos * cellSize) + pos * 0.24f;
         break;
     }
 
@@ -331,12 +333,11 @@ public class Scene {
       rootNode.attachChild(geom);
     }
   }
-
+/*  // Mide la distancia entre dos marcas en el tablero para calcular el tamaño de una casilla
     private float medirTamanoCasilla(Spatial board) {
         Geometry markA = (Geometry) rootNode.getChild("MeasureA");
         Geometry markB = (Geometry) rootNode.getChild("MeasureB");
 
-        // Si no existen, se crean una vez (tú los colocas en LOS DOS BORDES de LA MISMA casilla)
         if (markA == null || markB == null) {
             Box bx = new Box(0.1f, 0.1f, 0.1f);
 
@@ -354,6 +355,44 @@ public class Scene {
                 mB.setColor("Color", ColorRGBA.Yellow);
                 markB.setMaterial(mB);
                 markB.setLocalTranslation(BOARD_FIRST_POSITION.add( 1.02f, -0.4f, -0.68f));
+                rootNode.attachChild(markB);
+            }
+        }
+
+        board.updateGeometricState();
+
+        Vector3f a = markA.getWorldTranslation();
+        Vector3f b = markB.getWorldTranslation();
+        float dx = Math.abs(b.x - a.x);
+        float dz = Math.abs(b.z - a.z);
+
+        float cellSize = (dx >= dz) ? dx : dz;
+
+        System.out.printf("CellSize(UNA casilla) = %.4f  | dx=%.4f  dz=%.4f%n", cellSize, dx, dz);
+        return cellSize;
+    }*/
+
+    private float medirTamanoCasilla(Spatial board) {
+        Geometry markA = (Geometry) rootNode.getChild("MeasureA");
+        Geometry markB = (Geometry) rootNode.getChild("MeasureB");
+
+        if (markA == null || markB == null) {
+            Box bx = new Box(0.1f, 0.1f, 0.1f);
+
+            if (markA == null) {
+                markA = new Geometry("MeasureA", bx);
+                Material mA = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                mA.setColor("Color", ColorRGBA.Green);
+                markA.setMaterial(mA);
+                markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-0.68f, -0.4f, -0.88f));
+                rootNode.attachChild(markA);
+            }
+            if (markB == null) {
+                markB = new Geometry("MeasureB", bx);
+                Material mB = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                mB.setColor("Color", ColorRGBA.Yellow);
+                markB.setMaterial(mB);
+                markB.setLocalTranslation(BOARD_FIRST_POSITION.add( -0.68f, -0.4f, -2.32f));
                 rootNode.attachChild(markB);
             }
         }
