@@ -181,12 +181,10 @@ public class Scene {
 
       s.setUserData("startPosition", placed.clone());
 
-      // store the per-spatial initial offset relative to cell 0 so future moves reuse it
       Vector3f cell0 = posFromCell(0);
       Vector3f initialOffset = placed.subtract(cell0);
       s.setUserData("initialOffset", initialOffset);
 
-      // authoritative logical position (start at cell 0)
       s.setUserData("cellIndex", 0);
 
       com.jme3.bullet.control.RigidBodyControl rb = new com.jme3.bullet.control.RigidBodyControl(1f);
