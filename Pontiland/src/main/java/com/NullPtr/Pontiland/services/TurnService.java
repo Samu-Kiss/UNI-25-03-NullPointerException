@@ -63,7 +63,6 @@ public class TurnService implements ITurnService{
       }
 
       markLastMove(jugadorActual.getJugadorId(), nuevaPosicion);
-      canThrowDice = true;
 
     }
 
@@ -75,6 +74,7 @@ public class TurnService implements ITurnService{
     Byte d1 = dados[0];
     Byte d2 = dados[1];
 
+      canThrowDice = true;
     if(d1 != null && d2 != null){
       int movimiento = d1 + d2;
 
@@ -88,10 +88,13 @@ public class TurnService implements ITurnService{
           System.out.println( "3 dobles seguidos, vas a la cárcel!" );
           tiradas = 1;
           nextTurn();
+            dados[0] = dados[1] = null;
+            return;
         } else {
           tiradas++;
           System.out.println("Doble! Tira de nuevo");
-          canThrowDice = true;
+            dados[0] = dados[1] = null;
+            return;
         }
       } else {
         tiradas = 1;
