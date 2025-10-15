@@ -5,11 +5,7 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
-import com.NullPtr.Pontiland.view.MenuCarga;
-import com.NullPtr.Pontiland.view.MenuCreditos;
-import com.NullPtr.Pontiland.view.MenuJugadores;
-import com.NullPtr.Pontiland.view.MenuPrincipal;
-import com.NullPtr.Pontiland.view.MenuSeleccion;
+import com.NullPtr.Pontiland.view.*;
 import com.jme3.app.state.AppStateManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -24,12 +20,14 @@ import java.util.List;
 public class MenuController implements IMenuActions {
 
   private final Launcher app;
+  private Hud hud;
 
   private MenuPrincipal menuPrincipal;
   private MenuJugadores menuJugadores;
   private MenuCarga menuCarga;
   private MenuCreditos menuCreditos;
-  private MenuSeleccion menuSeleccion;
+  private MenuSeleccion menuSeleccion; // nueva pantalla de selección de personajes
+
   private boolean gameStarted = false;
   private int selectedPlayerCount = 0;
 
@@ -37,7 +35,7 @@ public class MenuController implements IMenuActions {
   private final IDataService dataService;
 
   public MenuController(
-      Launcher app, IStartGameService startGameService, IDataService dataService) {
+          Launcher app, IStartGameService startGameService, IDataService dataService) {
     this.dataService = dataService;
     if (app == null) {
       throw new IllegalArgumentException("app no puede ser null");
@@ -112,8 +110,8 @@ public class MenuController implements IMenuActions {
    */
   @Override
   public void startMainGame(
-      int playerCount, ArrayList<Jugador> jugadores, ArrayList<Integer> personajeIds)
-      throws SQLException {
+          int playerCount, ArrayList<Jugador> jugadores, ArrayList<Integer> personajeIds)
+          throws SQLException {
     this.selectedPlayerCount = playerCount;
     this.gameStarted = true;
 
@@ -122,7 +120,7 @@ public class MenuController implements IMenuActions {
       Jugador j = jugadores.get(i);
       Integer pid = personajeIds.size() > i ? personajeIds.get(i) : -1;
       System.out.println(
-          "  - J" + j.getJugadorId() + " nombre='" + j.getNombreJugador() + "' personajeId=" + pid);
+              "  - J" + j.getJugadorId() + " nombre='" + j.getNombreJugador() + "' personajeId=" + pid);
     }
 
     startGameService.creatingNewGame(jugadores, personajeIds);
@@ -134,8 +132,16 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuCreditos);
     detachIfAttached(menuSeleccion);
 
-      //TODO controller no puede comunicarse directamente con app
-      startGameService.ensureSceneReady();
+    //TODO controller no puede comunicarse directamente con app
+    startGameService.ensureSceneReady();
+    Launcher launcher = this.app;
+    HudController hudController = new HudController(jugadores, personajeIds);
+    hud = new Hud(hudController);
+    launcher.getStateManager().attach(hud);
+    hud.setEnabled(true);
+
+
+
 
     System.out.println("Juego iniciado con " + playerCount + " jugadores");
   }
@@ -149,20 +155,20 @@ public class MenuController implements IMenuActions {
     List<SavedGame> saves = dataService.listarPartidasPasadas();
 
     showLoadMenu(
-        saves,
-        (String id) -> {
-          System.out.println("[Pontiland] Seleccionado guardado: " + id);
-          dataService.loadDataBase(id);
+            saves,
+            (String id) -> {
+              System.out.println("[Pontiland] Seleccionado guardado: " + id);
+              dataService.loadDataBase(id);
 
-          detachIfAttached(menuPrincipal);
-          detachIfAttached(menuJugadores);
-          detachIfAttached(menuCarga);
-          detachIfAttached(menuCreditos);
-          detachIfAttached(menuSeleccion);
+              detachIfAttached(menuPrincipal);
+              detachIfAttached(menuJugadores);
+              detachIfAttached(menuCarga);
+              detachIfAttached(menuCreditos);
+              detachIfAttached(menuSeleccion);
 
-            //TODO controller no puede comunicarse directamente con app
-            startGameService.ensureSceneReady();
-        });
+              //TODO controller no puede comunicarse directamente con app
+              startGameService.ensureSceneReady();
+            });
   }
 
   /** Muestra el menú de carga con una lista y callback de selección. */
