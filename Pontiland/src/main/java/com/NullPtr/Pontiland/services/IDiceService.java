@@ -17,6 +17,8 @@ public interface IDiceService {
 
   boolean getCanThrowDice();
 
-  void enableThrow(boolean canThrowDice);
+  void enableInteract(boolean canInteract);
+
+  boolean getCanInteract();
 
 }

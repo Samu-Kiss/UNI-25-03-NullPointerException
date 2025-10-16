@@ -12,7 +12,7 @@ import com.jme3.scene.Spatial;
  */
 public class DiceService implements IDiceService {
   private final Dado[] dados = new Dado[2];
-  private boolean canThrowDice = true;
+  private boolean canInteract = true;
   /** Máquina de estados interna para el lanzamiento no bloqueante. */
   private enum Estado {
     IDLE,
@@ -83,7 +83,6 @@ public class DiceService implements IDiceService {
       case LAUNCH:
         lanzarDados();
         estado = Estado.CHECK_MOVIMIENTO;
-        canThrowDice = false;
         break;
       case CHECK_MOVIMIENTO:
         boolean enMovimiento = false;
@@ -113,12 +112,17 @@ public class DiceService implements IDiceService {
 
     @Override
     public boolean getCanThrowDice() {
-        return canThrowDice;
+        return canInteract && estado != Estado.CHECK_MOVIMIENTO;
     }
 
     @Override
-    public void enableThrow(boolean canThrowDice) {
-        this.canThrowDice = canThrowDice;
+    public boolean getCanInteract() {
+        return canInteract;
+    }
+
+    @Override
+    public void enableInteract(boolean canInteract) {
+        this.canInteract = canInteract;
     }
 
 }

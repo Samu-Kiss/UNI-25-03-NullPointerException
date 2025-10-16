@@ -64,8 +64,8 @@ public class LanzamientoDadosController {
     diceService.setDados(dado1, dado2);
   }
 
-  public void enableThrow(boolean canThrowDice){
-    diceService.enableThrow(canThrowDice);
+  public void enableThrow(boolean canInteract){
+    diceService.enableInteract(canInteract);
   }
 
   public void update() {

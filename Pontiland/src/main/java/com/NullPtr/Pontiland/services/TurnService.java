@@ -19,6 +19,8 @@ public class TurnService implements ITurnService{
     private int lastMovedPos = -1;
     private int tiradas = 1;
 
+    Jugador jugadorActual;
+
     public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository, DiceService diceService, ICasillaRepository casillaRepository, ICasillaService casillaService) {
         this.casillaService = casillaService;
         this.casillaRepository = casillaRepository;
@@ -42,7 +44,6 @@ public class TurnService implements ITurnService{
 
     public void movePlayer(int numCasillas) {
       int nuevaPosicion;
-      Jugador jugadorActual;
 
       try {
         jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
@@ -55,12 +56,8 @@ public class TurnService implements ITurnService{
       try {
         System.out.println("Movimiendo al jugador " + jugadorRepository.getActivePlayer() +
                 " a la posición = " + jugadorActual.getPosicion());
-        System.out.println(casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getNombreCasilla() + "de " +
+        System.out.println(casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getNombreCasilla() + " de " +
                 casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getTipoCasilla() );
-
-
-        if(diceService.getCanThrowDice())
-        casillaService.interaccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
 
       } catch (SQLException e) {
         throw new RuntimeException(e);
@@ -81,11 +78,14 @@ public class TurnService implements ITurnService{
   public void update() {
     Byte[] dados = diceService.getResultados();
     if(dados == null) return;
-
-      System.out.println(diceService.getCanThrowDice() ? " (puede tirar dados)" : " (no puede tirar dados)");
     Byte d1 = dados[0];
     Byte d2 = dados[1];
-
+    if(jugadorActual != null) {
+        if (diceService.getCanInteract()) {
+            casillaService.interaccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+            System.out.println("Interacción con casilla " + casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getNombreCasilla());
+        }
+    }
     if(d1 != null && d2 != null){
       int movimiento = d1 + d2;
 
