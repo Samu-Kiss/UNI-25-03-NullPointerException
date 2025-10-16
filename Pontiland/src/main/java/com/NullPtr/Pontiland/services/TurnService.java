@@ -14,7 +14,6 @@ public class TurnService implements ITurnService{
     private DiceService diceService;
     private ICasillaRepository casillaRepository;
     private int playerID = 0;
-    private boolean canThrowDice = true;
     private boolean movePending = false;
     private int lastMovedJugadorId = -1;
     private int lastMovedPos = -1;
@@ -57,7 +56,10 @@ public class TurnService implements ITurnService{
         System.out.println("Movimiendo al jugador " + jugadorRepository.getActivePlayer() +
                 " a la posición = " + jugadorActual.getPosicion());
         System.out.println(casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getNombreCasilla() + "de " +
-                casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getTipoCasilla());
+                casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getTipoCasilla() );
+
+
+        if(diceService.getCanThrowDice())
         casillaService.interaccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
 
       } catch (SQLException e) {
@@ -80,15 +82,14 @@ public class TurnService implements ITurnService{
     Byte[] dados = diceService.getResultados();
     if(dados == null) return;
 
+      System.out.println(diceService.getCanThrowDice() ? " (puede tirar dados)" : " (no puede tirar dados)");
     Byte d1 = dados[0];
     Byte d2 = dados[1];
 
-      canThrowDice = true;
     if(d1 != null && d2 != null){
       int movimiento = d1 + d2;
 
       System.out.println("Resultados dados: [" + d1 + ", " + d2 + "]");
-      canThrowDice = false;
 
       movePlayer(movimiento);
 
@@ -122,11 +123,6 @@ public class TurnService implements ITurnService{
     @Override
     public void payRent() {
 
-    }
-
-    @Override
-    public boolean canThrowDice() {
-        return canThrowDice;
     }
 
     @Override

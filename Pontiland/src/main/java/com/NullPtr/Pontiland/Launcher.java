@@ -78,8 +78,6 @@ public class Launcher extends SimpleApplication {
     casillaService = new CasillaService();
     turnService = new TurnService(jugadorRepository, partidaRepository, diceService, casillaRepository, casillaService);
 
-    diceService.setTurnService(turnService);
-
     lanzamientoDadosController = new LanzamientoDadosController(diceService);
     lanzamientoDadosController.registerInputs(getInputManager());
 

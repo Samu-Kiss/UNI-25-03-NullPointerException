@@ -144,9 +144,11 @@ public class Scene {
               mvTimer = 0f;
               if (mvSeg < mvTargets.size()) {
                   mvStart.set(target);
+
               } else {
                   mvSeg = -1;
                   //aqui pa despues propiedad o lo que sea que haga la casilla
+                  lanzamientoController.enableThrow(true);
                   resetCamera();
               }
           }
@@ -197,6 +199,8 @@ public class Scene {
   }
 
   public void replicateFichaPosition(int jugadorId, int casillaIndex) {
+
+      lanzamientoController.enableThrow(false);
     Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
     if (s == null) return;
 

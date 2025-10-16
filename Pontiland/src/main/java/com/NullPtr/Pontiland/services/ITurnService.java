@@ -9,7 +9,6 @@ public interface ITurnService {
     void buyProperty();
     void payRent();
 
-    boolean canThrowDice();
     int[] consumeLastMove();
     boolean hasMovePending();
 }
