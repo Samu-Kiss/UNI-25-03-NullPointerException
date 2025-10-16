@@ -10,6 +10,7 @@ import java.sql.SQLException;
 public class TurnService implements ITurnService{
     private IJugadorRepository jugadorRepository;
     private IPartidaRepository partidaRepository;
+    private ICasillaService casillaService;
     private DiceService diceService;
     private ICasillaRepository casillaRepository;
     private int playerID = 0;
@@ -19,7 +20,8 @@ public class TurnService implements ITurnService{
     private int lastMovedPos = -1;
     private int tiradas = 1;
 
-    public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository, DiceService diceService, ICasillaRepository casillaRepository) {
+    public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository, DiceService diceService, ICasillaRepository casillaRepository, ICasillaService casillaService) {
+        this.casillaService = casillaService;
         this.casillaRepository = casillaRepository;
         this.diceService = diceService;
         this.jugadorRepository = jugadorRepository;
@@ -56,6 +58,7 @@ public class TurnService implements ITurnService{
                 " a la posición = " + jugadorActual.getPosicion());
         System.out.println(casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getNombreCasilla() + "de " +
                 casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getTipoCasilla());
+        casillaService.interaccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
 
       } catch (SQLException e) {
         throw new RuntimeException(e);

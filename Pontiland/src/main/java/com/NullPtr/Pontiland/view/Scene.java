@@ -146,6 +146,7 @@ public class Scene {
                   mvStart.set(target);
               } else {
                   mvSeg = -1;
+                  //aqui pa despues propiedad o lo que sea que haga la casilla
                   resetCamera();
               }
           }
