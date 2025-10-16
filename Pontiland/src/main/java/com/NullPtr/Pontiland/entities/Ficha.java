@@ -3,46 +3,46 @@ package com.NullPtr.Pontiland.entities;
 import com.NullPtr.Pontiland.utils.PropertiesReader;
 import com.jme3.scene.Spatial;
 
-import java.io.File;
-
 public class Ficha {
-    private Spatial spatial = null;
-    private int idFicha = -1;
-    private int jugadorId = -1;
-    private String nombreFicha = "";
-    private String rutaFicha = null;
+  private Spatial spatial = null;
+  private int idFicha = -1;
+  private int jugadorId = -1;
+  private String nombreFicha = "";
+  private String rutaFicha = null;
 
-    public Ficha(int idFicha,int jugadorId, String nombreFicha) {
-        this.idFicha = idFicha;
-        this.jugadorId = jugadorId;
-        this.nombreFicha = nombreFicha;
-        this.rutaFicha = PropertiesReader.getProperty("Modelo"+nombreFicha);
-    }
+  public Ficha(int idFicha, int jugadorId, String nombreFicha) {
+    this.idFicha = idFicha;
+    this.jugadorId = jugadorId;
+    this.nombreFicha = nombreFicha;
+    this.rutaFicha = PropertiesReader.getProperty("Modelo" + nombreFicha);
+  }
 
-    public int getJugadorId() { return jugadorId; }
-    public void setJugadorId(int jugadorId) { this.jugadorId = jugadorId; }
+  public int getJugadorId() {
+    return jugadorId;
+  }
 
-    public int getIdFicha() {
-        return idFicha;
-    }
+  public void setJugadorId(int jugadorId) {
+    this.jugadorId = jugadorId;
+  }
 
-    public String getNombreFicha() {
-        return nombreFicha;
-    }
+  public int getIdFicha() {
+    return idFicha;
+  }
 
-    public String getRutaFicha() {
-        return rutaFicha;
-    }
+  public String getNombreFicha() {
+    return nombreFicha;
+  }
 
-    public Spatial getSpatial() {
-        return spatial;
-    }
+  public String getRutaFicha() {
+    return rutaFicha;
+  }
+
+  public Spatial getSpatial() {
+    return spatial;
+  }
 
   @Override
   public String toString() {
-    return "Ficha{" +
-            "nombreFicha='" + nombreFicha + '\'' +
-            ", rutaFicha=" + rutaFicha +
-            '}';
+    return "Ficha{" + "nombreFicha='" + nombreFicha + '\'' + ", rutaFicha=" + rutaFicha + '}';
   }
 }

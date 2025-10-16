@@ -13,6 +13,7 @@ import com.jme3.scene.Spatial;
  */
 public class LanzamientoDadosController {
   private final DiceService diceService;
+
   /**
    * Listener de acciones para gestionar las teclas de control del dado. Se registra en el
    * InputManager a través de {@link #registerInputs(InputManager)}.
@@ -55,8 +56,7 @@ public class LanzamientoDadosController {
    *
    * @param diceService Servicio encargado de la lógica de dados
    */
-  public LanzamientoDadosController(
-          DiceService diceService) {
+  public LanzamientoDadosController(DiceService diceService) {
     this.diceService = diceService;
   }
 
@@ -64,13 +64,11 @@ public class LanzamientoDadosController {
     diceService.setDados(dado1, dado2);
   }
 
-  public void enableThrow(boolean canInteract){
+  public void enableThrow(boolean canInteract) {
     diceService.enableInteract(canInteract);
   }
 
   public void update() {
     diceService.update();
   }
-
-
 }

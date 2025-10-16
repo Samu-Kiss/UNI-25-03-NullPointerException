@@ -16,6 +16,7 @@ public class PartidaRepository implements IPartidaRepository {
    * Servicio de acceso a datos para la gestión de conexiones y operaciones con la base de datos.
    */
   IDataService dataService;
+
   long partidaID;
 
   /**
@@ -52,37 +53,34 @@ public class PartidaRepository implements IPartidaRepository {
       throw new RuntimeException(e);
     }
     return partidaID;
-
   }
 
-
-    @Override
-    public int getNumJugadores() {
-        Connection conn = dataService.createConnection();
-        String consulta = "SELECT NumeroJugadores FROM Partida WHERE PartidaID = ?";
-        try {
-            PreparedStatement stmt = conn.prepareStatement(consulta);
-            stmt.setLong(1, partidaID);
-            var rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("NumeroJugadores");
-            } else {
-                throw new RuntimeException("No se encontró un jugador activo para la partida: " + partidaID);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
+  @Override
+  public int getNumJugadores() {
+    Connection conn = dataService.createConnection();
+    String consulta = "SELECT NumeroJugadores FROM Partida WHERE PartidaID = ?";
+    try {
+      PreparedStatement stmt = conn.prepareStatement(consulta);
+      stmt.setLong(1, partidaID);
+      var rs = stmt.executeQuery();
+      if (rs.next()) {
+        return rs.getInt("NumeroJugadores");
+      } else {
+        throw new RuntimeException(
+            "No se encontró un jugador activo para la partida: " + partidaID);
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      try {
+        conn.close();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
     }
+  }
 
-    public IDataService getDataService() {
-        return dataService;
-    }
-
-
+  public IDataService getDataService() {
+    return dataService;
+  }
 }

@@ -13,6 +13,7 @@ import com.jme3.scene.Spatial;
 public class DiceService implements IDiceService {
   private final Dado[] dados = new Dado[2];
   private boolean canInteract = true;
+
   /** Máquina de estados interna para el lanzamiento no bloqueante. */
   private enum Estado {
     IDLE,
@@ -64,14 +65,12 @@ public class DiceService implements IDiceService {
 
   @Override
   public Byte[] getResultados() {
-      return  (resultados[0] != null && resultados[1] != null) ? resultados : new Byte[]{null, null};
+    return (resultados[0] != null && resultados[1] != null) ? resultados : new Byte[] {null, null};
   }
 
-    /**
-   * Inicia la secuencia de lanzamiento no bloqueante.
-   */
-    @Override
-    public void lanzamientoDados() {
+  /** Inicia la secuencia de lanzamiento no bloqueante. */
+  @Override
+  public void lanzamientoDados() {
     this.estado = Estado.LAUNCH;
   }
 
@@ -105,25 +104,23 @@ public class DiceService implements IDiceService {
         break;
       case DONE:
         estado = Estado.IDLE;
-        resultados = new Byte[]{null, null};
+        resultados = new Byte[] {null, null};
         break;
     }
   }
 
-    @Override
-    public boolean getCanThrowDice() {
-        return canInteract && estado != Estado.CHECK_MOVIMIENTO;
-    }
+  @Override
+  public boolean getCanThrowDice() {
+    return canInteract && estado != Estado.CHECK_MOVIMIENTO;
+  }
 
-    @Override
-    public boolean getCanInteract() {
-        return canInteract;
-    }
+  @Override
+  public boolean getCanInteract() {
+    return canInteract;
+  }
 
-    @Override
-    public void enableInteract(boolean canInteract) {
-        this.canInteract = canInteract;
-    }
-
+  @Override
+  public void enableInteract(boolean canInteract) {
+    this.canInteract = canInteract;
+  }
 }
-

@@ -5,5 +5,5 @@ import com.NullPtr.Pontiland.entities.Jugador;
 
 public interface ICasillaService {
 
-    void interaccion(Jugador jugador, Casilla casilla);
+  void interaccion(Jugador jugador, Casilla casilla);
 }

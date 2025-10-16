@@ -20,5 +20,4 @@ public interface IDiceService {
   void enableInteract(boolean canInteract);
 
   boolean getCanInteract();
-
 }
