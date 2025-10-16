@@ -11,6 +11,11 @@ import java.util.List;
  */
 public class HudController {
 
+    public HudController() {
+
+    }
+
+
     public static class PlayerHudData {
         public final String nombre;
         public final String personaje;

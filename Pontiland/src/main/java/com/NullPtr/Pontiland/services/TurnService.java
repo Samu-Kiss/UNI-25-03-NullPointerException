@@ -28,7 +28,9 @@ public class TurnService implements ITurnService{
     @Override
     public void nextTurn() {
         try {
-            playerID = jugadorRepository.getPlayerIdByNumJugador((jugadorRepository.getActivePlayer()%partidaRepository.getNumJugadores()) + 1);
+            int numJugadores = partidaRepository.getNumJugadores();
+            int nextPlayerNum = (jugadorRepository.getActivePlayer() % numJugadores) + 1;
+            playerID = jugadorRepository.getPlayerIdByNumJugador(nextPlayerNum);
             jugadorRepository.changeActivePlayer(playerID);
 
         } catch (SQLException e) {
