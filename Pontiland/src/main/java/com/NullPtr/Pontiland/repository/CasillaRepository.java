@@ -27,19 +27,26 @@ public class CasillaRepository implements ICasillaRepository{
                                             "JOIN TipoCasilla ON Casilla.TipoCasilla=TipoCasilla.TipoID " +
                                             "WHERE Casilla.PosicionTablero = ?";
 
-        try (Connection connect = dataService.createConnection()){
-            PreparedStatement preparedStatement = connect.prepareStatement(obtenerCasillaPosicion);
-            preparedStatement.setInt(1, posicion);
+        try (Connection conn = dataService.createConnection();
+             PreparedStatement ps = conn.prepareStatement(obtenerCasillaPosicion)) {
 
-            ResultSet resultSet = preparedStatement.executeQuery();
+            ps.setInt(1, posicion);
 
-            Tipo tipo = Tipo.valueOf(resultSet.getString("TipoNombre"));
-            String nombreCasilla = resultSet.getString("NombreCasilla");
-            return new Casilla(posicion,
-                                nombreCasilla,
-                                tipo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    // No hay fila en BD para esa posición
+                    throw new IllegalStateException(
+                            "No existe casilla en posición " + posicion +
+                                    ". ¿Ejecutaste DDL + Insertions.sql antes de iniciar el juego?");
+                }
 
-        } catch (SQLException e){
+                String nombre = rs.getString("NombreCasilla");
+                String tipoDb = rs.getString("TipoNombre");
+                Tipo tipo = Tipo.valueOf(tipoDb.toUpperCase());
+
+                return new Casilla(posicion, nombre, tipo);
+            }
+        } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }

@@ -1,6 +1,7 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.Jugador;
+import com.NullPtr.Pontiland.repository.ICasillaRepository;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 
@@ -10,6 +11,7 @@ public class TurnService implements ITurnService{
     private IJugadorRepository jugadorRepository;
     private IPartidaRepository partidaRepository;
     private DiceService diceService;
+    private ICasillaRepository casillaRepository;
     private int playerID = 0;
     private boolean canThrowDice = true;
     private boolean movePending = false;
@@ -17,7 +19,8 @@ public class TurnService implements ITurnService{
     private int lastMovedPos = -1;
     private int tiradas = 1;
 
-    public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository, DiceService diceService) {
+    public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository, DiceService diceService, ICasillaRepository casillaRepository) {
+        this.casillaRepository = casillaRepository;
         this.diceService = diceService;
         this.jugadorRepository = jugadorRepository;
         this.partidaRepository = partidaRepository;
@@ -51,6 +54,9 @@ public class TurnService implements ITurnService{
       try {
         System.out.println("Movimiendo al jugador " + jugadorRepository.getActivePlayer() +
                 " a la posición = " + jugadorActual.getPosicion());
+        System.out.println(casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getNombreCasilla() + "de " +
+                casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getTipoCasilla());
+
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }

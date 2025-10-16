@@ -280,7 +280,7 @@ public class Scene {
 
       // Top side: left -> right
       case 2:
-        cellSize = 1.6999993f;
+        cellSize = 1.5f;
         z = -BOARD_FIRST_POSITION.getZ() * 2f;
         if (pos == 0) {
           x = (-BOARD_FIRST_POSITION.getX() * 2f) + (pos * cellSize);

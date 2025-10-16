@@ -4,11 +4,11 @@ package com.NullPtr.Pontiland.entities;
 public enum Tipo {
   SALIDA("Salida"),
   CARCEL("Carcel"),
-  PARADA_LIBRE("ParadaLibre"),
-  MOVIMIENTO("Movimiento"),
-  IR_CARCEL("IrALaCarcel"),
+  PARADALIBRE("ParadaLibre"),
   EVENTO("Evento"),
-  PROPIEDAD("Propiedad");
+  PROPIEDAD("Propiedad"),
+  MOVIMIENTO("Movimiento"),
+  IRALACARCEL("IrALaCarcel");
 
   private final String action;
 

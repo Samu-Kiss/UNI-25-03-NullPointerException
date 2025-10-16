@@ -34,6 +34,7 @@ public class Launcher extends SimpleApplication {
   private Scene scene;
 
   private IDataService dataService;
+  private ICasillaRepository casillaRepository;
   private IStartGameService startGameService;
 
   private IJugadorRepository jugadorRepository;
@@ -72,7 +73,8 @@ public class Launcher extends SimpleApplication {
 
     partidaRepository = new PartidaRepository(dataService);
     jugadorRepository = new JugadorRepository(dataService);
-    turnService = new TurnService(jugadorRepository, partidaRepository, diceService);
+    casillaRepository = new CasillaRepository(dataService);
+    turnService = new TurnService(jugadorRepository, partidaRepository, diceService, casillaRepository);
 
     diceService.setTurnService(turnService);
 
