@@ -276,35 +276,44 @@ public class Scene {
     this.mvTimer = 0f;
   }
     private Vector3f posFromCell(int c) {
-        int idx = ((c % TOTAL_CASILLAS) + TOTAL_CASILLAS) % TOTAL_CASILLAS; // 0..TOTAL-1
-        int pos = idx % SIDE;
+        int idx = ((c % TOTAL_CASILLAS) + TOTAL_CASILLAS) % TOTAL_CASILLAS; // 0..39
 
-        float x = 0f;
-        float z = 0f;
+        float[] POS_BOTTOM = { 1,2,3,4,5,6,7,8,9,10 };
+        // Izquierda (10..19)
+        float[] POS_LEFT   = { 0,1,2,3,4,5,6,7,8,9 };
+        float[] POS_TOP    = { 0,1,2,3,4,5,6,7,8,9 };
+        // Derecha (30..39)
+        float[] POS_RIGHT  = { 0,1,2,3,4,5,6,7,8,9 };
 
-        // Cara inferior
-        if (idx >= 0 && idx <= 11) {
+
+        float x = 0f, z = 0f;
+        float pos; // <- aquí mandas tú
+
+        if (idx >= 0 && idx <= 9) {
+            int k = idx - 0;              // local 0..9
+            pos = POS_BOTTOM[k];
             x = -pos * cellSize;
             z = 0f;
 
-            // Cara izquierda
-        } else if (idx >= 11 && idx <= 19) {
+        } else if (idx >= 10 && idx <= 19) {
+            int k = idx - 10;             // local 0..9
+            pos = POS_LEFT[k];
             x = -BOARD_FIRST_POSITION.getX() * 2f;
-            z = -((pos * cellSize) + pos * 0.23f);
+            z = -(pos * cellSize + pos * 0.23f);
 
-            // Cara superior
         } else if (idx >= 20 && idx <= 29) {
+            int k = idx - 20;             // local 0..9
+            pos = POS_TOP[k];
             z = -BOARD_FIRST_POSITION.getZ() * 2f;
-            if (pos == 0) {
-                x = (-BOARD_FIRST_POSITION.getX() * 2f) + (pos * cellSize);
-            } else {
-                x = (-BOARD_FIRST_POSITION.getX() * 2f) + (pos * cellSize) + pos * 0.24f;
-            }
 
-            // Cara derecha
-        } else if (idx >= 30 && idx <= 39) {
-            z = (-BOARD_FIRST_POSITION.getZ() * 2f) + (pos * cellSize) + pos * 0.24f;
-            // x se queda en 0f relativo a BOARD_FIRST_POSITION
+            // Si quieres comportamiento distinto para pos==0, ya lo controlas en POS_TOP[0]
+            x = (-BOARD_FIRST_POSITION.getX() * 2f) + (pos * cellSize) + (pos * 0.24f);
+
+        } else { // 30..39
+            int k = idx - 30;             // local 0..9
+            pos = POS_RIGHT[k];
+            x = 0f;
+            z = (-BOARD_FIRST_POSITION.getZ() * 2f) + (pos * cellSize) + (pos * 0.24f);
         }
 
         return new Vector3f(
@@ -315,7 +324,7 @@ public class Scene {
     }
 
 
-  /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
+    /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
   private void loadBoardModel() {
     try {
       Spatial board = assetManager.loadModel("graphics/models/Board.glb");
