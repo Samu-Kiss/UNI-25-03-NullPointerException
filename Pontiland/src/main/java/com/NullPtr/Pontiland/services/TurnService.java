@@ -91,15 +91,10 @@ public class TurnService implements ITurnService {
     Byte d2 = dados[1];
     if (jugadorActual != null) {
       if (diceService.getCanInteract()) {
-        casillaService.interaccion(
-            jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
-        System.out.println(
-            "Interacción con casilla "
-                + casillaRepository
-                    .casillaFromPosition(jugadorActual.getPosicion())
-                    .getNombreCasilla());
+        casillaService.interaccion( jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
       }
     }
+
     if (d1 != null && d2 != null) {
       int movimiento = d1 + d2;
 
