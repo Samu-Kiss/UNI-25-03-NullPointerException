@@ -24,4 +24,6 @@ public interface IJugadorRepository {
   Ficha[] getFichas(int numJugadores) throws SQLException;
 
   void updateJugador(Jugador jugador) throws SQLException;
+
+  void rentPaymentTransaction(Jugador j1, Jugador j2) throws SQLException;
 }

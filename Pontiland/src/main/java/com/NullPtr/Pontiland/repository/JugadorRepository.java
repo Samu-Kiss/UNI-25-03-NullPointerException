@@ -303,4 +303,39 @@ public class JugadorRepository implements IJugadorRepository {
       }
     }
   }
+
+  public void rentPaymentTransaction(Jugador j1, Jugador j2) throws SQLException {
+    Connection conn = dataService.createConnection();
+    String updateSql = "UPDATE Jugador SET Dinero = ? WHERE NumJugador = ? AND Partida = ?";
+    boolean originalAutoCommit = conn.getAutoCommit();
+    try {
+      conn.setAutoCommit(false);
+
+      try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
+        // Actualizar primer jugador
+        ps.setInt(1, j1.getDinero());
+        ps.setInt(2, j1.getNumJugador());
+        ps.setLong(3, j1.getPartida());
+        ps.executeUpdate();
+
+        // Actualizar segundo jugador
+        ps.setInt(1, j2.getDinero());
+        ps.setInt(2, j2.getNumJugador());
+        ps.setLong(3, j2.getPartida());
+        ps.executeUpdate();
+      }
+
+      conn.commit();
+    } catch (SQLException ex) {
+      try {
+        conn.rollback();
+      } catch (SQLException rbEx) {
+        // ignorar o registrar según necesidad
+      }
+      throw ex;
+    } finally {
+      conn.setAutoCommit(originalAutoCommit);
+      conn.close();
+    }
+  }
 }
