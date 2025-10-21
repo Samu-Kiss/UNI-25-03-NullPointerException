@@ -17,13 +17,22 @@ import com.jme3.texture.Texture;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Vista responsable de dibujar el HUD (Head-Up Display) del juego.
+ * Muestra el estado actual de los jugadores: nombre, personaje, dinero y estado (Libre/Encerrado).
+ *
+ * <p>Además, aplica una animación de entrada con movimiento lateral para que las casillas
+ * aparezcan suavemente desde la izquierda de la pantalla.
+ */
 public class Hud extends BaseAppState {
 
+    /** Estructura auxiliar que agrupa los elementos visuales de cada jugador en el HUD. */
     private static class HudEntry {
         Geometry casilla;
         BitmapText personajeText;
         BitmapText nameText;
         BitmapText dineroText;
+        BitmapText estadoText;
         float startX;
         float targetX;
         float y;
@@ -42,16 +51,6 @@ public class Hud extends BaseAppState {
     private boolean animStarted = false;
     private float delayTimer = 0f;
     private float delayDuration = 0f;
-    private int activePlayerIndex = -1;
-    private float turnAnimTime = 0f;
-    private boolean isReturning = false;
-
-    // Movimiento lateral del jugador activo
-    private final float TURN_SHIFT = 40f;
-    private final float TURN_ANIM_DURATION = 0.5f; // medio segundo
-
-
-
 
     public Hud(HudController controller) {
         this.controller = controller;
@@ -72,19 +71,17 @@ public class Hud extends BaseAppState {
         float casillaSize = 128f;
         float spacing = 50f;
 
-
         List<PlayerHudData> players = controller.getPlayersData();
         int numJugadores = players.size();
 
-        // 🔹 Ajustar delay según número de jugadores
+        // Retraso inicial según cantidad de jugadores (efecto escalonado)
         switch (numJugadores) {
             case 2 -> delayDuration = 3f;
             case 3 -> delayDuration = 6f;
             case 4 -> delayDuration = 8f;
-            default -> delayDuration = 2f; // por si acaso
+            default -> delayDuration = 2f;
         }
 
-        // Rutas de las casillas
         String[] casillaPaths = {
                 "graphics/sprites/casilla1.png",
                 "graphics/sprites/casilla2.png",
@@ -92,12 +89,13 @@ public class Hud extends BaseAppState {
                 "graphics/sprites/casilla4.png"
         };
 
+        // Crear una casilla animada para cada jugador
         for (int i = 0; i < numJugadores; i++) {
             PlayerHudData p = players.get(i);
             HudEntry entry = new HudEntry();
 
             float finalY = yStart - (i * (casillaSize + spacing));
-            entry.startX = -casillaSize - 200f; // fuera de la pantalla a la izquierda
+            entry.startX = -casillaSize - 200f;
             entry.targetX = targetX;
             entry.y = finalY;
 
@@ -106,14 +104,13 @@ public class Hud extends BaseAppState {
 
             Quad quad = new Quad(casillaSize, casillaSize);
             Geometry casilla = new Geometry("casilla" + i, quad);
-
             Material mat = new Material(simpleApp.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
             mat.setTexture("ColorMap", tex);
             mat.getAdditionalRenderState().setBlendMode(com.jme3.material.RenderState.BlendMode.Alpha);
             casilla.setMaterial(mat);
             casilla.setLocalTranslation(entry.startX, finalY, 0);
 
-            // Textos centrados en la casilla
+            // Crear los textos (nombre, personaje, dinero, estado)
             BitmapText personajeText = new BitmapText(font);
             personajeText.setText(p.personaje);
             personajeText.setColor(ColorRGBA.Black);
@@ -129,127 +126,77 @@ public class Hud extends BaseAppState {
             dineroText.setColor(ColorRGBA.Black);
             centerText(dineroText, entry.startX, finalY, casillaSize, -50);
 
+            BitmapText estadoText = new BitmapText(font);
+            estadoText.setText(p.enCarcel ? "Encerrado" : "Libre");
+            estadoText.setColor(p.enCarcel ? ColorRGBA.Red : ColorRGBA.Green);
+            centerText(estadoText, entry.startX, finalY, casillaSize, -80);
+
+            // Agregar a la raíz del HUD
             hudRoot.attachChild(casilla);
             hudRoot.attachChild(personajeText);
             hudRoot.attachChild(nameText);
             hudRoot.attachChild(dineroText);
+            hudRoot.attachChild(estadoText);
 
             entry.casilla = casilla;
             entry.personajeText = personajeText;
             entry.nameText = nameText;
             entry.dineroText = dineroText;
+            entry.estadoText = estadoText;
 
             entries.add(entry);
         }
 
         guiNode.attachChild(hudRoot);
-
-        // La animación empezará después del delay configurado
-        animStarted = false;
-        delayTimer = 0f;
     }
-
 
     @Override
     public void update(float tpf) {
-        // Esperar delay antes de animar
+        // Espera antes de iniciar animación (sincronización)
         if (!animStarted) {
             delayTimer += tpf;
-            if (delayTimer >= delayDuration) {
-                animStarted = true;
-            } else {
-                return; // todavía esperando
-            }
+            if (delayTimer >= delayDuration) animStarted = true;
+            else return;
         }
 
         boolean allDone = true;
         for (HudEntry e : entries) {
             if (e.animDone) continue;
-
             e.animTime += tpf;
-            float progress = e.animTime / 1.2f; // duración animación
-            if (progress >= 1f) {
-                progress = 1f;
-                e.animDone = true;
-            } else {
-                allDone = false;
-            }
+            float progress = Math.min(e.animTime / 1.2f, 1f);
+            if (progress >= 1f) e.animDone = true;
+            else allDone = false;
 
             float eased = easeOutCubic(progress);
-            // Mover suavemente hacia la posición objetivo actual (para animaciones dinámicas)
             float newX = e.startX + (e.targetX - e.startX) * eased;
 
-
+            // Actualiza posición y textos
             e.casilla.setLocalTranslation(newX, e.y, 0);
             centerText(e.personajeText, newX, e.y, 128f, 0);
             centerText(e.nameText, newX, e.y, 128f, -25);
             centerText(e.dineroText, newX, e.y, 128f, -50);
-
-
-
-
-
-
-        }
-
-        if (activePlayerIndex != -1) {
-            turnAnimTime += tpf;
-            float progress = Math.min(turnAnimTime / TURN_ANIM_DURATION, 1f);
-            float eased = easeOutCubic(progress);
-
-            HudEntry entry = entries.get(activePlayerIndex);
-            float newX = entry.casilla.getLocalTranslation().x;
-            float target = entry.targetX;
-
-            newX = newX + (target - newX) * eased;
-
-            entry.casilla.setLocalTranslation(newX, entry.y, 0);
-            centerText(entry.personajeText, newX, entry.y, 128f, 0);
-            centerText(entry.nameText, newX, entry.y, 128f, -25);
-            centerText(entry.dineroText, newX, entry.y, 128f, -50);
-
-            // Si está regresando y terminó
-            if (isReturning && progress >= 1f) {
-                isReturning = false;
-            }
+            centerText(e.estadoText, newX, e.y, 128f, -80);
         }
 
         if (allDone) animStarted = false;
     }
 
+    /** Centra un texto horizontalmente dentro de una casilla. */
     private void centerText(BitmapText text, float x, float y, float size, float offsetY) {
         float width = text.getLineWidth();
         float textX = x + (size - width) / 2f;
         float textY = y + (size / 2f) + offsetY + 20f;
-        text.setLocalTranslation(textX, textY, 0);
+        text.setLocalTranslation(textX, textY, 10f);
     }
 
+    /** Efecto de suavizado cúbico para animaciones. */
     private float easeOutCubic(float t) {
         return (float) (1 - Math.pow(1 - t, 3));
     }
 
-    @Override
-    protected void onEnable() {
-        delayTimer = 0f;
-        animStarted = false;
-        for (HudEntry e : entries) {
-            e.animTime = 0;
-            e.animDone = false;
-            e.casilla.setLocalTranslation(e.startX, e.y, 0);
-        }
-    }
-
-    @Override protected void cleanup(Application app) {}
+    @Override protected void onEnable() {}
     @Override protected void onDisable() {}
-
-    public void refreshFromController() {
-        List<PlayerHudData> players = controller.getPlayersData();
-        for (int i = 0; i < players.size() && i < entries.size(); i++) {
-            PlayerHudData p = players.get(i);
-            HudEntry entry = entries.get(i);
-            entry.dineroText.setText("$" + p.dinero);
-        }
-    }
+    @Override protected void cleanup(Application app) {}
 
 }
 

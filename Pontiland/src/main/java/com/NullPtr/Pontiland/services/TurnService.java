@@ -6,7 +6,7 @@ import com.NullPtr.Pontiland.repository.IPartidaRepository;
 
 import java.sql.SQLException;
 
-public class TurnService implements ITurnService{
+public class TurnService implements ITurnService {
     private IJugadorRepository jugadorRepository;
     private IPartidaRepository partidaRepository;
     private DiceService diceService;
@@ -17,11 +17,11 @@ public class TurnService implements ITurnService{
     private int lastMovedPos = -1;
     private int tiradas = 1;
 
-    public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository, DiceService diceService) {
+    public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository,
+                       DiceService diceService) {
         this.diceService = diceService;
         this.jugadorRepository = jugadorRepository;
         this.partidaRepository = partidaRepository;
-
     }
 
 
@@ -39,89 +39,85 @@ public class TurnService implements ITurnService{
     }
 
     public void movePlayer(int numCasillas) {
-      int nuevaPosicion;
-      Jugador jugadorActual;
+        int nuevaPosicion;
+        Jugador jugadorActual;
 
-      try {
-        jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-        nuevaPosicion = (jugadorActual.getPosicion() + numCasillas) % 40;
-        jugadorActual.setPosicion(nuevaPosicion);
+        try {
+            jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+            nuevaPosicion = (jugadorActual.getPosicion() + numCasillas) % 40;
+            jugadorActual.setPosicion(nuevaPosicion);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-      try {
-        System.out.println("Movimiendo al jugador " + jugadorRepository.getActivePlayer() +
-                " a la posición = " + jugadorActual.getPosicion());
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
-
-
-      try {
-        jugadorRepository.updateJugador(jugadorActual);
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
-
-      markLastMove(jugadorActual.getJugadorId(), nuevaPosicion);
-
-    }
-
-  @Override
-  public void update() {
-    Byte[] dados = diceService.getResultados();
-    if(dados == null) return;
-
-    Byte d1 = dados[0];
-    Byte d2 = dados[1];
-
-      canThrowDice = true;
-    if(d1 != null && d2 != null){
-      int movimiento = d1 + d2;
-
-      System.out.println("Resultados dados: [" + d1 + ", " + d2 + "]");
-      canThrowDice = false;
-
-      movePlayer(movimiento);
-
-      if (d1.equals(d2)) {
-        if (tiradas == 2) {
-          System.out.println( "3 dobles seguidos, vas a la cárcel!" );
-          tiradas = 1;
-          nextTurn();
-            dados[0] = dados[1] = null;
-            return;
-        } else {
-          tiradas++;
-          System.out.println("Doble! Tira de nuevo");
-            dados[0] = dados[1] = null;
-            return;
+        try {
+            System.out.println("Moviendo al jugador " + jugadorRepository.getActivePlayer() +
+                    " a la posición = " + jugadorActual.getPosicion());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-      } else {
-        tiradas = 1;
-        nextTurn();
-      }
 
-      dados[0] = dados[1] = null;
-    }
-  }
+        try {
+            jugadorRepository.updateJugador(jugadorActual);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
-    @Override
-    public void buyProperty() {
+        // si cae en la casilla 11, va a la cárcel
+        if (nuevaPosicion == 11) {
+            jugadorActual.setEstado(true);
+            System.out.println("Jugador " + jugadorActual.getNombreJugador() + " encarcelado!");
+        }
 
-    }
-
-    @Override
-    public void payRent() {
+        markLastMove(jugadorActual.getJugadorId(), nuevaPosicion);
 
     }
 
     @Override
-    public boolean canThrowDice() {
-        return canThrowDice;
+    public void update() {
+        Byte[] dados = diceService.getResultados();
+        if (dados == null) return;
+
+        Byte d1 = dados[0];
+        Byte d2 = dados[1];
+
+        canThrowDice = true;
+        if (d1 != null && d2 != null) {
+            int movimiento = d1 + d2;
+
+            System.out.println("Resultados dados: [" + d1 + ", " + d2 + "]");
+            canThrowDice = false;
+
+            movePlayer(movimiento);
+
+            if (d1.equals(d2)) {
+                if (tiradas == 2) {
+                    System.out.println("3 dobles seguidos, vas a la cárcel!");
+                    tiradas = 1;
+                    nextTurn();
+                    dados[0] = dados[1] = null;
+                    return;
+                } else {
+                    tiradas++;
+                    System.out.println("¡Doble! Tira de nuevo");
+                    dados[0] = dados[1] = null;
+                    return;
+                }
+            } else {
+                tiradas = 1;
+                nextTurn();
+            }
+
+            dados[0] = dados[1] = null;
+        }
     }
 
+    @Override
+    public void buyProperty() {}
+    @Override
+    public void payRent() {}
+    @Override
+    public boolean canThrowDice() { return canThrowDice; }
     @Override
     public boolean hasMovePending() { return movePending; }
 
@@ -129,7 +125,7 @@ public class TurnService implements ITurnService{
     public int[] consumeLastMove() {
         if (!movePending) return null;
         movePending = false;
-        return new int[]{ lastMovedJugadorId, lastMovedPos };
+        return new int[]{lastMovedJugadorId, lastMovedPos};
     }
 
     private void markLastMove(int jugadorId, int nuevaPos) {
@@ -137,5 +133,4 @@ public class TurnService implements ITurnService{
         lastMovedJugadorId = jugadorId;
         lastMovedPos = nuevaPos;
     }
-
 }

@@ -4,12 +4,7 @@ import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.NullPtr.Pontiland.controllers.LanzamientoDadosController;
 import com.NullPtr.Pontiland.controllers.MenuController;
 import com.NullPtr.Pontiland.repository.*;
-import com.NullPtr.Pontiland.repository.IPartidaRepository;
-import com.NullPtr.Pontiland.repository.JugadorRepository;
-import com.NullPtr.Pontiland.repository.PartidaRepository;
 import com.NullPtr.Pontiland.services.*;
-import com.NullPtr.Pontiland.services.IDataService;
-import com.NullPtr.Pontiland.services.IStartGameService;
 import com.NullPtr.Pontiland.view.MenuPrincipal;
 import com.NullPtr.Pontiland.view.Scene;
 import com.jme3.app.SimpleApplication;
@@ -30,7 +25,6 @@ public class Launcher extends SimpleApplication {
   private final DiceService diceService = new DiceService();
   private ITurnService turnService;
   private LanzamientoDadosController lanzamientoDadosController;
-  private Byte[] resultados = new Byte[2];
   private Scene scene;
 
   private IDataService dataService;
@@ -88,18 +82,16 @@ public class Launcher extends SimpleApplication {
 
   @Override
   public void simpleUpdate(float tpf) {
-      if (scene != null) scene.update(tpf);
+    if (scene != null) scene.update(tpf);
 
-      turnService.update();
-      if (scene != null && turnService.hasMovePending()) {
-          int[] mv = turnService.consumeLastMove();
-          if (mv != null) {
-              scene.replicateFichaPosition(mv[0], mv[1]-1);
-          }
+    turnService.update();
+    if (scene != null && turnService.hasMovePending()) {
+      int[] mv = turnService.consumeLastMove();
+      if (mv != null) {
+        scene.replicateFichaPosition(mv[0], mv[1] - 1);
       }
+    }
 
-      lanzamientoDadosController.update();
+    lanzamientoDadosController.update();
   }
-
-
 }
