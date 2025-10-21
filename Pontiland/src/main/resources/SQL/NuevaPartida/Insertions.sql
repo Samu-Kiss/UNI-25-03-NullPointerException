@@ -5,6 +5,7 @@ INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(1,'ParadaLibre');
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(2,'Evento');
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(3,'Propiedad');
 INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(4,'Movimiento');
+INSERT INTO TIPOCASILLA(TipoID, TipoNombre) VALUES(5,'IrALaCarcel');
 
 -- Poblar Tabla Casilla (Descripción detodas las casillas del tablero, considerando su tipo y posición)
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(1,'El Tunel (Salida)',1);
@@ -37,7 +38,7 @@ INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(27,'Arte
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(28,'Parque Nacional',3);
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(29,'Evento6',2);
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(30,'Centro Ático',3);
-INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(31,'Capi (Ir a la Carcel)',3);
+INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(31,'Capi (Ir a la Carcel)',5);
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(32,'El Arca',3);
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(33,'Il Posto',3);
 INSERT INTO CASILLA(PosicionTablero, NombreCasilla, TipoCasilla) VALUES(34,'Evento7',2);
