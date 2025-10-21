@@ -64,7 +64,7 @@ CREATE TABLE Jugador (
 -- Tabla Adquisiciones (Relación entre un jugador y las propiedades que ha adquirido en la partida, almacenando en nivel de renta en el que se encuentra la propiedad)
 CREATE TABLE Adquisiciones (
     JugadorID INT NOT NULL,
-    PropiedadID INT NOT NULL UNIQUE,
+    PropiedadID INT NOT NULL,
     NivelPropiedad INT NOT NULL CHECK (NivelPropiedad BETWEEN 1 AND 5),
     PRIMARY KEY (JugadorID, PropiedadID),
     FOREIGN KEY (JugadorID) REFERENCES Jugador(JugadorID) ON DELETE CASCADE,
