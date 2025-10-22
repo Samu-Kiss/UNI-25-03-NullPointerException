@@ -3,6 +3,7 @@ package com.NullPtr.Pontiland.repository;
 import com.NullPtr.Pontiland.entities.Ficha;
 import com.NullPtr.Pontiland.entities.Jugador;
 import java.sql.SQLException;
+import java.util.List;
 
 public interface IJugadorRepository {
   void newPlayer(Jugador newPlayer, int icono) throws SQLException;

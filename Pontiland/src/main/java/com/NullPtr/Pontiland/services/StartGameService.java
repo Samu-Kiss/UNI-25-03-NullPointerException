@@ -59,15 +59,31 @@ public class StartGameService implements IStartGameService {
     dataService.newDataBase();
     long partidaID = partidaRepository.newPartida(jugadores.size());
     jugadorRepository.setPartidaID(partidaID);
-    for (int i = 1; i <= jugadores.size(); i++) {
-      jugadorRepository.newPlayer(jugadores.get(i - 1), iconos.get(i - 1));
-    };
+      for (int i = 0; i < jugadores.size(); i++) {
+        Jugador j = jugadores.get(i);
+        // Inicialización lógica TEMPORAL (sin tocar el repositorio)
+        j.setJugadorId((byte) (i + 1));
+        j.setPosicion(1);
+        j.setEstado(false);
+        j.setDinero(1500);
+        jugadorRepository.newPlayer(j, iconos.get(i));
+      }
     int playerID = jugadorRepository.getPlayerIdByNumJugador(1);
     jugadorRepository.newActivePlayer(playerID);
 
     scene.loadFichasModels(jugadorRepository.getFichas(partidaRepository.getNumJugadores()));
 
   }
+
+  public IJugadorRepository getJugadorRepository() {
+    return jugadorRepository;
+  }
+
+  public IPartidaRepository getPartidaRepository() {
+    return partidaRepository;
+  }
+
+
 
   /**
    * Carga una partida existente desde un archivo seleccionado.

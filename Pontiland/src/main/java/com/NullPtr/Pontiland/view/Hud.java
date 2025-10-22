@@ -1,7 +1,7 @@
 package com.NullPtr.Pontiland.view;
 
 import com.NullPtr.Pontiland.controllers.HudController;
-import com.NullPtr.Pontiland.controllers.HudController.PlayerHudData;
+import com.NullPtr.Pontiland.entities.Jugador;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
@@ -109,7 +109,7 @@ public class Hud extends BaseAppState implements ActionListener, AnalogListener 
         float casillaSize = 128f;
         float spacing = 50f;
 
-        List<PlayerHudData> players = controller.getPlayersData();
+        List<Jugador> players = controller.getJugadores();
         int numJugadores = players.size();
 
         switch (numJugadores) {
@@ -127,7 +127,7 @@ public class Hud extends BaseAppState implements ActionListener, AnalogListener 
         };
 
         for (int i = 0; i < numJugadores; i++) {
-            PlayerHudData p = players.get(i);
+            Jugador p = players.get(i);
             HudEntry entry = new HudEntry();
 
             float finalY = yStart - (i * (casillaSize + spacing));
@@ -146,24 +146,25 @@ public class Hud extends BaseAppState implements ActionListener, AnalogListener 
             casilla.setMaterial(mat);
             casilla.setLocalTranslation(entry.startX, finalY, 0);
 
+            // Texto del icono (puedes sustituirlo por un sprite más adelante)
             BitmapText personajeText = new BitmapText(font);
-            personajeText.setText(p.personaje);
+            personajeText.setText("ICONO " + p.getIconoId());
             personajeText.setColor(ColorRGBA.Black);
             centerText(personajeText, entry.startX, finalY, casillaSize, 0);
 
             BitmapText nameText = new BitmapText(font);
-            nameText.setText(p.nombre);
+            nameText.setText(p.getNombreJugador());
             nameText.setColor(ColorRGBA.Black);
             centerText(nameText, entry.startX, finalY, casillaSize, -25);
 
             BitmapText dineroText = new BitmapText(font);
-            dineroText.setText("$" + p.dinero);
+            dineroText.setText("$" + p.getDinero());
             dineroText.setColor(ColorRGBA.Black);
             centerText(dineroText, entry.startX, finalY, casillaSize, -50);
 
             BitmapText estadoText = new BitmapText(font);
-            estadoText.setText(p.enCarcel ? "Encerrado" : "Libre");
-            estadoText.setColor(p.enCarcel ? ColorRGBA.Red : ColorRGBA.Green);
+            estadoText.setText(p.getEstado() ? "Encerrado" : "Libre");
+            estadoText.setColor(p.getEstado() ? ColorRGBA.Red : ColorRGBA.Green);
             centerText(estadoText, entry.startX, finalY, casillaSize, -80);
 
             hudRoot.attachChild(casilla);

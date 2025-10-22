@@ -135,7 +135,10 @@ public class MenuController implements IMenuActions {
     //TODO controller no puede comunicarse directamente con app
     startGameService.ensureSceneReady();
     Launcher launcher = this.app;
-    HudController hudController = new HudController(jugadores, personajeIds);
+    HudController hudController = new HudController(
+            startGameService.getJugadorRepository(),
+            startGameService.getPartidaRepository()
+    );
     hud = new Hud(hudController);
     launcher.getStateManager().attach(hud);
     hud.setEnabled(true);

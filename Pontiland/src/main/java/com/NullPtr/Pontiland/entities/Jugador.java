@@ -140,7 +140,12 @@ public class Jugador {
     this.posicion = posicion;
   }
 
-  public boolean getEstado() {
+    public int getIconoId() {
+        return iconoId;
+    }
+
+
+    public boolean getEstado() {
     return enCarcel;
   }
 
