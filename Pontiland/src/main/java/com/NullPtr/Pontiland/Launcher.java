@@ -94,4 +94,9 @@ public class Launcher extends SimpleApplication {
 
     lanzamientoDadosController.update();
   }
+
+  public ITurnService getTurnService() {
+    return turnService;
+  }
+
 }

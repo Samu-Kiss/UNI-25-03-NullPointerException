@@ -6,6 +6,7 @@ import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
 import com.NullPtr.Pontiland.view.*;
+import com.NullPtr.Pontiland.view.HUD.Hud;
 import com.jme3.app.state.AppStateManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -143,6 +144,8 @@ public class MenuController implements IMenuActions {
     launcher.getStateManager().attach(hud);
     hud.setEnabled(true);
 
+    launcher.getTurnService().setHud(hud);
+
 
 
 
@@ -172,6 +175,8 @@ public class MenuController implements IMenuActions {
               //TODO controller no puede comunicarse directamente con app
               startGameService.ensureSceneReady();
             });
+
+
   }
 
   /** Muestra el menú de carga con una lista y callback de selección. */

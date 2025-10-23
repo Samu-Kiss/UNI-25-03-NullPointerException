@@ -3,19 +3,31 @@ package com.NullPtr.Pontiland.services;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
-
+import com.NullPtr.Pontiland.view.HUD.Hud;
 import java.sql.SQLException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class TurnService implements ITurnService {
+
     private IJugadorRepository jugadorRepository;
     private IPartidaRepository partidaRepository;
     private DiceService diceService;
+    private Hud hud;
+
     private int playerID = 0;
     private boolean canThrowDice = true;
     private boolean movePending = false;
     private int lastMovedJugadorId = -1;
     private int lastMovedPos = -1;
     private int tiradas = 1;
+
+    // Nuevo: bloqueo del HUD
+    private boolean uiLock = false;
+
+    // Nuevo: pool de hilos para retrasar HUD
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public TurnService(IJugadorRepository jugadorRepository, IPartidaRepository partidaRepository,
                        DiceService diceService) {
@@ -24,6 +36,25 @@ public class TurnService implements ITurnService {
         this.partidaRepository = partidaRepository;
     }
 
+    public void setHud(Hud hud) {
+        this.hud = hud;
+
+    }
+
+    public void setCanThrowDice(boolean value) {
+        this.canThrowDice = value;
+    }
+
+    /** Nuevo: bloqueo controlado por el HUD */
+    public void lockDiceByUI(boolean locked) {
+        this.uiLock = locked;
+        if (locked) this.canThrowDice = false;
+    }
+
+    @Override
+    public boolean canThrowDice() {
+        return canThrowDice && !uiLock;
+    }
 
     @Override
     public void nextTurn() {
@@ -32,6 +63,11 @@ public class TurnService implements ITurnService {
             int nextPlayerNum = (jugadorRepository.getActivePlayer() % numJugadores) + 1;
             playerID = jugadorRepository.getPlayerIdByNumJugador(nextPlayerNum);
             jugadorRepository.changeActivePlayer(playerID);
+
+            // Se Notifica al HUD
+            if (hud != null) {
+                hud.highlightActivePlayer(nextPlayerNum - 1); // índice 0-based
+            }
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -50,12 +86,8 @@ public class TurnService implements ITurnService {
             throw new RuntimeException(e);
         }
 
-        try {
-            System.out.println("Moviendo al jugador " + jugadorRepository.getActivePlayer() +
-                    " a la posición = " + jugadorActual.getPosicion());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        System.out.println("Moviendo al jugador " + jugadorActual.getJugadorId() +
+                " a la posición = " + jugadorActual.getPosicion());
 
         try {
             jugadorRepository.updateJugador(jugadorActual);
@@ -63,14 +95,23 @@ public class TurnService implements ITurnService {
             throw new RuntimeException(e);
         }
 
-        // si cae en la casilla 11, va a la cárcel
         if (nuevaPosicion == 11) {
             jugadorActual.setEstado(true);
             System.out.println("Jugador " + jugadorActual.getNombreJugador() + " encarcelado!");
         }
 
-        markLastMove(jugadorActual.getJugadorId(), nuevaPosicion);
+        // Nuevo: delay proporcional al movimiento
+        if (hud != null && nuevaPosicion != 1 && nuevaPosicion != 11) {
+            canThrowDice = false;
+            double delaySeconds = Math.max(0.4 * numCasillas, 0.5);
+            System.out.printf("Mostrando HUD en %.2f segundos...%n", delaySeconds);
 
+            scheduler.schedule(() -> {
+                hud.onJugadorCaeEnCasilla(nuevaPosicion);
+            }, (long) (delaySeconds * 1000), TimeUnit.MILLISECONDS);
+        }
+
+        markLastMove(jugadorActual.getJugadorId(), nuevaPosicion);
     }
 
     @Override
@@ -81,45 +122,39 @@ public class TurnService implements ITurnService {
         Byte d1 = dados[0];
         Byte d2 = dados[1];
 
-        canThrowDice = true;
-        if (d1 != null && d2 != null) {
-            int movimiento = d1 + d2;
+        if (!canThrowDice() || d1 == null || d2 == null) return;
 
-            System.out.println("Resultados dados: [" + d1 + ", " + d2 + "]");
-            canThrowDice = false;
+        int movimiento = d1 + d2;
+        System.out.println("Resultados dados: [" + d1 + ", " + d2 + "]");
+        canThrowDice = false;
 
-            movePlayer(movimiento);
+        movePlayer(movimiento);
 
-            if (d1.equals(d2)) {
-                if (tiradas == 2) {
-                    System.out.println("3 dobles seguidos, vas a la cárcel!");
-                    tiradas = 1;
-                    nextTurn();
-                    dados[0] = dados[1] = null;
-                    return;
-                } else {
-                    tiradas++;
-                    System.out.println("¡Doble! Tira de nuevo");
-                    dados[0] = dados[1] = null;
-                    return;
-                }
-            } else {
+        if (d1.equals(d2)) {
+            if (tiradas == 2) {
+                System.out.println("3 dobles seguidos, vas a la cárcel!");
                 tiradas = 1;
                 nextTurn();
+            } else {
+                tiradas++;
+                System.out.println("¡Doble! Tira de nuevo");
+                canThrowDice = !uiLock;
             }
+        } else {
+            tiradas = 1;
+            if (!uiLock) {
 
-            dados[0] = dados[1] = null;
+                canThrowDice = true;
+                nextTurn();
+            }
         }
+
+        dados[0] = dados[1] = null;
     }
 
-    @Override
-    public void buyProperty() {}
-    @Override
-    public void payRent() {}
-    @Override
-    public boolean canThrowDice() { return canThrowDice; }
-    @Override
-    public boolean hasMovePending() { return movePending; }
+    @Override public void buyProperty() {}
+    @Override public void payRent() {}
+    @Override public boolean hasMovePending() { return movePending; }
 
     @Override
     public int[] consumeLastMove() {
@@ -134,3 +169,6 @@ public class TurnService implements ITurnService {
         lastMovedPos = nuevaPos;
     }
 }
+
+
+
