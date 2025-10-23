@@ -89,18 +89,49 @@ public class TurnService implements ITurnService {
         System.out.println("Moviendo al jugador " + jugadorActual.getJugadorId() +
                 " a la posición = " + jugadorActual.getPosicion());
 
+        // === CASO ESPECIAL: CÁRCEL ===
+        if (nuevaPosicion == 11) {
+            try {
+                jugadorActual.setEstado(true); // Estado encarcelado
+                jugadorRepository.updateJugador(jugadorActual); // Guardar en DB
+                System.out.println("Jugador " + jugadorActual.getNombreJugador() + " encarcelado!");
+
+                // Bloquear interacción
+                canThrowDice = false;
+                uiLock = true;
+
+                // Notificar visualmente en HUD
+                if (hud != null) {
+                    scheduler.schedule(() -> {
+                        hud.onJugadorCaeEnCasilla(nuevaPosicion);
+                    }, 600, TimeUnit.MILLISECONDS); // leve delay visual
+                }
+
+                // Pasar turno automáticamente después de un segundo
+                scheduler.schedule(() -> {
+                    System.out.println("Turno terminado por encarcelamiento de " + jugadorActual.getNombreJugador());
+                    canThrowDice = true;
+                    uiLock = false;
+                    nextTurn();
+                }, 1500, TimeUnit.MILLISECONDS);
+
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+
+            // Guardamos última jugada
+            markLastMove(jugadorActual.getJugadorId(), nuevaPosicion);
+            return; // Detenemos aquí, no seguimos con HUD de compra, etc.
+        }
+
+        // === Movimiento normal ===
         try {
             jugadorRepository.updateJugador(jugadorActual);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-        if (nuevaPosicion == 11) {
-            jugadorActual.setEstado(true);
-            System.out.println("Jugador " + jugadorActual.getNombreJugador() + " encarcelado!");
-        }
-
-        // Nuevo: delay proporcional al movimiento
+        // Delay proporcional al número de casillas
         if (hud != null && nuevaPosicion != 1 && nuevaPosicion != 11) {
             canThrowDice = false;
             double delaySeconds = Math.max(0.4 * numCasillas, 0.5);
@@ -113,6 +144,7 @@ public class TurnService implements ITurnService {
 
         markLastMove(jugadorActual.getJugadorId(), nuevaPosicion);
     }
+
 
     @Override
     public void update() {

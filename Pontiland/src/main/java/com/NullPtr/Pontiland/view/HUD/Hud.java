@@ -168,22 +168,15 @@ public class Hud extends BaseAppState implements ActionListener {
             dineroText.setColor(ColorRGBA.Black);
             centerText(dineroText, entry.startX, finalY, casillaSize, -50);
 
-            var estadoText = new com.jme3.font.BitmapText(font);
-            estadoText.setText(p.getEstado() ? "Encerrado" : "Libre");
-            estadoText.setColor(p.getEstado() ? ColorRGBA.Red : ColorRGBA.Green);
-            centerText(estadoText, entry.startX, finalY, casillaSize, -80);
-
             hudRoot.attachChild(casilla);
             hudRoot.attachChild(personajeText);
             hudRoot.attachChild(nameText);
             hudRoot.attachChild(dineroText);
-            hudRoot.attachChild(estadoText);
 
             entry.casilla = casilla;
             entry.personajeText = personajeText;
             entry.nameText = nameText;
             entry.dineroText = dineroText;
-            entry.estadoText = estadoText;
             entries.add(entry);
         }
     }
@@ -198,12 +191,52 @@ public class Hud extends BaseAppState implements ActionListener {
 
     public void onJugadorCaeEnCasilla(int numCasilla) {
         if (hudCompra == null || hudSubasta == null) return;
+
         hudSubasta.ocultar();
+
+        // === Si el jugador cae en la cárcel (casilla 11) ===
+        if (numCasilla == 11) {
+            int activeIndex = -1;
+            for (int i = 0; i < entries.size(); i++) {
+                if (entries.get(i).highlighted) {
+                    activeIndex = i;
+                    break;
+                }
+            }
+
+            if (activeIndex >= 0) {
+                HudEntry e = entries.get(activeIndex);
+
+                // Cambiar la textura de la casilla a carcel.png
+                try {
+                    var mat = e.casilla.getMaterial();
+                    var tex = ((SimpleApplication) getApplication())
+                            .getAssetManager()
+                            .loadTexture("graphics/sprites/Carcel.png");
+                    mat.setTexture("ColorMap", tex);
+                    e.casilla.setMaterial(mat);
+
+                    System.out.println("🔒 Jugador enviado a la cárcel: textura cambiada a carcel.png");
+                } catch (Exception ex) {
+                    System.err.println("⚠️ Error cargando carcel.png: " + ex.getMessage());
+                }
+            }
+
+            // Bloquear los dados mientras el turno cambia
+            if (turnService != null) {
+                turnService.lockDiceByUI(true);
+            }
+            return;
+        }
+
+        // === Casillas normales ===
         hudCompra.mostrarConCasilla(numCasilla);
         if (turnService != null) {
             turnService.lockDiceByUI(true);
         }
     }
+
+
 
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {}
@@ -232,7 +265,6 @@ public class Hud extends BaseAppState implements ActionListener {
             centerText(e.personajeText, e.currentX, e.y, 128f, 0);
             centerText(e.nameText, e.currentX, e.y, 128f, -25);
             centerText(e.dineroText, e.currentX, e.y, 128f, -50);
-            centerText(e.estadoText, e.currentX, e.y, 128f, -80);
         }
 
         // Actualización de los sub-HUDs
