@@ -28,15 +28,20 @@ public class CasillaRepository implements ICasillaRepository {
             + "JOIN TipoCasilla ON Casilla.TipoCasilla=TipoCasilla.TipoID "
             + "WHERE Casilla.PosicionTablero = ?";
 
-    try (Connection connect = dataService.createConnection()) {
-      PreparedStatement preparedStatement = connect.prepareStatement(obtenerCasillaPosicion);
+    try (Connection connect = dataService.createConnection();
+        PreparedStatement preparedStatement = connect.prepareStatement(obtenerCasillaPosicion)) {
       preparedStatement.setInt(1, posicion);
 
-      ResultSet resultSet = preparedStatement.executeQuery();
+      try (ResultSet resultSet = preparedStatement.executeQuery()) {
+        if (!resultSet.next()) {
+          throw new IllegalStateException(
+              "No se encontró la casilla para la posición: " + posicion);
+        }
 
-      Tipo tipo = Tipo.valueOf(resultSet.getString("TipoNombre"));
-      String nombreCasilla = resultSet.getString("NombreCasilla");
-      return new Casilla(posicion, nombreCasilla, tipo);
+        Tipo tipo = Tipo.valueOf(resultSet.getString("TipoNombre"));
+        String nombreCasilla = resultSet.getString("NombreCasilla");
+        return new Casilla(posicion, nombreCasilla, tipo);
+      }
 
     } catch (SQLException e) {
       throw new RuntimeException(e);

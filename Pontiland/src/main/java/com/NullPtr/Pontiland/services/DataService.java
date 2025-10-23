@@ -4,6 +4,7 @@ import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.utils.PropertiesReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.sql.*;
@@ -58,9 +59,8 @@ public class DataService implements IDataService {
    * @throws RuntimeException si ocurre un error de SQL al intentar conectarse.
    */
   public Connection createConnection() {
-    Connection conn = null;
     try {
-      return conn = DriverManager.getConnection(url, "sa", "");
+      return DriverManager.getConnection(url, "sa", "");
 
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -77,28 +77,18 @@ public class DataService implements IDataService {
    * @throws RuntimeException si ocurre un error de SQL o de lectura de archivos.
    */
   public void newDataBase() {
-    Connection conn = createConnection();
-    try {
-      Statement stmt = conn.createStatement();
+    try (Connection conn = createConnection();
+        Statement stmt = conn.createStatement();
+        InputStream ddlStream = getResourceStream(ddlResource);
+        InputStream insStream = getResourceStream(insResource)) {
 
-      // Cargar y ejecutar DDL.sql
-      /* src no existe en tiempo de ejecucion*/
-      String schemaSql =
-          new String(
-              this.getClass().getResourceAsStream(ddlResource).readAllBytes(),
-              StandardCharsets.UTF_8);
+      String schemaSql = new String(ddlStream.readAllBytes(), StandardCharsets.UTF_8);
       stmt.execute(schemaSql);
-      // Cargar y ejecutar data.sql
-      /* src no existe en tiempo de ejecucion*/
-      String dataSql =
-          new String(
-              this.getClass().getResourceAsStream(insResource).readAllBytes(),
-              StandardCharsets.UTF_8);
+
+      String dataSql = new String(insStream.readAllBytes(), StandardCharsets.UTF_8);
       stmt.execute(dataSql);
 
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    } catch (IOException e) {
+    } catch (SQLException | IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -112,17 +102,16 @@ public class DataService implements IDataService {
    * @throws RuntimeException si ocurre un error de SQL durante la carga.
    */
   public void loadDataBase(String archivoSeleccionado) {
-    Connection conn = createConnection();
-    try {
-      String ubicacionArchivo = savesDir;
-      ubicacionArchivo = ubicacionArchivo + archivoSeleccionado;
-      Path path = Paths.get(ubicacionArchivo);
-      if (Files.exists(path) && Files.isRegularFile(path)) {
-        String runscript = "RUNSCRIPT FROM ?";
-        PreparedStatement cargarPartida = conn.prepareStatement(runscript);
-        cargarPartida.setString(1, ubicacionArchivo);
-        cargarPartida.executeUpdate();
-      }
+    String ubicacionArchivo = savesDir + archivoSeleccionado;
+    Path path = Paths.get(ubicacionArchivo);
+    if (!Files.exists(path) || !Files.isRegularFile(path)) {
+      return;
+    }
+
+    try (Connection conn = createConnection();
+        PreparedStatement cargarPartida = conn.prepareStatement("RUNSCRIPT FROM ?")) {
+      cargarPartida.setString(1, ubicacionArchivo);
+      cargarPartida.executeUpdate();
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -188,17 +177,21 @@ public class DataService implements IDataService {
    * @throws RuntimeException si ocurre un error de SQL durante el proceso de guardado.
    */
   public void saveDataBase(long partidaID) {
-    Connection conn = createConnection();
-    try {
-      Statement stmt = conn.createStatement();
-      String ubicacionArchivo = savesDir;
-      ubicacionArchivo = ubicacionArchivo + partidaID + ".sql";
-      String script = "SCRIPT TO ?";
-      PreparedStatement guardarPartida = conn.prepareStatement(script);
+    String ubicacionArchivo = savesDir + partidaID + ".sql";
+    try (Connection conn = createConnection();
+        PreparedStatement guardarPartida = conn.prepareStatement("SCRIPT TO ?")) {
       guardarPartida.setString(1, ubicacionArchivo);
       guardarPartida.execute();
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private InputStream getResourceStream(String resourcePath) throws IOException {
+    InputStream stream = this.getClass().getResourceAsStream(resourcePath);
+    if (stream == null) {
+      throw new IOException("No se encontró el recurso: " + resourcePath);
+    }
+    return stream;
   }
 }
