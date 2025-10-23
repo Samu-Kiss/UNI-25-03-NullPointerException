@@ -5,7 +5,8 @@ public enum Tipo {
   PARADALIBRE("ParadaLibre"),
   EVENTO("Evento"),
   PROPIEDAD("Propiedad"),
-  MOVIMIENTO("Movimiento");
+  MOVIMIENTO("Movimiento"),
+  IRALACARCEL("IrALaCarcel");
 
   private final String action;
 
