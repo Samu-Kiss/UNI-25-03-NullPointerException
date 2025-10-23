@@ -16,7 +16,7 @@
     <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
     <checkstyle.plugin.version>3.3.1</checkstyle.plugin.version>
     <checkstyle.version>10.18.2</checkstyle.version>
-    <spotbugs.plugin.version>4.8.6.4</spotbugs.plugin.version>
+    <spotbugs.plugin.version>4.9.8.1</spotbugs.plugin.version>
   </properties>
 
   <dependencies>
@@ -122,10 +122,52 @@
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
         <version>${spotbugs.plugin.version}</version>
-        <configuration>
-          <effort>Max</effort>
-          <threshold>Low</threshold>
-        </configuration>
+        <executions>
+          <execution>
+            <id>spotbugs-report</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>spotbugs</goal>
+            </goals>
+            <configuration>
+              <effort>Min</effort>
+              <threshold>Low</threshold>
+              <failOnError>false</failOnError>
+              <xmlOutput>true</xmlOutput>
+              <htmlOutput>true</htmlOutput>
+              <excludeFilterFile>${project.basedir}/config/spotbugs/spotbugs-ignore.xml</excludeFilterFile>
+              <spotbugsXmlOutputFilename>spotbugs-report.xml</spotbugsXmlOutputFilename>
+            </configuration>
+          </execution>
+          <execution>
+            <id>spotbugs-enforce-analysis</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>spotbugs</goal>
+            </goals>
+            <configuration>
+              <failOnError>false</failOnError>
+              <effort>Max</effort>
+              <threshold>Low</threshold>
+              <xmlOutput>true</xmlOutput>
+              <htmlOutput>false</htmlOutput>
+              <excludeFilterFile>${project.basedir}/config/spotbugs/spotbugs-ignore.xml</excludeFilterFile>
+              <includeFilterFile>${project.basedir}/config/spotbugs/spotbugs-enforce.xml</includeFilterFile>
+              <spotbugsXmlOutputFilename>spotbugs-enforce.xml</spotbugsXmlOutputFilename>
+            </configuration>
+          </execution>
+          <execution>
+            <id>spotbugs-enforce</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <failOnError>true</failOnError>
+              <spotbugsXmlOutputFilename>spotbugs-enforce.xml</spotbugsXmlOutputFilename>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <!-- Code formatting & style enforcement (similar to IntelliJ Ctrl+Alt+L) -->
       <plugin>
