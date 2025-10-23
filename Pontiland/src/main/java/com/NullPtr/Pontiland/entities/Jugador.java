@@ -18,16 +18,22 @@ public class Jugador {
   private long partidaId = -1;
   private List<Propiedad> propiedades;
 
-    public Jugador(int jugadorId, String nombreJugador, int posicion, boolean enCarcel, int dinero, List<Propiedad> propiedades) {
-        this.jugadorId = jugadorId;
-        this.nombreJugador = nombreJugador;
-        this.posicion = posicion;
-        this.enCarcel = enCarcel;
-        this.dinero = dinero;
-        this.propiedades = propiedades;
-    }
+  public Jugador(
+      int jugadorId,
+      String nombreJugador,
+      int posicion,
+      boolean enCarcel,
+      int dinero,
+      List<Propiedad> propiedades) {
+    this.jugadorId = jugadorId;
+    this.nombreJugador = nombreJugador;
+    this.posicion = posicion;
+    this.enCarcel = enCarcel;
+    this.dinero = dinero;
+    this.propiedades = propiedades;
+  }
 
-    /**
+  /**
    * Constructor de la clase Jugador por defecto, con posicion inicial 1 y sin propiedades
    *
    * @param dinero Cantidad inicial de dinero del jugador
@@ -54,56 +60,58 @@ public class Jugador {
     propiedades = new ArrayList<Propiedad>();
   }
 
-    /**
-     * Constructor completo de la clase Jugador
-     * @param jugadorId Identificador único del jugador
-     * @param numJugador Número del jugador en la partida
-     * @param nombreJugador Nombre del jugador
-     * @param iconoId Identificador del icono del jugador
-     * @param posicion Posición actual del jugador en el tablero
-     * @param enCarcel Estado del jugador (si está en la cárcel o no)
-     * @param dinero Cantidad de dinero que posee el jugador
-     * @param partidaId Identificador de la partida a la que pertenece el jugador
-     */
-    public Jugador(int jugadorId,
-                   int numJugador,
-                   String nombreJugador,
-                   int iconoId,
-                   int posicion,
-                   boolean enCarcel,
-                   int dinero,
-                   long partidaId) {
+  /**
+   * Constructor completo de la clase Jugador
+   *
+   * @param jugadorId Identificador único del jugador
+   * @param numJugador Número del jugador en la partida
+   * @param nombreJugador Nombre del jugador
+   * @param iconoId Identificador del icono del jugador
+   * @param posicion Posición actual del jugador en el tablero
+   * @param enCarcel Estado del jugador (si está en la cárcel o no)
+   * @param dinero Cantidad de dinero que posee el jugador
+   * @param partidaId Identificador de la partida a la que pertenece el jugador
+   */
+  public Jugador(
+      int jugadorId,
+      int numJugador,
+      String nombreJugador,
+      int iconoId,
+      int posicion,
+      boolean enCarcel,
+      int dinero,
+      long partidaId) {
 
-        if (dinero < 0) {
-            throw new IllegalArgumentException("El dinero no puede ser negativo");
-        }
-        if (nombreJugador == null || nombreJugador.isEmpty()) {
-            throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
-        }
-        if (posicion < 1 || posicion > 40) {
-            throw new IllegalArgumentException("Posicion invalida");
-        }
-        if (partidaId < 0) {
-            throw new IllegalArgumentException("Identificador de la partida es inválido");
-        }
-        if (iconoId < 1 || iconoId > 7) {
-            throw new IllegalArgumentException("Identificador del icono es inválido");
-        }
-        if (numJugador < 1 || numJugador > 4) {
-            throw new IllegalArgumentException("Número de jugador es inválido");
-        }
-
-        this.jugadorId = jugadorId;
-        this.numJugador = numJugador;
-        this.nombreJugador = nombreJugador;
-        this.iconoId = iconoId;
-        this.posicion = posicion;
-        this.enCarcel = enCarcel;
-        this.dinero = dinero;
-        this.partidaId = partidaId;
+    if (dinero < 0) {
+      throw new IllegalArgumentException("El dinero no puede ser negativo");
+    }
+    if (nombreJugador == null || nombreJugador.isEmpty()) {
+      throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
+    }
+    if (posicion < 1 || posicion > 40) {
+      throw new IllegalArgumentException("Posicion invalida");
+    }
+    if (partidaId < 0) {
+      throw new IllegalArgumentException("Identificador de la partida es inválido");
+    }
+    if (iconoId < 1 || iconoId > 7) {
+      throw new IllegalArgumentException("Identificador del icono es inválido");
+    }
+    if (numJugador < 1 || numJugador > 4) {
+      throw new IllegalArgumentException("Número de jugador es inválido");
     }
 
-    public int getJugadorId() {
+    this.jugadorId = jugadorId;
+    this.numJugador = numJugador;
+    this.nombreJugador = nombreJugador;
+    this.iconoId = iconoId;
+    this.posicion = posicion;
+    this.enCarcel = enCarcel;
+    this.dinero = dinero;
+    this.partidaId = partidaId;
+  }
+
+  public int getJugadorId() {
     return jugadorId;
   }
 
@@ -114,8 +122,8 @@ public class Jugador {
     this.jugadorId = jugadorId;
   }
 
-  public int getNumJugador(){
-      return numJugador;
+  public int getNumJugador() {
+    return numJugador;
   }
 
   public String getNombreJugador() {

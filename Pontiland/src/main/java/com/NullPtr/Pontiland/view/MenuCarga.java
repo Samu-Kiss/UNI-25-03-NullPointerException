@@ -52,9 +52,9 @@ public class MenuCarga extends AbstractAppState {
   private Container backBar;
 
   public MenuCarga(IMenuActions actions, List<SavedGame> saves, Consumer<String> onSelect) {
-      this.saves = saves == null ? Collections.emptyList() : saves;
-      this.onSelect = onSelect;
-      this.actions = actions;
+    this.saves = saves == null ? Collections.emptyList() : saves;
+    this.onSelect = onSelect;
+    this.actions = actions;
   }
 
   @Override

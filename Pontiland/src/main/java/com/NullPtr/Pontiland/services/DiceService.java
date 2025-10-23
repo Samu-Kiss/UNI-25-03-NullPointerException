@@ -65,14 +65,12 @@ public class DiceService implements IDiceService {
 
   @Override
   public Byte[] getResultados() {
-      return  (resultados[0] != null && resultados[1] != null) ? resultados : new Byte[]{null, null};
+    return (resultados[0] != null && resultados[1] != null) ? resultados : new Byte[] {null, null};
   }
 
-    /**
-   * Inicia la secuencia de lanzamiento no bloqueante.
-   */
-    @Override
-    public void lanzamientoDados() {
+  /** Inicia la secuencia de lanzamiento no bloqueante. */
+  @Override
+  public void lanzamientoDados() {
     this.estado = Estado.LAUNCH;
   }
 
@@ -106,14 +104,14 @@ public class DiceService implements IDiceService {
         break;
       case DONE:
         estado = Estado.IDLE;
-          resultados = new Byte[]{null, null};
+        resultados = new Byte[] {null, null};
         break;
     }
   }
 
   @Override
-  public boolean canThrowDice(){
-        return turnService.canThrowDice();
+  public boolean canThrowDice() {
+    return turnService.canThrowDice();
   }
 
   @Override
@@ -121,4 +119,3 @@ public class DiceService implements IDiceService {
     this.turnService = turnService;
   }
 }
-

@@ -48,7 +48,6 @@ public class Casilla {
     return tipoCasilla;
   }
 
-
   public int getPosicionTablero() {
     return posicionTablero;
   }

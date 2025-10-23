@@ -1,6 +1,5 @@
 package com.NullPtr.Pontiland.entities;
 
-
 /**
  * Clase que representa una tarjeta de evento en el juego. Cada tarjeta tiene un nombre, una
  * descripción y una acción asociada
@@ -8,7 +7,8 @@ package com.NullPtr.Pontiland.entities;
 public class TarjetaEvento {
   private String nombre = null;
   private String descripcion = null;
-    private Accion accion = null;
+  private Accion accion = null;
+
   /**
    * Constructor de la clase TarjetaEvento
    *
@@ -28,12 +28,11 @@ public class TarjetaEvento {
     this.descripcion = descripcion;
   }
 
-    public void setAccion(String accion) {
-        this.accion = Accion.valueOf(accion);
-    }
+  public void setAccion(String accion) {
+    this.accion = Accion.valueOf(accion);
+  }
 
-    Accion getAccion(){
-        return accion;
-    }
+  Accion getAccion() {
+    return accion;
+  }
 }
-

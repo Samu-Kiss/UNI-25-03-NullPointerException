@@ -125,10 +125,10 @@
         <executions>
           <execution>
             <id>spotbugs-report</id>
-            <phase>verify</phase>
             <goals>
               <goal>spotbugs</goal>
             </goals>
+            <phase>verify</phase>
             <configuration>
               <effort>Min</effort>
               <threshold>Low</threshold>
@@ -141,10 +141,10 @@
           </execution>
           <execution>
             <id>spotbugs-enforce-analysis</id>
-            <phase>verify</phase>
             <goals>
               <goal>spotbugs</goal>
             </goals>
+            <phase>verify</phase>
             <configuration>
               <failOnError>false</failOnError>
               <effort>Max</effort>
@@ -158,10 +158,10 @@
           </execution>
           <execution>
             <id>spotbugs-enforce</id>
-            <phase>verify</phase>
             <goals>
               <goal>check</goal>
             </goals>
+            <phase>verify</phase>
             <configuration>
               <failOnError>true</failOnError>
               <spotbugsXmlOutputFilename>spotbugs-enforce.xml</spotbugsXmlOutputFilename>

@@ -56,8 +56,7 @@ public class LanzamientoDadosController {
    *
    * @param diceService Servicio encargado de la lógica de dados
    */
-  public LanzamientoDadosController(
-          DiceService diceService) {
+  public LanzamientoDadosController(DiceService diceService) {
     this.diceService = diceService;
   }
 
@@ -68,6 +67,4 @@ public class LanzamientoDadosController {
   public void update() {
     diceService.update();
   }
-
-
 }

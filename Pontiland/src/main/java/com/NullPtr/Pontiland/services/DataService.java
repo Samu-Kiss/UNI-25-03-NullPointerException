@@ -2,7 +2,6 @@ package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.utils.PropertiesReader;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -13,13 +12,13 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 
-
 public class DataService implements IDataService {
   String url;
 
-    private String savesDir;
-    private String ddlResource;
-    private String insResource;
+  private String savesDir;
+  private String ddlResource;
+  private String insResource;
+
   /**
    * Constructor que inicializa el servicio de datos con una URL de conexión específica.
    *
@@ -27,11 +26,11 @@ public class DataService implements IDataService {
    */
   public DataService(String url) {
 
-      this.url = url;
+    this.url = url;
 
-      this.savesDir    = PropertiesReader.getProperty("saves");
-      this.ddlResource = PropertiesReader.getProperty("nuevaPartida.ddl");
-      this.insResource = PropertiesReader.getProperty("nuevaPartida.inserts");
+    this.savesDir = PropertiesReader.getProperty("saves");
+    this.ddlResource = PropertiesReader.getProperty("nuevaPartida.ddl");
+    this.insResource = PropertiesReader.getProperty("nuevaPartida.inserts");
   }
 
   /**
@@ -39,7 +38,6 @@ public class DataService implements IDataService {
    *
    * @param url Nueva URL de la base de datos.
    */
-
   public void setUrl(String url) {
     this.url = url;
   }
@@ -84,23 +82,19 @@ public class DataService implements IDataService {
       Statement stmt = conn.createStatement();
 
       // Cargar y ejecutar DDL.sql
-        /* src no existe en tiempo de ejecucion*/
-        String schemaSql = new String(
-            this.getClass()
-                    .getResourceAsStream(ddlResource)
-                    .readAllBytes(),
-            StandardCharsets.UTF_8
-    );
-        stmt.execute(schemaSql);
+      /* src no existe en tiempo de ejecucion*/
+      String schemaSql =
+          new String(
+              this.getClass().getResourceAsStream(ddlResource).readAllBytes(),
+              StandardCharsets.UTF_8);
+      stmt.execute(schemaSql);
       // Cargar y ejecutar data.sql
-        /* src no existe en tiempo de ejecucion*/
-        String dataSql = new String(
-                this.getClass()
-                        .getResourceAsStream(insResource)
-                        .readAllBytes(),
-                StandardCharsets.UTF_8
-        );
-        stmt.execute(dataSql);
+      /* src no existe en tiempo de ejecucion*/
+      String dataSql =
+          new String(
+              this.getClass().getResourceAsStream(insResource).readAllBytes(),
+              StandardCharsets.UTF_8);
+      stmt.execute(dataSql);
 
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -145,9 +139,8 @@ public class DataService implements IDataService {
   public List<SavedGame> listarPartidasPasadas() {
     Map<String, String> mapaArchivo = new LinkedHashMap<>();
 
-    File scriptsPartidas = new File(
-            this.getClass().getResource(PropertiesReader.getProperty("saves")).getFile()
-            );
+    File scriptsPartidas =
+        new File(this.getClass().getResource(PropertiesReader.getProperty("saves")).getFile());
     File[] archivos = scriptsPartidas.listFiles();
 
     if (archivos != null) {
