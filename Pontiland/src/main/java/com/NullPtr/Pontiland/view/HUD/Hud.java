@@ -16,9 +16,12 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
+/**
+ * HUD principal del juego.
+ * Muestra los jugadores, el turno actual, y coordina los sub-HUDs (Compra, Subasta, Propiedades).
+ */
 public class Hud extends BaseAppState implements ActionListener {
 
     private static class HudEntry {
@@ -42,7 +45,6 @@ public class Hud extends BaseAppState implements ActionListener {
 
     private Node guiNode;
     private Node hudRoot;
-    private Node propiedadesPanel;
     private InputManager inputManager;
     private BitmapFont font;
     private TurnService turnService;
@@ -55,6 +57,7 @@ public class Hud extends BaseAppState implements ActionListener {
 
     private HudCompra hudCompra;
     private HudSubasta hudSubasta;
+    private HudPropiedades hudPropiedades;
 
     public Hud(HudController controller) {
         this.controller = controller;
@@ -76,15 +79,22 @@ public class Hud extends BaseAppState implements ActionListener {
 
         hudRoot = new Node("HUDRoot");
         crearPanelJugadores(simpleApp);
-        crearPanelPropiedades(simpleApp);
 
+        // Inicialización de sub-HUDs
         hudCompra = new HudCompra(simpleApp, hudRoot);
         hudSubasta = new HudSubasta(simpleApp, hudRoot);
+        hudPropiedades = new HudPropiedades(simpleApp, controller, hudRoot);
 
+        // Listener del panel de compra
         hudCompra.setListener(new HudCompra.HudCompraListener() {
             @Override
             public void onSubastaSolicitada() {
                 if (!hudSubasta.estaVisible()) hudSubasta.mostrar();
+            }
+
+            @Override
+            public void onComprarPropiedad(int numCasilla) {
+                hudPropiedades.agregarPropiedadJugadorActivo(numCasilla);
             }
 
             @Override
@@ -178,8 +188,25 @@ public class Hud extends BaseAppState implements ActionListener {
         }
     }
 
+    public void highlightActivePlayer(int playerIndex) {
+        int correctedIndex = (playerIndex - 1 + entries.size()) % entries.size();
+        for (int i = 0; i < entries.size(); i++) {
+            entries.get(i).highlighted = (i == correctedIndex);
+        }
+        hudPropiedades.highlightActivePlayer(correctedIndex);
+    }
+
+    public void onJugadorCaeEnCasilla(int numCasilla) {
+        if (hudCompra == null || hudSubasta == null) return;
+        hudSubasta.ocultar();
+        hudCompra.mostrarConCasilla(numCasilla);
+        if (turnService != null) {
+            turnService.lockDiceByUI(true);
+        }
+    }
+
     @Override
-    public void onAction(String name, boolean isPressed, float tpf) { }
+    public void onAction(String name, boolean isPressed, float tpf) {}
 
     @Override
     public void update(float tpf) {
@@ -208,45 +235,10 @@ public class Hud extends BaseAppState implements ActionListener {
             centerText(e.estadoText, e.currentX, e.y, 128f, -80);
         }
 
+        // Actualización de los sub-HUDs
+        hudPropiedades.update(tpf);
         hudCompra.update(tpf);
         hudSubasta.update(tpf);
-    }
-
-    public void highlightActivePlayer(int playerIndex) {
-
-        int correctedIndex = (playerIndex - 1 + entries.size()) % entries.size();
-
-        for (int i = 0; i < entries.size(); i++) {
-            entries.get(i).highlighted = (i == correctedIndex);
-        }
-    }
-
-    public void onJugadorCaeEnCasilla(int numCasilla) {
-        if (hudCompra == null || hudSubasta == null) return;
-        hudSubasta.ocultar();
-        hudCompra.mostrarConCasilla(numCasilla);
-        if (turnService != null) {
-            turnService.lockDiceByUI(true);
-        }
-    }
-
-    private void crearPanelPropiedades(SimpleApplication app) {
-        propiedadesPanel = new Node("PropiedadesPanel");
-        Quad fondo = new Quad(camWidth * 0.6f, 100f);
-        Geometry fondoGeo = new Geometry("propFondo", fondo);
-        Material mat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", new ColorRGBA(0, 0, 0, 0.4f));
-        fondoGeo.setMaterial(mat);
-        fondoGeo.setLocalTranslation(camWidth * 0.2f, 20f, 0);
-        propiedadesPanel.attachChild(fondoGeo);
-
-        var titulo = new com.jme3.font.BitmapText(font);
-        titulo.setText("Propiedades del Jugador");
-        titulo.setColor(ColorRGBA.White);
-        titulo.setLocalTranslation(camWidth * 0.45f, 100f, 1f);
-        propiedadesPanel.attachChild(titulo);
-
-        hudRoot.attachChild(propiedadesPanel);
     }
 
     private void centerText(com.jme3.font.BitmapText text, float x, float y, float size, float offsetY) {
@@ -262,5 +254,7 @@ public class Hud extends BaseAppState implements ActionListener {
 
     @Override protected void onEnable() { inputManager.addListener(this, "Click"); }
     @Override protected void onDisable() { inputManager.removeListener(this); }
-    @Override protected void cleanup(Application app) { }
+    @Override protected void cleanup(Application app) {}
 }
+
+

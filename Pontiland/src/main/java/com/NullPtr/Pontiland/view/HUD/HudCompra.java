@@ -16,7 +16,8 @@ public class HudCompra {
 
     public interface HudCompraListener {
         void onSubastaSolicitada();
-        void onFinalizarTurno(); // ← COMPRAR ahora hace esto
+        void onComprarPropiedad(int numCasilla);
+        void onFinalizarTurno();
     }
 
     private HudCompraListener listener;
@@ -94,11 +95,14 @@ public class HudCompra {
         btn.addClickCommands(source -> {
             if (texto.contains("COMPRAR")) {
                 ocultar();
-                System.out.println("HUD: COMPRAR / FINALIZAR clicado.");
-                if (listener != null) listener.onFinalizarTurno();
+                System.out.println("HUD: COMPRAR clicado.");
+                if (listener != null) {
+                    listener.onComprarPropiedad(currentCasilla);
+                    listener.onFinalizarTurno();
+                }
             } else if (texto.contains("SUBASTAR")) {
                 ocultar();
-                System.out.println("HUD: SUBASTAR clicado -> abrir subasta.");
+                System.out.println("HUD: SUBASTAR clicado.");
                 if (listener != null) listener.onSubastaSolicitada();
             }
         });
@@ -144,12 +148,13 @@ public class HudCompra {
             }
         }
     }
-
     private float easeOutCubic(float t) {
         return (float) (1 - Math.pow(1 - t, 3));
     }
 
-    public boolean estaVisible() { return visible; }
+    public boolean estaVisible() {
+        return visible;
+    }
 }
 
 
