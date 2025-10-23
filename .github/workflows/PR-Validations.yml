@@ -23,11 +23,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    #2. Configuracion de JDK 24
-    - name: Set up JDK 24
+    #2. Configuracion de JDK 21
+    - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
-        java-version: '24'
+        java-version: '21'
         distribution: 'jetbrains'
 
     #3. Cache de dependencias Maven
