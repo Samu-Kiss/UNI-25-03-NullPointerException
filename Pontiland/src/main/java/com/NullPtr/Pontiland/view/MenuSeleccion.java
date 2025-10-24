@@ -133,10 +133,10 @@ public class MenuSeleccion extends AbstractAppState {
   @Override
   public void initialize(AppStateManager sm, Application application) {
     super.initialize(sm, application);
-    Launcher L = (Launcher) application;
-    this.app = L;
-    this.guiNode = L.getGuiNode();
-    this.cam = L.getCamera();
+    Launcher launcher = (Launcher) application;
+    this.app = launcher;
+    this.guiNode = launcher.getGuiNode();
+    this.cam = launcher.getCamera();
     if (GuiGlobals.getInstance() == null) {
       GuiGlobals.initialize(application);
     }
