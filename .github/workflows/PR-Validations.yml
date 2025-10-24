@@ -68,15 +68,17 @@ jobs:
 
     #9. Reporte de cobertura JaCoCo
     - name: JaCoCo Coverage Report
-      uses: Madrapps/jacoco-report@v1.7.2
+      uses: PavanMudigonda/jacoco-reporter@v4.8
       if: always()
       with:
-        title: JaCoCo Coverage
-        paths: |
-          Pontiland/target/site/jacoco/jacoco.xml
-        token: ${{ secrets.GITHUB_TOKEN }}
-        min-coverage-overall: 0
-        min-coverage-changed-files: 0
+        coverage_results_path: Pontiland/target/site/jacoco/jacoco.xml
+        coverage_report_name: JaCoCo Coverage
+        coverage_report_title: JaCoCo Coverage
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_only_summary: false
+        skip_check_run: false
+        minimum_coverage: 0
+        fail_below_threshold: false
 
     #10. Reporte de Checkstyle
     - name: Checkstyle Report
