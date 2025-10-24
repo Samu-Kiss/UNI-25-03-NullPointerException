@@ -19,7 +19,7 @@ jobs:
 
     steps:
     
-    #1. Checkout de la ultima versión del codigo
+    #1. Checkout de la última versión del codigo
     - name: Checkout repository
       uses: actions/checkout@v4
 
