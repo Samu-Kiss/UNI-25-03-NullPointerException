@@ -80,20 +80,20 @@ jobs:
 
     #10. Reporte de Checkstyle
     - name: Checkstyle Report
-      uses: dorny/test-reporter@v2.1.1
+      uses: jwgmeligmeyling/checkstyle-github-action@v1
       if: always()
       with:
-        name: Checkstyle Report
         path: Pontiland/target/checkstyle-result.xml
-        reporter: checkstyle
-        fail-on-empty: false
+        name: Checkstyle Report
+        title: Checkstyle Annotations
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     #11. Reporte de SpotBugs
     - name: SpotBugs Report
-      uses: dorny/test-reporter@v2.1.1
+      uses: jwgmeligmeyling/spotbugs-github-action@v1
       if: always()
       with:
-        name: SpotBugs Report
         path: Pontiland/target/spotbugsXml.xml
-        reporter: findbugs
-        fail-on-empty: false
+        name: SpotBugs Report
+        title: SpotBugs Annotations
+        token: ${{ secrets.GITHUB_TOKEN }}
