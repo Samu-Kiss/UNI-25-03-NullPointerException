@@ -55,9 +55,45 @@ jobs:
     - name: Run SpotBugs
       run: mvn --batch-mode verify -DskipTests --no-transfer-progress
 
+    ###############
+    #  REPORTES   #
+    ###############
+
     #8. Generar reporte de pruebas
     - name: Test Report
       uses: mikepenz/action-junit-report@v5
       if: always()
       with:
         report_paths: 'Pontiland/target/surefire-reports/TEST-*.xml'
+
+    #9. Reporte de cobertura JaCoCo
+    - name: JaCoCo Coverage Report
+      uses: Madrapps/jacoco-report@v1.7
+      if: always()
+      with:
+        title: JaCoCo Coverage
+        paths: |
+          Pontiland/target/site/jacoco/jacoco.xml
+        token: ${{ secrets.GITHUB_TOKEN }}
+        min-coverage-overall: 0
+        min-coverage-changed-files: 0
+
+    #10. Reporte de Checkstyle
+    - name: Checkstyle Report
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Checkstyle Report
+        path: Pontiland/target/checkstyle-result.xml
+        reporter: checkstyle
+        fail-on-empty: false
+
+    #11. Reporte de SpotBugs
+    - name: SpotBugs Report
+      uses: dorny/test-reporter@v2.1.1
+      if: always()
+      with:
+        name: SpotBugs Report
+        path: Pontiland/target/spotbugsXml.xml
+        reporter: findbugs
+        fail-on-empty: false
