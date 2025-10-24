@@ -19,19 +19,25 @@ jobs:
 
     steps:
     
-    #1. Checkout de la última versión del codigo
-    - name: Checkout repository
+    # ------------------------------------
+    # Step 01: Checkout de la última versión del código
+    # Asegura que el workflow trabaja con la referencia del commit del PR/push.
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
-    #2. Configuración de JDK 21
-    - name: Set up JDK 21
+    # ------------------------------------
+    # Step 02: Configuración de JDK 21
+    # Instala y configura la versión exacta de Java requerida por el proyecto.
+    - name: Set Up JDK 21
       uses: actions/setup-java@v4
       with:
         java-version: '21'
         distribution: 'jetbrains'
 
-    #3. Cache de dependencias Maven
-    - name: Cache Maven packages
+    # ------------------------------------
+    # Step 03: Cache de dependencias Maven
+    # Restaura y guarda el repositorio local Maven para acelerar builds repetidos.
+    - name: Cache Maven Packages
       uses: actions/cache@v4
       with:
         path: ~/.m2/repository
@@ -39,34 +45,52 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-
 
-    #4. Compilar y empaquetar el proyecto con Maven
+    # ------------------------------------
+    # Step 04: Compilar y empaquetar el proyecto con Maven
+    # Compila el código fuente y genera el artefacto sin ejecutar pruebas.
     - name: Build with Maven
       run: mvn --batch-mode -DskipTests clean package --no-transfer-progress
 
-    #5. Ejecutar pruebas y generar cobertura (JUnit + JaCoCo)
+    # ------------------------------------
+    # Step 05: Ejecutar pruebas y generar cobertura (JUnit + JaCoCo)
+    # Corre la suite de tests unitarios y produce el reporte de cobertura.
     - name: Run Tests with Maven (JaCoCo)
       run: mvn --batch-mode test jacoco:report --no-transfer-progress
 
-    #6. Linter con Checkstyle
+    # ------------------------------------
+    # Step 06: Verificar formato con Spotless
+    # Valida que el código esté formateado según las reglas definidas por Spotless.
+    - name: Run Spotless Check
+      run: mvn --batch-mode spotless:check --no-transfer-progress
+
+    # ------------------------------------
+    # Step 07: Linter con Checkstyle
+    # Ejecuta Checkstyle con la configuración del proyecto y falla ante violaciones.
     - name: Run Checkstyle
       run: mvn --batch-mode checkstyle:check --no-transfer-progress
 
-    #7. Análisis estático con SpotBugs
+    # ------------------------------------
+    # Step 08: Análisis estático con SpotBugs
+    # Ejecuta SpotBugs en modo verificación para detectar defectos potenciales.
     - name: Run SpotBugs
       run: mvn --batch-mode verify -DskipTests --no-transfer-progress
 
-    ###############
-    #  REPORTES   #
-    ###############
+    ##################################################
+    #                    REPORTES                    #
+    ##################################################
 
-    #8. Generar reporte de pruebas
+    # ------------------------------------
+    # Step 09: Generar reporte de pruebas
+    # Publica los resultados de JUnit en la pestaña “Checks” aunque falle el build.
     - name: Test Report
       uses: mikepenz/action-junit-report@v5
       if: always()
       with:
         report_paths: 'Pontiland/target/surefire-reports/TEST-*.xml'
 
-    #9. Reporte de cobertura JaCoCo
+    # ------------------------------------
+    # Step 10: Reporte de cobertura JaCoCo
+    # Sube el informe de cobertura a GitHub como check dedicado.
     - name: JaCoCo Coverage Report
       uses: PavanMudigonda/jacoco-reporter@v4.8
       if: always()
@@ -80,7 +104,9 @@ jobs:
         minimum_coverage: 0
         fail_below_threshold: false
 
-    #10. Reporte de Checkstyle
+    # ------------------------------------
+    # Step 11: Reporte de Checkstyle
+    # Anota los hallazgos de Checkstyle directamente sobre el diff del PR.
     - name: Checkstyle Report
       uses: jwgmeligmeyling/checkstyle-github-action@v1
       if: always()
@@ -90,7 +116,9 @@ jobs:
         title: Checkstyle Annotations
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    #11. Reporte de SpotBugs
+    # ------------------------------------
+    # Step 12: Reporte de SpotBugs
+    # Publica las anotaciones de SpotBugs para revisar los avisos desde GitHub.
     - name: SpotBugs Report
       uses: jwgmeligmeyling/spotbugs-github-action@v1
       if: always()
@@ -99,3 +127,4 @@ jobs:
         name: SpotBugs Report
         title: SpotBugs Annotations
         token: ${{ secrets.GITHUB_TOKEN }}
+        
