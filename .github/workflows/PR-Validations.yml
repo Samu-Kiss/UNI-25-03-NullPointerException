@@ -68,7 +68,7 @@ jobs:
 
     #9. Reporte de cobertura JaCoCo
     - name: JaCoCo Coverage Report
-      uses: Madrapps/jacoco-report@v1.7
+      uses: Madrapps/jacoco-report@v1.7.2
       if: always()
       with:
         title: JaCoCo Coverage
@@ -80,7 +80,7 @@ jobs:
 
     #10. Reporte de Checkstyle
     - name: Checkstyle Report
-      uses: dorny/test-reporter@v1
+      uses: dorny/test-reporter@v2.1.1
       if: always()
       with:
         name: Checkstyle Report
