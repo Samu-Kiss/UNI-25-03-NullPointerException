@@ -12,4 +12,6 @@ public interface IDataService {
   void loadDataBase(String archivoSeleccionado);
 
   List<SavedGame> listarPartidasPasadas();
+
+  void deleteDataBase();
 }

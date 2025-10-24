@@ -201,4 +201,24 @@ public class DataService implements IDataService {
       throw new RuntimeException(e);
     }
   }
+
+  /**
+   * Elimina todos los objetos de la base de datos actual.
+   *
+   * <p>Ejecuta el comando SQL "DROP ALL OBJECTS" para eliminar todas las tablas, vistas y otros
+   * objetos presentes en la base de datos.
+   *
+   * @throws RuntimeException si ocurre un error de SQL durante la eliminación.
+   */
+  @Override
+  public void deleteDataBase(){
+    Connection conn = createConnection();
+    try {
+      Statement stmt = conn.createStatement();
+      String query = "DROP ALL OBJECTS";
+      stmt.execute(query);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
