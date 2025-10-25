@@ -62,6 +62,7 @@ public class StartGameService implements IStartGameService {
       for (int i = 0; i < jugadores.size(); i++) {
         Jugador j = jugadores.get(i);
         // Inicialización lógica TEMPORAL (sin tocar el repositorio)
+        //TODO: conectar logica de back para inicializar el HUD
         j.setJugadorId((byte) (i + 1));
         j.setPosicion(1);
         j.setEstado(false);

@@ -151,6 +151,9 @@ public class HudCompra {
     private float easeOutCubic(float t) {
         return (float) (1 - Math.pow(1 - t, 3));
     }
+    public int getCurrentCasilla() {
+        return currentCasilla;
+    }
 
     public boolean estaVisible() {
         return visible;

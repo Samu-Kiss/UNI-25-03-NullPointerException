@@ -89,7 +89,7 @@ public class TurnService implements ITurnService {
         System.out.println("Moviendo al jugador " + jugadorActual.getJugadorId() +
                 " a la posición = " + jugadorActual.getPosicion());
 
-        // === CASO ESPECIAL: CÁRCEL ===
+        // TODO: LOGICA DE LA CARCEL
         if (nuevaPosicion == 11) {
             try {
                 jugadorActual.setEstado(true); // Estado encarcelado
@@ -119,12 +119,12 @@ public class TurnService implements ITurnService {
                 throw new RuntimeException(e);
             }
 
-            // Guardamos última jugada
+            // se guarda la última jugada
             markLastMove(jugadorActual.getJugadorId(), nuevaPosicion);
             return; // Detenemos aquí, no seguimos con HUD de compra, etc.
         }
 
-        // === Movimiento normal ===
+        // Movimiento comun
         try {
             jugadorRepository.updateJugador(jugadorActual);
         } catch (SQLException e) {

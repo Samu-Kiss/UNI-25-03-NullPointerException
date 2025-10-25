@@ -1,14 +1,15 @@
+// File: HudPropiedades.java
 package com.NullPtr.Pontiland.view.HUD;
 
 import com.NullPtr.Pontiland.controllers.HudController;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.jme3.app.SimpleApplication;
-import com.jme3.font.BitmapFont;
-import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.scene.Geometry;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import com.jme3.scene.shape.Quad;
+import com.simsilica.lemur.*;
+import com.simsilica.lemur.component.QuadBackgroundComponent;
+import com.simsilica.lemur.style.BaseStyles;
 
 import java.util.*;
 
@@ -16,16 +17,17 @@ public class HudPropiedades {
 
     private final HudController controller;
     private final Node hudRoot;
-    private final BitmapFont font;
     private final float camWidth;
     private final float camHeight;
 
+    // map jugadorId -> lista de casillas
     private final Map<Integer, List<Integer>> propiedadesPorJugador = new HashMap<>();
-    private final Map<Integer, Node> panelesPorJugador = new HashMap<>();
+    // map jugadorId -> Container Lemur
+    private final Map<Integer, Container> panelesPorJugador = new HashMap<>();
 
-    private int jugadorActivo = 0;
-    private Node panelVisibleActual = null;
-    private Node panelEntrante = null;
+    private int jugadorActivo = 0; // índice en la lista controller.getJugadores()
+    private Container panelVisibleActual = null;
+    private Container panelEntrante = null;
     private boolean animandoPanel = false;
     private float animTimer = 0f;
     private static final float ANIM_DURACION = 0.5f;
@@ -33,94 +35,121 @@ public class HudPropiedades {
     public HudPropiedades(SimpleApplication app, HudController controller, Node hudRoot) {
         this.controller = controller;
         this.hudRoot = hudRoot;
-        this.font = app.getAssetManager().loadFont("Interface/Fonts/Default.fnt");
         this.camWidth = app.getCamera().getWidth();
         this.camHeight = app.getCamera().getHeight();
 
-        crearPaneles(app);
+        if (GuiGlobals.getInstance() == null) {
+            GuiGlobals.initialize(app);
+            BaseStyles.loadGlassStyle();
+            GuiGlobals.getInstance().getStyles().setDefaultStyle("glass");
+        }
+
+        crearPaneles();
     }
 
-    private void crearPaneles(SimpleApplication app) {
+    private void crearPaneles() {
         List<Jugador> jugadores = controller.getJugadores();
 
         for (Jugador j : jugadores) {
-            Node panel = new Node("PanelPropiedadesJugador_" + j.getJugadorId());
-            Quad fondo = new Quad(camWidth * 0.6f, 150f);
-            Geometry fondoGeo = new Geometry("propFondo", fondo);
-            Material mat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-            mat.setColor("Color", new ColorRGBA(0, 0, 0, 0.4f));
-            fondoGeo.setMaterial(mat);
-            fondoGeo.setLocalTranslation(camWidth * 0.2f, 20f, 0);
-            panel.attachChild(fondoGeo);
+            Container panel = new Container();
+            panel.setBackground(new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.4f)));
+            panel.setPreferredSize(new Vector3f(camWidth * 0.6f, 150f, 0));
 
-            var titulo = new com.jme3.font.BitmapText(font);
-            titulo.setText("Propiedades de " + j.getNombreJugador());
+            // Posición inicial (fuera de pantalla inferior)
+            panel.setLocalTranslation(camWidth * 0.2f, -300f, 0);
+
+            Label titulo = new Label("Propiedades de " + j.getNombreJugador());
             titulo.setColor(ColorRGBA.White);
-            titulo.setLocalTranslation(camWidth * 0.35f, 160f, 1f);
-            panel.attachChild(titulo);
+            titulo.setFontSize(22);
+            panel.addChild(titulo);
 
-            Node contenido = new Node("PropiedadesContenido_" + j.getJugadorId());
-            panel.attachChild(contenido);
+            Container lista = new Container();
+            lista.setName("PropiedadesContenido_" + j.getJugadorId());
+            lista.setBackground(null);
+            panel.addChild(lista);
 
-            panel.setLocalTranslation(0, -200f, 0);
+            // oculto inicialmente
             panel.setCullHint(Node.CullHint.Always);
-            hudRoot.attachChild(panel);
 
+            hudRoot.attachChild(panel);
             panelesPorJugador.put(j.getJugadorId(), panel);
             propiedadesPorJugador.put(j.getJugadorId(), new ArrayList<>());
         }
     }
+
 
     public void agregarPropiedadJugadorActivo(int numCasilla) {
         List<Jugador> jugadores = controller.getJugadores();
         if (jugadorActivo < 0 || jugadorActivo >= jugadores.size()) return;
 
         int jugadorId = jugadores.get(jugadorActivo).getJugadorId();
+        agregarPropiedadAJugador(jugadorId, numCasilla);
+    }
+
+    /** añade la propiedad al jugador identificado por jugadorId (ID real). */
+    public void agregarPropiedadAJugador(int jugadorId, int numCasilla) {
         propiedadesPorJugador.computeIfAbsent(jugadorId, k -> new ArrayList<>()).add(numCasilla);
-        actualizarPanelPropiedades();
+        // Mostrar/actualizar el panel del jugador (sin cambiar turnos)
+        mostrarPanelDeJugador(jugadorId);
     }
 
+    /** Selecciona visualmente el jugador por índice (0-based) */
     public void highlightActivePlayer(int playerIndex) {
-        jugadorActivo = playerIndex;
-        actualizarPanelPropiedades();
+        this.jugadorActivo = playerIndex;
+        // actualizar la vista para ese jugador
+        List<Jugador> jugadores = controller.getJugadores();
+        if (playerIndex < 0 || playerIndex >= jugadores.size()) return;
+        int jugadorId = jugadores.get(playerIndex).getJugadorId();
+        mostrarPanelDeJugador(jugadorId);
     }
 
-    private void actualizarPanelPropiedades() {
+    /** Muestra (y rellena) el panel correspondiente al jugadorId.
+     *  Hace la animación si corresponde.
+     */
+    private void mostrarPanelDeJugador(int jugadorId) {
+        // establecer jugadorActivo como índice en la lista (si existe)
         List<Jugador> jugadores = controller.getJugadores();
-        if (jugadorActivo < 0 || jugadorActivo >= jugadores.size()) return;
+        int idx = -1;
+        for (int i = 0; i < jugadores.size(); i++) {
+            if (jugadores.get(i).getJugadorId() == jugadorId) { idx = i; break; }
+        }
+        if (idx >= 0) this.jugadorActivo = idx;
 
-        int jugadorId = jugadores.get(jugadorActivo).getJugadorId();
-        Node nuevoPanel = panelesPorJugador.get(jugadorId);
+        Container nuevoPanel = panelesPorJugador.get(jugadorId);
         if (nuevoPanel == null) return;
 
-        Node contenido = (Node) nuevoPanel.getChild("PropiedadesContenido_" + jugadorId);
-        contenido.detachAllChildren();
+        // rellenar contenido
+        Container contenido = (Container) nuevoPanel.getChild("PropiedadesContenido_" + jugadorId);
+        if (contenido != null) clearContainer(contenido);
+
         List<Integer> propiedades = propiedadesPorJugador.getOrDefault(jugadorId, List.of());
-
-        float startX = camWidth * 0.25f;
-        float baseY = 60f;
-        float offset = 30f;
-
-        for (int i = 0; i < propiedades.size(); i++) {
-            int num = propiedades.get(i);
-            var texto = new com.jme3.font.BitmapText(font);
-            texto.setText("Propiedad " + num);
-            texto.setColor(ColorRGBA.White);
-            texto.setLocalTranslation(startX, baseY + i * offset, 2f);
-            contenido.attachChild(texto);
+        for (int num : propiedades) {
+            Label propLabel = new Label("• Propiedad " + num);
+            propLabel.setColor(ColorRGBA.White);
+            propLabel.setFontSize(16);
+            contenido.addChild(propLabel);
         }
 
-        if (panelVisibleActual != nuevoPanel) {
-            animandoPanel = true;
-            animTimer = 0f;
-            panelEntrante = nuevoPanel;
-
-            if (panelVisibleActual != null)
-                panelVisibleActual.setCullHint(Node.CullHint.Inherit);
-
-            panelEntrante.setCullHint(Node.CullHint.Inherit);
-        } else {
+        // si ya visible, simplemente aseguramos que esté en pantalla
+        if (panelVisibleActual == nuevoPanel) {
             panelVisibleActual.setCullHint(Node.CullHint.Inherit);
+            return;
+        }
+
+        // iniciar animación de intercambio
+        animandoPanel = true;
+        animTimer = 0f;
+        panelEntrante = nuevoPanel;
+
+        if (panelVisibleActual != null) panelVisibleActual.setCullHint(Node.CullHint.Inherit);
+        panelEntrante.setCullHint(Node.CullHint.Inherit);
+    }
+
+    /** Limpia children de un Container de forma segura. */
+    private void clearContainer(Container c) {
+        // Container hereda de Panel -> Node, usamos detachChild hasta vaciar
+        while (!c.getChildren().isEmpty()) {
+            c.detachChild(c.getChild(0));
         }
     }
 
@@ -130,12 +159,17 @@ public class HudPropiedades {
             float progress = Math.min(animTimer / ANIM_DURACION, 1f);
             float eased = easeOutCubic(progress);
 
+            float targetY = camHeight * 0.25f; // destino visible
+            float hiddenY = -300f; // fuera de pantalla inferior
+
             if (panelVisibleActual != null) {
-                panelVisibleActual.setLocalTranslation(0, -200f * eased, 0);
+                float yOld = targetY - (targetY - hiddenY) * eased;
+                panelVisibleActual.setLocalTranslation(camWidth * 0.2f, yOld, 0);
                 if (progress >= 1f) panelVisibleActual.setCullHint(Node.CullHint.Always);
             }
 
-            panelEntrante.setLocalTranslation(0, -200f * (1f - eased), 0);
+            float yNew = hiddenY + (targetY - hiddenY) * eased;
+            panelEntrante.setLocalTranslation(camWidth * 0.2f, yNew, 0);
 
             if (progress >= 1f) {
                 animandoPanel = false;

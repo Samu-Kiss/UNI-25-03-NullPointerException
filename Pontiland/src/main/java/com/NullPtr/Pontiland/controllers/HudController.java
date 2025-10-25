@@ -3,6 +3,9 @@ package com.NullPtr.Pontiland.controllers;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
+import com.NullPtr.Pontiland.view.HUD.HudCompra;
+import com.NullPtr.Pontiland.view.HUD.HudPropiedades;
+import com.NullPtr.Pontiland.view.HUD.HudSubasta;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -21,16 +24,12 @@ public class HudController {
     }
 
     private void cargarJugadores() throws SQLException {
-        // Obtener el número real de jugadores de la partida
         int numJugadores = partidaRepository.getNumJugadores();
-
         for (int i = 1; i <= numJugadores; i++) {
             try {
                 Jugador j = jugadorRepository.getJugadorByID(i);
                 jugadores.add(j);
-            } catch (SQLException ignored) {
-                // Ignoramos si no existe ese jugador (por seguridad)
-            }
+            } catch (SQLException ignored) {}
         }
     }
 
@@ -48,7 +47,51 @@ public class HudController {
             }
         }
     }
+
+    // coordinador visual entre los HUDs
+    public void registrarListeners(HudCompra hudCompra, HudSubasta hudSubasta, HudPropiedades hudPropiedades) {
+
+        // === Listener de compra ===
+        hudCompra.setListener(new HudCompra.HudCompraListener() {
+            @Override
+            public void onSubastaSolicitada() {
+                hudCompra.ocultar();
+                hudSubasta.iniciarSubasta(getJugadores(), hudCompra.getCurrentCasilla());
+            }
+
+            @Override
+            public void onComprarPropiedad(int numCasilla) {
+                hudPropiedades.agregarPropiedadJugadorActivo(numCasilla);
+            }
+
+            @Override
+            public void onFinalizarTurno() {
+                System.out.println("Turno finalizado");
+            }
+        });
+
+        // === Listener de subasta ===
+        hudSubasta.setListener(new HudSubasta.HudSubastaListener() {
+            @Override
+            public void onJugadorPuja(Jugador jugador, int nuevaOferta) {
+                System.out.println(" " + jugador.getNombreJugador() + " puja: $" + nuevaOferta);
+            }
+
+            @Override
+            public void onJugadorSeRetira(Jugador jugador) {
+                System.out.println(" " + jugador.getNombreJugador() + " se retira.");
+            }
+
+            @Override
+            public void onSubastaTerminada(Jugador ganador, int ofertaFinal) {
+                System.out.println(" " + ganador.getNombreJugador() + " gana con $" + ofertaFinal);
+                hudPropiedades.highlightActivePlayer(ganador.getJugadorId() - 1);
+                hudPropiedades.agregarPropiedadAJugador(ganador.getJugadorId(), hudSubasta.getPropiedadSubastada());
+            }
+        });
+    }
 }
+
 
 
 
