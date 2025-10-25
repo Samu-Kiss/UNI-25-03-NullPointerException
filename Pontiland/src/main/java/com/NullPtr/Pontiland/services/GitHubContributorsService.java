@@ -35,6 +35,13 @@ public class GitHubContributorsService {
   /**
    * Obtiene los nombres de usuario (login) de los contribuidores de un repositorio público.
    * Preferir {@link #fetchContributorsDetailed(String, String, int)} si necesitas avatar/URL.
+   *
+   * @param owner propietario del repositorio
+   * @param repo nombre del repositorio
+   * @param limit número máximo de contribuidores a devolver
+   * @return lista con los logins de los contribuidores
+   * @throws IOException si ocurre un problema al comunicarse con la API de GitHub
+   * @throws InterruptedException si la operación HTTP es interrumpida
    */
   public List<String> fetchContributors(String owner, String repo, int limit)
       throws IOException, InterruptedException {
@@ -44,7 +51,16 @@ public class GitHubContributorsService {
     return out;
   }
 
-  /** Obtiene contribuidores con datos detallados (login, avatar_url, html_url). */
+  /**
+   * Obtiene contribuidores con datos detallados (login, avatar_url, html_url).
+   *
+   * @param owner propietario del repositorio
+   * @param repo nombre del repositorio
+   * @param limit número máximo de contribuidores a devolver
+   * @return lista con los contribuidores recuperados de la API de GitHub
+   * @throws IOException si ocurre un problema al comunicarse con la API de GitHub
+   * @throws InterruptedException si la operación HTTP es interrumpida
+   */
   public List<Contributor> fetchContributorsDetailed(String owner, String repo, int limit)
       throws IOException, InterruptedException {
     int pageSize = Math.min(Math.max(limit, 1), 100);

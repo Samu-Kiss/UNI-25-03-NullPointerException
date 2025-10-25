@@ -52,19 +52,19 @@ public class MenuCarga extends AbstractAppState {
   private Container backBar;
 
   public MenuCarga(IMenuActions actions, List<SavedGame> saves, Consumer<String> onSelect) {
-      this.saves = saves == null ? Collections.emptyList() : saves;
-      this.onSelect = onSelect;
-      this.actions = actions;
+    this.saves = saves == null ? Collections.emptyList() : saves;
+    this.onSelect = onSelect;
+    this.actions = actions;
   }
 
   @Override
   public void initialize(AppStateManager stateManager, Application app) {
     super.initialize(stateManager, app);
-    Launcher L = (Launcher) app;
-    this.app = L;
-    this.guiNode = L.getGuiNode();
-    this.inputManager = L.getInputManager();
-    this.camera = L.getCamera();
+    Launcher launcher = (Launcher) app;
+    this.app = launcher;
+    this.guiNode = launcher.getGuiNode();
+    this.inputManager = launcher.getInputManager();
+    this.camera = launcher.getCamera();
 
     inputManager.setCursorVisible(true);
     if (GuiGlobals.getInstance() == null) {

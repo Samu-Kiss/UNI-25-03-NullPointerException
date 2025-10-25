@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <Match>
+    <Bug pattern="CT_CONSTRUCTOR_THROW" />
+  </Match>
+  <Match>
+    <Bug pattern="UI_INHERITANCE_UNSAFE_GETRESOURCE" />
+  </Match>
+  <Match>
+    <Bug pattern="DM_CONVERT_CASE" />
+  </Match>
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP" />
+  </Match>
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2" />
+  </Match>
+  <Match>
+    <Bug pattern="DMI_EMPTY_DB_PASSWORD" />
+  </Match>
+  <Match>
+    <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
+  </Match>
+  <Match>
+    <Bug pattern="DLS_DEAD_LOCAL_STORE" />
+  </Match>
+  <Match>
+    <Bug pattern="DLS_DEAD_LOCAL_STORE_IN_RETURN" />
+  </Match>
+  <Match>
+    <Bug pattern="IM_BAD_CHECK_FOR_ODD" />
+  </Match>
+  <Match>
+    <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE" />
+  </Match>
+  <Match>
+    <Bug pattern="REC_CATCH_EXCEPTION" />
+  </Match>
+</FindBugsFilter>

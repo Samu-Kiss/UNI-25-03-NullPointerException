@@ -80,7 +80,8 @@ public class Launcher extends SimpleApplication {
     lanzamientoDadosController.registerInputs(getInputManager());
 
     scene = new Scene(this, bulletAppState, lanzamientoDadosController);
-    startGameService = new StartGameService(jugadorRepository, partidaRepository, dataService, scene);
+    startGameService =
+        new StartGameService(jugadorRepository, partidaRepository, dataService, scene);
 
     IMenuActions actions = new MenuController(this, startGameService, dataService);
     stateManager.attach(new MenuPrincipal(actions));
@@ -88,19 +89,17 @@ public class Launcher extends SimpleApplication {
 
   @Override
   public void simpleUpdate(float tpf) {
-      if (scene != null) scene.update(tpf);
+    if (scene != null) scene.update(tpf);
 
-      turnService.update();
+    turnService.update();
 
-      if (scene != null && turnService.hasMovePending()) {
-          int[] mv = turnService.consumeLastMove();
-          if (mv != null) {
-              scene.replicateFichaPosition(mv[0], mv[1]-1);
-          }
+    if (scene != null && turnService.hasMovePending()) {
+      int[] mv = turnService.consumeLastMove();
+      if (mv != null) {
+        scene.replicateFichaPosition(mv[0], mv[1] - 1);
       }
+    }
 
-      lanzamientoDadosController.update();
+    lanzamientoDadosController.update();
   }
-
-
 }

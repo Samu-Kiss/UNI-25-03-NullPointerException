@@ -45,7 +45,11 @@ public class LanzamientoDadosController {
         public void onTouchEvent(TouchEvent evt) {}
       };
 
-  /** Registrar el listener crudo (sin mappings). */
+  /**
+   * Registra el listener crudo (sin mappings).
+   *
+   * @param inputManager gestor de entradas donde se añadirá el listener
+   */
   public void registerInputs(InputManager inputManager) {
     if (inputManager == null) return;
     inputManager.addRawInputListener(rawKeys);
@@ -56,8 +60,7 @@ public class LanzamientoDadosController {
    *
    * @param diceService Servicio encargado de la lógica de dados
    */
-  public LanzamientoDadosController(
-          DiceService diceService) {
+  public LanzamientoDadosController(DiceService diceService) {
     this.diceService = diceService;
   }
 
@@ -68,6 +71,4 @@ public class LanzamientoDadosController {
   public void update() {
     diceService.update();
   }
-
-
 }

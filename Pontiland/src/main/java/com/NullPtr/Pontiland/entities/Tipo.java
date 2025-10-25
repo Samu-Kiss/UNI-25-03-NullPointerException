@@ -12,11 +12,11 @@ public enum Tipo {
 
   private final String action;
 
-    Tipo(String action) {
-        this.action = action;
-    }
+  Tipo(String action) {
+    this.action = action;
+  }
 
-    public String getAction(){
-        return action;
-    }
+  public String getAction() {
+    return action;
+  }
 }

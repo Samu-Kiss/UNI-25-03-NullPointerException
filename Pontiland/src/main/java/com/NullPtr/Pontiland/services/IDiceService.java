@@ -18,6 +18,4 @@ public interface IDiceService {
   boolean canThrowDice();
 
   void setTurnService(ITurnService turnService);
-
-
 }

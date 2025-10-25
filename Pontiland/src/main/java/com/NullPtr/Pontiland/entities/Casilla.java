@@ -22,11 +22,13 @@ public class Casilla {
   private String nombreCasilla = null;
 
   /**
-   * Constructor de la clase Evento
+   * Constructor de la clase Evento.
    *
    * @param posicionTablero Posición de la casilla en el tablero
    * @param nombreCasilla Nombre de la casilla
    * @param tipoCasilla Tipo de la casilla
+   * @throws IllegalArgumentException si la posición, el nombre o el tipo de la casilla no son
+   *     válidos
    */
   public Casilla(int posicionTablero, String nombreCasilla, Tipo tipoCasilla) {
     if (posicionTablero < 1 || posicionTablero > 40) {
@@ -47,7 +49,6 @@ public class Casilla {
   public Tipo getTipoCasilla() {
     return tipoCasilla;
   }
-
 
   public int getPosicionTablero() {
     return posicionTablero;

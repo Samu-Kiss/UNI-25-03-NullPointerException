@@ -3,6 +3,7 @@ package com.NullPtr.Pontiland.repository;
 import com.NullPtr.Pontiland.services.IDataService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -16,6 +17,7 @@ public class PartidaRepository implements IPartidaRepository {
    * Servicio de acceso a datos para la gestión de conexiones y operaciones con la base de datos.
    */
   IDataService dataService;
+
   long partidaID;
 
   /**
@@ -36,53 +38,44 @@ public class PartidaRepository implements IPartidaRepository {
    * @throws RuntimeException si ocurre un error de SQL durante la inserción.
    */
   public long newPartida(int numJugadores) {
-    Connection conn = dataService.createConnection();
     LocalDateTime myDateObj = LocalDateTime.now();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     String formatted = myDateObj.format(formatter);
     partidaID = Long.parseLong(formatted);
 
     String creacionPartida = "INSERT INTO PARTIDA(PartidaID, NumeroJugadores) VALUES( ? , ? )";
-    try {
-      PreparedStatement crearPartida = conn.prepareStatement(creacionPartida);
-      crearPartida.setLong(1, partidaID);
-      crearPartida.setInt(2, numJugadores);
-      crearPartida.executeUpdate();
+    try (Connection conn = dataService.createConnection()) {
+      try (PreparedStatement crearPartida = conn.prepareStatement(creacionPartida)) {
+        crearPartida.setLong(1, partidaID);
+        crearPartida.setInt(2, numJugadores);
+        crearPartida.executeUpdate();
+      }
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
     return partidaID;
-
   }
 
-
-    @Override
-    public int getNumJugadores() {
-        Connection conn = dataService.createConnection();
-        String consulta = "SELECT NumeroJugadores FROM Partida WHERE PartidaID = ?";
-        try {
-            PreparedStatement stmt = conn.prepareStatement(consulta);
-            stmt.setLong(1, partidaID);
-            var rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("NumeroJugadores");
-            } else {
-                throw new RuntimeException("No se encontró un jugador activo para la partida: " + partidaID);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+  @Override
+  public int getNumJugadores() {
+    String consulta = "SELECT NumeroJugadores FROM Partida WHERE PartidaID = ?";
+    try (Connection conn = dataService.createConnection()) {
+      try (PreparedStatement stmt = conn.prepareStatement(consulta)) {
+        stmt.setLong(1, partidaID);
+        try (ResultSet rs = stmt.executeQuery()) {
+          if (rs.next()) {
+            return rs.getInt("NumeroJugadores");
+          }
+          throw new RuntimeException(
+              "No se encontró un jugador activo para la partida: " + partidaID);
         }
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
+  }
 
-    public IDataService getDataService() {
-        return dataService;
-    }
-
-
+  public IDataService getDataService() {
+    return dataService;
+  }
 }
