@@ -1,44 +1,26 @@
 package com.NullPtr.Pontiland.view.HUD;
 
-import com.NullPtr.Pontiland.services.TurnService;
 import com.NullPtr.Pontiland.controllers.HudController;
 import com.NullPtr.Pontiland.entities.Jugador;
+import com.NullPtr.Pontiland.services.TurnService;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.font.BitmapFont;
 import com.jme3.input.InputManager;
 import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
-import com.jme3.scene.Geometry;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import com.jme3.scene.shape.Quad;
-import java.util.*;
+import com.simsilica.lemur.*;
+import com.simsilica.lemur.component.QuadBackgroundComponent;
+import com.simsilica.lemur.style.BaseStyles;
 
-/**
- * HUD principal del juego.
- * Muestra los jugadores, el turno actual, y coordina los sub-HUDs (Compra, Subasta, Propiedades).
- */
+import java.util.ArrayList;
+import java.util.List;
+
 public class Hud extends BaseAppState implements ActionListener {
-
-    private static class HudEntry {
-        Geometry casilla;
-        com.jme3.font.BitmapText personajeText;
-        com.jme3.font.BitmapText nameText;
-        com.jme3.font.BitmapText dineroText;
-        com.jme3.font.BitmapText estadoText;
-        float startX;
-        float targetX;
-        float highlightX;
-        float currentX;
-        float y;
-        float animTime = 0;
-        boolean animDone = false;
-        boolean highlighted = false;
-    }
 
     private final HudController controller;
     private final List<HudEntry> entries = new ArrayList<>();
@@ -46,7 +28,6 @@ public class Hud extends BaseAppState implements ActionListener {
     private Node guiNode;
     private Node hudRoot;
     private InputManager inputManager;
-    private BitmapFont font;
     private TurnService turnService;
 
     private float camWidth;
@@ -72,7 +53,12 @@ public class Hud extends BaseAppState implements ActionListener {
         SimpleApplication simpleApp = (SimpleApplication) app;
         guiNode = simpleApp.getGuiNode();
         inputManager = simpleApp.getInputManager();
-        font = simpleApp.getAssetManager().loadFont("Interface/Fonts/Default.fnt");
+
+        if (GuiGlobals.getInstance() == null) {
+            GuiGlobals.initialize(simpleApp);
+            BaseStyles.loadGlassStyle();
+            GuiGlobals.getInstance().getStyles().setDefaultStyle("glass");
+        }
 
         camWidth = app.getCamera().getWidth();
         camHeight = app.getCamera().getHeight();
@@ -80,107 +66,81 @@ public class Hud extends BaseAppState implements ActionListener {
         hudRoot = new Node("HUDRoot");
         crearPanelJugadores(simpleApp);
 
-        // Inicialización de sub-HUDs
+        // Sub-HUDs
         hudCompra = new HudCompra(simpleApp, hudRoot);
         hudSubasta = new HudSubasta(simpleApp, hudRoot);
         hudPropiedades = new HudPropiedades(simpleApp, controller, hudRoot);
 
-        // Listener del panel de compra
-        hudCompra.setListener(new HudCompra.HudCompraListener() {
-            @Override
-            public void onSubastaSolicitada() {
-                if (!hudSubasta.estaVisible()) hudSubasta.mostrar();
-            }
-
-            @Override
-            public void onComprarPropiedad(int numCasilla) {
-                hudPropiedades.agregarPropiedadJugadorActivo(numCasilla);
-            }
-
-            @Override
-            public void onFinalizarTurno() {
-                if (turnService != null) {
-                    turnService.lockDiceByUI(false);
-                    turnService.setCanThrowDice(true);
-                    turnService.nextTurn();
-                }
-            }
-        });
+        // 📡 Registrar los listeners a través del controlador
+        controller.registrarListeners(hudCompra, hudSubasta, hudPropiedades);
 
         guiNode.attachChild(hudRoot);
         inputManager.addMapping("Click", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
     }
 
+
     private void crearPanelJugadores(SimpleApplication app) {
         float yStart = camHeight - 200f;
         float targetX = 50f;
-        float casillaSize = 128f;
+        float casillaWidth = 128f;
         float spacing = 50f;
 
         List<Jugador> players = controller.getJugadores();
         int numJugadores = players.size();
 
         switch (numJugadores) {
-            case 2 -> delayDuration = 3f;
+            case 2 -> delayDuration = 3.5f;
             case 3 -> delayDuration = 6f;
             case 4 -> delayDuration = 8f;
             default -> delayDuration = 2f;
         }
 
-        String[] casillaPaths = {
-                "graphics/sprites/casilla1.png",
-                "graphics/sprites/casilla2.png",
-                "graphics/sprites/casilla3.png",
-                "graphics/sprites/casilla4.png"
-        };
-
         for (int i = 0; i < numJugadores; i++) {
             Jugador p = players.get(i);
             HudEntry entry = new HudEntry();
 
-            float finalY = yStart - (i * (casillaSize + spacing));
-            entry.startX = -casillaSize - 200f;
+            float finalY = yStart - (i * (casillaWidth + spacing));
+            entry.startX = -casillaWidth - 200f;
             entry.targetX = targetX;
             entry.highlightX = targetX + 30f;
             entry.currentX = entry.startX;
             entry.y = finalY;
 
-            var tex = app.getAssetManager().loadTexture(casillaPaths[i % casillaPaths.length]);
-            var quad = new Quad(casillaSize, casillaSize);
-            var casilla = new Geometry("casilla" + i, quad);
-            var mat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
-            mat.setTexture("ColorMap", tex);
-            casilla.setMaterial(mat);
-            casilla.setLocalTranslation(entry.startX, finalY, 0);
+            Container cont = new Container();
+            cont.setPreferredSize(new Vector3f(casillaWidth, casillaWidth, 0));
+            cont.setLocalTranslation(entry.startX, finalY, 0);
 
-            var personajeText = new com.jme3.font.BitmapText(font);
-            personajeText.setText("ICONO " + p.getIconoId());
-            personajeText.setColor(ColorRGBA.Black);
-            centerText(personajeText, entry.startX, finalY, casillaSize, 0);
+            String rutaFondo = String.format("graphics/sprites/casilla%d.png", i + 1);
+            QuadBackgroundComponent fondo = new QuadBackgroundComponent(
+                    app.getAssetManager().loadTexture(rutaFondo)
+            );
+            cont.setBackground(fondo);
 
-            var nameText = new com.jme3.font.BitmapText(font);
-            nameText.setText(p.getNombreJugador());
-            nameText.setColor(ColorRGBA.Black);
-            centerText(nameText, entry.startX, finalY, casillaSize, -25);
+            Label icono = new Label("ICONO " + p.getIconoId());
+            icono.setColor(ColorRGBA.Black);
+            Label nombre = new Label(p.getNombreJugador());
+            nombre.setColor(ColorRGBA.Black);
+            Label dinero = new Label("$" + p.getDinero());
+            dinero.setColor(ColorRGBA.Black);
 
-            var dineroText = new com.jme3.font.BitmapText(font);
-            dineroText.setText("$" + p.getDinero());
-            dineroText.setColor(ColorRGBA.Black);
-            centerText(dineroText, entry.startX, finalY, casillaSize, -50);
+            float centerX = casillaWidth / 2f - 40f;
+            icono.setLocalTranslation(centerX, casillaWidth * -0.25f, 1);
+            nombre.setLocalTranslation(centerX, casillaWidth * -0.55f, 1);
+            dinero.setLocalTranslation(centerX, casillaWidth * -0.75f, 1);
 
-            hudRoot.attachChild(casilla);
-            hudRoot.attachChild(personajeText);
-            hudRoot.attachChild(nameText);
-            hudRoot.attachChild(dineroText);
+            cont.attachChild(icono);
+            cont.attachChild(nombre);
+            cont.attachChild(dinero);
 
-            entry.casilla = casilla;
-            entry.personajeText = personajeText;
-            entry.nameText = nameText;
-            entry.dineroText = dineroText;
+            hudRoot.attachChild(cont);
+
+            entry.container = cont;
+            entry.iconoLabel = icono;
+            entry.nombreLabel = nombre;
+            entry.dineroLabel = dinero;
             entries.add(entry);
         }
     }
-
     public void highlightActivePlayer(int playerIndex) {
         int correctedIndex = (playerIndex - 1 + entries.size()) % entries.size();
         for (int i = 0; i < entries.size(); i++) {
@@ -191,55 +151,17 @@ public class Hud extends BaseAppState implements ActionListener {
 
     public void onJugadorCaeEnCasilla(int numCasilla) {
         if (hudCompra == null || hudSubasta == null) return;
-
         hudSubasta.ocultar();
 
-        // === Si el jugador cae en la cárcel (casilla 11) ===
         if (numCasilla == 11) {
-            int activeIndex = -1;
-            for (int i = 0; i < entries.size(); i++) {
-                if (entries.get(i).highlighted) {
-                    activeIndex = i;
-                    break;
-                }
-            }
-
-            if (activeIndex >= 0) {
-                HudEntry e = entries.get(activeIndex);
-
-                // Cambiar la textura de la casilla a carcel.png
-                try {
-                    var mat = e.casilla.getMaterial();
-                    var tex = ((SimpleApplication) getApplication())
-                            .getAssetManager()
-                            .loadTexture("graphics/sprites/Carcel.png");
-                    mat.setTexture("ColorMap", tex);
-                    e.casilla.setMaterial(mat);
-
-                    System.out.println("🔒 Jugador enviado a la cárcel: textura cambiada a carcel.png");
-                } catch (Exception ex) {
-                    System.err.println("⚠️ Error cargando carcel.png: " + ex.getMessage());
-                }
-            }
-
-            // Bloquear los dados mientras el turno cambia
-            if (turnService != null) {
-                turnService.lockDiceByUI(true);
-            }
+            if (turnService != null) turnService.lockDiceByUI(true);
+            System.out.println("Jugador enviado a la cárcel.");
             return;
         }
 
-        // === Casillas normales ===
         hudCompra.mostrarConCasilla(numCasilla);
-        if (turnService != null) {
-            turnService.lockDiceByUI(true);
-        }
+        if (turnService != null) turnService.lockDiceByUI(true);
     }
-
-
-
-    @Override
-    public void onAction(String name, boolean isPressed, float tpf) {}
 
     @Override
     public void update(float tpf) {
@@ -260,24 +182,12 @@ public class Hud extends BaseAppState implements ActionListener {
                 float target = e.highlighted ? e.highlightX : e.targetX;
                 e.currentX += (target - e.currentX) * Math.min(tpf * 5f, 1f);
             }
-
-            e.casilla.setLocalTranslation(e.currentX, e.y, 0);
-            centerText(e.personajeText, e.currentX, e.y, 128f, 0);
-            centerText(e.nameText, e.currentX, e.y, 128f, -25);
-            centerText(e.dineroText, e.currentX, e.y, 128f, -50);
+            e.container.setLocalTranslation(e.currentX, e.y, 0);
         }
 
-        // Actualización de los sub-HUDs
         hudPropiedades.update(tpf);
         hudCompra.update(tpf);
         hudSubasta.update(tpf);
-    }
-
-    private void centerText(com.jme3.font.BitmapText text, float x, float y, float size, float offsetY) {
-        float width = text.getLineWidth();
-        float textX = x + (size - width) / 2f;
-        float textY = y + (size / 2f) + offsetY + 20f;
-        text.setLocalTranslation(textX, textY, 10f);
     }
 
     private float easeOutCubic(float t) {
@@ -287,6 +197,10 @@ public class Hud extends BaseAppState implements ActionListener {
     @Override protected void onEnable() { inputManager.addListener(this, "Click"); }
     @Override protected void onDisable() { inputManager.removeListener(this); }
     @Override protected void cleanup(Application app) {}
+    @Override public void onAction(String name, boolean isPressed, float tpf) {}
 }
+
+
+
 
 
