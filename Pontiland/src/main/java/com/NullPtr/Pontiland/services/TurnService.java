@@ -12,13 +12,11 @@ public class TurnService implements ITurnService {
   private ICasillaService casillaService;
   private DiceService diceService;
   private ICasillaRepository casillaRepository;
-  private int playerID = 0;
   private boolean movePending = false;
   private int lastMovedJugadorId = -1;
   private int lastMovedPos = -1;
   private int tiradas = 1;
 
-  Jugador jugadorActual;
 
   public TurnService(
       IJugadorRepository jugadorRepository,
@@ -36,7 +34,7 @@ public class TurnService implements ITurnService {
   @Override
   public void nextTurn() {
     try {
-      playerID =
+        int playerID =
           jugadorRepository.getPlayerIdByNumJugador(
               (jugadorRepository.getActivePlayer() % partidaRepository.getNumJugadores()) + 1);
       jugadorRepository.changeActivePlayer(playerID);
@@ -48,9 +46,9 @@ public class TurnService implements ITurnService {
 
   public void movePlayer(int numCasillas) {
     int nuevaPosicion;
-
+      Jugador jugadorActual;
     try {
-      jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+        jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
       nuevaPosicion = (jugadorActual.getPosicion() + numCasillas) % 40;
       jugadorActual.setPosicion(nuevaPosicion);
     } catch (SQLException e) {
@@ -89,7 +87,13 @@ public class TurnService implements ITurnService {
     if (dados == null) return;
     Byte d1 = dados[0];
     Byte d2 = dados[1];
-    if (jugadorActual != null) {
+      Jugador jugadorActual = null;
+      try {
+          jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+      } catch (SQLException e) {
+          throw new RuntimeException(e);
+      }
+      if (jugadorActual != null) {
       if (diceService.getCanInteract()) {
         casillaService.interaccion( jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
       }

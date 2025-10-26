@@ -2,15 +2,15 @@ package com.NullPtr.Pontiland.services;
 
 public interface ITurnService {
 
-  void nextTurn();
+    void nextTurn();
 
-  void update();
+    void update();
 
-  void buyProperty();
+    void buyProperty();
 
-  void payRent();
+    void payRent();
 
-  int[] consumeLastMove();
+    int[] consumeLastMove();
 
-  boolean hasMovePending();
+    boolean hasMovePending();
 }
