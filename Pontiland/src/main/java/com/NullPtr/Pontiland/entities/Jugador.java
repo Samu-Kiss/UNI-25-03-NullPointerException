@@ -88,7 +88,7 @@ public class Jugador {
     if (nombreJugador == null || nombreJugador.isEmpty()) {
       throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
     }
-    if (posicion < 1 || posicion > 40) {
+    if (posicion < 0 || posicion > 40) {
       throw new IllegalArgumentException("Posicion invalida");
     }
     if (partidaId < 0) {

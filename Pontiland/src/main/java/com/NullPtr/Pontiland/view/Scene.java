@@ -132,7 +132,7 @@ public class Scene {
         }
         mvSpatial.setLocalTranslation(target);
 
-        // Actualiza cellIndex autoritativo
+        // Actualiza cellIndex
         Integer finalIdx = mvIndices.get(mvSeg);
         mvSpatial.setUserData("cellIndex", finalIdx);
 
@@ -190,7 +190,7 @@ public class Scene {
       Vector3f initialOffset = placed.subtract(cell0);
       s.setUserData("initialOffset", initialOffset);
 
-      s.setUserData("cellIndex", 1);
+      s.setUserData("cellIndex", 0);
 
       com.jme3.bullet.control.RigidBodyControl rb =
           new com.jme3.bullet.control.RigidBodyControl(1f);
@@ -212,7 +212,7 @@ public class Scene {
         if (ciUd instanceof Integer) currentIndex = (Integer) ciUd;
 
         s.setUserData("jugadorId", jugadorId);
-        int steps = (casillaIndex - currentIndex + TOTAL_CASILLAS) % TOTAL_CASILLAS;
+        int steps = (casillaIndex - currentIndex) % TOTAL_CASILLAS;
         System.out.println("pasos: " + steps);
         if (steps == 0) {
             s.setUserData("cellIndex", casillaIndex);
@@ -223,18 +223,6 @@ public class Scene {
         List<Integer> indices  = new ArrayList<>();
 
         for (int i = 1; i <= steps; i++) {
-            int cur = (currentIndex + i - 1 + TOTAL_CASILLAS) % TOTAL_CASILLAS;
-
-            boolean atCorner      = (cur % SIDE) == 0;
-            boolean nextIsCorner  = ((cur + 1) % SIDE) == 0;
-
-            if (atCorner || nextIsCorner) {
-                cellSize = 1.5385f * 2f;
-                System.out.println("Límite de esquina en " + cur + " -> cellSize= " + cellSize);
-            } else {
-                cellSize = 1.5385f;
-            }
-
             int idx = (currentIndex + i) % TOTAL_CASILLAS;
             Vector3f center = posFromCell(idx);
             targets.add(center);
@@ -264,7 +252,6 @@ public class Scene {
     this.mvDuration = durationSeconds;
     this.mvJump = jumpHeight;
 
-    // Punto de partida del primer segmento
     Vector3f start =
         (rb != null && rb.getPhysicsLocation() != null)
             ? rb.getPhysicsLocation()
@@ -275,43 +262,49 @@ public class Scene {
     this.mvSeg = (targets.isEmpty() ? -1 : 0);
     this.mvTimer = 0f;
   }
+
     private Vector3f posFromCell(int c) {
-        int idx = ((c % TOTAL_CASILLAS) + TOTAL_CASILLAS) % TOTAL_CASILLAS; // 0..39
+        int idx = (c % TOTAL_CASILLAS);
 
-        float[] POS_BOTTOM = { 1,2,3,4,5,6,7,8,9,10 };
-        float[] POS_LEFT   = { 0,1,2,3,4,5,6,7,8,9 };
-        float[] POS_TOP    = { 0,1,2,3,4,5,6,7,8,9 };
-        float[] POS_RIGHT  = { 0,1,2,3,4,5,6,7,8,9 };
+        int side = idx / SIDE;
+        int pos = idx % SIDE;
+
+        float x = 0f;
+        float z = 0f;
+        System.out.println("posicion en el lado " + pos);
+        switch (side) {
+            case 0:
+                cellSize = 1.5385f;
+                x = -(pos+1) * cellSize; //lograr llegar a ese pos+1 por mas absurdo que parezca me tomo como 2 horas de mi vida
+                z = 0;
+                break;
+
+            // Left side: bottom -> top
+            case 1:
+                cellSize = 1.357500558970818f;
+                x = -BOARD_FIRST_POSITION.getX() * 2f;
+                z = -(((pos+1) * cellSize) + pos * 0.23f);
+                break;
 
 
-        float x = 0f, z = 0f;
-        float pos;
+            // Top side: left -> right
+            case 2:
+                cellSize = 1.357500558970818f;
+                z = -BOARD_FIRST_POSITION.getZ() * 2f;
+                if ((pos+1) == 0) {
+                    x = (-BOARD_FIRST_POSITION.getX() * 2f) + ((pos+1) * cellSize);
+                    break;
+                } else {
+                    x = (-BOARD_FIRST_POSITION.getX() * 2f) + ((pos+1) * cellSize) + (pos+1) * 0.24f;
+                    break;
+                }
 
-        if (idx >= 0 && idx <= 9) {
-            int k = idx - 0;
-            pos = POS_BOTTOM[k];
-            x = -pos * cellSize;
-            z = 0f;
-
-        } else if (idx >= 10 && idx <= 19) {
-            int k = idx - 10;
-            pos = POS_LEFT[k];
-            x = -BOARD_FIRST_POSITION.getX() * 2f;
-            z = -(pos * cellSize + pos * 0.23f);
-
-        } else if (idx >= 20 && idx <= 29) {
-            int k = idx - 20;
-            pos = POS_TOP[k];
-            z = -BOARD_FIRST_POSITION.getZ() * 2f;
-
-            // Si quieres comportamiento distinto para pos==0, ya lo controlas en POS_TOP[0]
-            x = (-BOARD_FIRST_POSITION.getX() * 2f) + (pos * cellSize) + (pos * 0.24f);
-
-        } else { // 30..39
-            int k = idx - 30;
-            pos = POS_RIGHT[k];
-            x = 0f;
-            z = (-BOARD_FIRST_POSITION.getZ() * 2f) + (pos * cellSize) + (pos * 0.24f);
+                // Right side: top -> bottom
+            case 3:
+                cellSize = 1.5385f;
+                if( (pos+1) == 0) cellSize *= 2f;
+                z = (-BOARD_FIRST_POSITION.getZ() * 2f) + ((pos+1) * cellSize) + (pos+1) * 0.24f;
+                break;
         }
 
         return new Vector3f(
@@ -320,7 +313,6 @@ public class Scene {
                 BOARD_FIRST_POSITION.z + z
         );
     }
-
 
     /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
   private void loadBoardModel() {
