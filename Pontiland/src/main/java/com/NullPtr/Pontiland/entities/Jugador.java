@@ -18,6 +18,16 @@ public class Jugador {
   private long partidaId = -1;
   private List<Propiedad> propiedades;
 
+  /**
+   * Constructor completo de la clase Jugador con lista de propiedades
+   *
+   * @param jugadorId Identificador único del jugador
+   * @param nombreJugador Nombre del jugador
+   * @param posicion Posición actual del jugador en el tablero
+   * @param enCarcel Estado del jugador (si está en la cárcel o no)
+   * @param dinero Cantidad de dinero que posee el jugador
+   * @param propiedades Lista de propiedades que posee el jugador
+   */
   public Jugador(
       int jugadorId,
       String nombreJugador,
