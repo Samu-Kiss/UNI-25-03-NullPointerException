@@ -135,7 +135,7 @@ public class PropiedadRepository {
         if (!rs.next()) {
           return 0; // o el valor que corresponda si no hay nivel
         }
-        return rs.getInt("NivelConstruido");
+        return rs.getInt("NivelPropiedad");
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
