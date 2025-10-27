@@ -83,11 +83,11 @@ public class MenuPrincipal extends AbstractAppState {
    */
   @Override
   public void initialize(AppStateManager stateManager, Application app) {
-    Launcher L = (Launcher) app;
-    this.app = L;
-    this.inputManager = L.getInputManager();
-    this.camera = L.getCamera();
-    this.guiNode = L.getGuiNode();
+    Launcher launcher = (Launcher) app;
+    this.app = launcher;
+    this.inputManager = launcher.getInputManager();
+    this.camera = launcher.getCamera();
+    this.guiNode = launcher.getGuiNode();
 
     inputManager.setCursorVisible(true);
     if (GuiGlobals.getInstance() == null) {

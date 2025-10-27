@@ -33,7 +33,7 @@ public class TurnService implements ITurnService {
   @Override
   public void nextTurn() {
     try {
-        int playerID =
+      int playerID =
           jugadorRepository.getPlayerIdByNumJugador(
               (jugadorRepository.getActivePlayer() % partidaRepository.getNumJugadores()) + 1);
       jugadorRepository.changeActivePlayer(playerID);
@@ -45,9 +45,9 @@ public class TurnService implements ITurnService {
 
   public void movePlayer(int numCasillas) {
     int nuevaPosicion;
-      Jugador jugadorActual;
+    Jugador jugadorActual;
     try {
-        jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+      jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
       nuevaPosicion = (jugadorActual.getPosicion() + numCasillas) % 40;
       jugadorActual.setPosicion(nuevaPosicion);
     } catch (SQLException e) {
@@ -87,23 +87,22 @@ public class TurnService implements ITurnService {
     Byte d1 = dados[0];
     Byte d2 = dados[1];
 
-      Jugador jugadorActual = null;
-      try {
-          if( jugadorRepository.getActivePlayer() != -1)
-          jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-      } catch (SQLException e) {
-      }
-      if (jugadorActual != null) {
+    Jugador jugadorActual = null;
+    try {
+      if (jugadorRepository.getActivePlayer() != -1)
+        jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+    } catch (SQLException e) {
+    }
+    if (jugadorActual != null) {
       if (diceService.getCanInteract()) {
-        casillaService.interaccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+        casillaService.interaccion(
+            jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
       }
     }
-      if(casillaService.getIrACarcel())
-      {
-          System.out.println("sisssisisisisisisiis");
-          moveToJail();
-      }
-
+    if (casillaService.getIrACarcel()) {
+      System.out.println("sisssisisisisisisiis");
+      moveToJail();
+    }
 
     if (d1 != null && d2 != null) {
       int movimiento = d1 + d2;
@@ -157,23 +156,24 @@ public class TurnService implements ITurnService {
     lastMovedJugadorId = jugadorId;
     lastMovedPos = nuevaPos;
   }
-  @Override
-    public void moveToJail()
-    {
-        int jailPosition = 11;
-        Jugador jugadorActual;
-        try {
-            jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-            jugadorRepository.goToJail(jugadorRepository.getNumJugadorByPlayerId(jugadorActual.getJugadorId()));
 
-            System.out.println(
-                    "El jugador "
-                            + jugadorActual.getJugadorId()
-                            + " ha sido enviado a la cárcel en la posición "
-                            + jailPosition);
-            markLastMove(jugadorActual.getJugadorId(), jailPosition);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+  @Override
+  public void moveToJail() {
+    int jailPosition = 11;
+    Jugador jugadorActual;
+    try {
+      jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+      jugadorRepository.goToJail(
+          jugadorRepository.getNumJugadorByPlayerId(jugadorActual.getJugadorId()));
+
+      System.out.println(
+          "El jugador "
+              + jugadorActual.getJugadorId()
+              + " ha sido enviado a la cárcel en la posición "
+              + jailPosition);
+      markLastMove(jugadorActual.getJugadorId(), jailPosition);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
+  }
 }

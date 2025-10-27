@@ -95,7 +95,7 @@ public class Launcher extends SimpleApplication {
     if (scene != null) scene.update(tpf);
 
     turnService.update();
-    //TODO refactor this
+    // TODO refactor this
     if (scene != null && turnService.hasMovePending()) {
       int[] mv = turnService.consumeLastMove();
       if (mv != null) {

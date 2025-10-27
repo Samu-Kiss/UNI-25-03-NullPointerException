@@ -30,6 +30,7 @@ public class StartGameService implements IStartGameService {
    * @param jugadorRepository Repositorio de jugadores.
    * @param partidaRepository Repositorio de partidas.
    * @param dataService Servicio de datos.
+   * @param scene escena principal usada para cargar los modelos al iniciar partida.
    */
   public StartGameService(
       IJugadorRepository jugadorRepository,

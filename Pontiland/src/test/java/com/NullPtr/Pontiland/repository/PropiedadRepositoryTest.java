@@ -1,7 +1,5 @@
 package com.NullPtr.Pontiland.repository;
 
-import com.NullPtr.Pontiland.repository.IPartidaRepository;
-import com.NullPtr.Pontiland.repository.PartidaRepository;
 import com.NullPtr.Pontiland.services.DataService;
 import com.NullPtr.Pontiland.services.IDataService;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,8 +24,5 @@ public class PropiedadRepositoryTest {
   }
 
   @Test
-  public void testGetPropiedadByPositionNoOwner() {
-
-  }
-
+  public void testGetPropiedadByPositionNoOwner() {}
 }

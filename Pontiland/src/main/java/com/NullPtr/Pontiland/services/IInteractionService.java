@@ -4,13 +4,14 @@ import com.NullPtr.Pontiland.view.IPanelCompra;
 
 public interface IInteractionService {
 
-    void InteractionService(IPanelCompra panelCompraView);
+  void InteractionService(IPanelCompra panelCompraView);
 
-    void mostrarCompra(int jugadorId, int posicionTablero);
+  void mostrarCompra(int jugadorId, int posicionTablero);
 
-    void onAccionComprarActual();
-    void onAccionPagarRentaActual();
+  void onAccionComprarActual();
 
-    /* Utilidades de HUD */
-    void ocultarPanelCompra();
+  void onAccionPagarRentaActual();
+
+  /* Utilidades de HUD */
+  void ocultarPanelCompra();
 }

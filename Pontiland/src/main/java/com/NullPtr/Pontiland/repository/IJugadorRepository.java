@@ -11,9 +11,9 @@ public interface IJugadorRepository {
 
   int getActivePlayer() throws SQLException;
 
-    void goToJail(int jugadorID) throws SQLException;
+  void goToJail(int jugadorID) throws SQLException;
 
-    int getPlayerIdByNumJugador(int numJugador) throws SQLException;
+  int getPlayerIdByNumJugador(int numJugador) throws SQLException;
 
   int getNumJugadorByPlayerId(int playerId) throws SQLException;
 

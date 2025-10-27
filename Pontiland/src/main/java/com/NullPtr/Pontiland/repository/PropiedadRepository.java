@@ -3,7 +3,6 @@ package com.NullPtr.Pontiland.repository;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.services.IDataService;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +14,7 @@ public class PropiedadRepository {
 
   /**
    * Constructor de la clase PropiedadRepository
+   *
    * @param dataService
    */
   public PropiedadRepository(IDataService dataService) {
@@ -23,14 +23,14 @@ public class PropiedadRepository {
 
   /**
    * Obtiene el ID de la propiedad que esté en la casilla dada
+   *
    * @param position
    * @return
    */
   int getPropiedadIdByPosition(int position) {
     Connection conex = dataService.createConnection();
 
-    String query = "SELECT PropiedadID FROM Propiedad " +
-            "WHERE PosicionTablero = ?";
+    String query = "SELECT PropiedadID FROM Propiedad " + "WHERE PosicionTablero = ?";
 
     try {
       PreparedStatement ps = conex.prepareStatement(query);
@@ -49,6 +49,7 @@ public class PropiedadRepository {
 
   /**
    * Obtiene una propiedad por su posición en el tablero
+   *
    * @param position Posición en el tablero
    * @return Objeto Propiedad
    */
@@ -61,13 +62,13 @@ public class PropiedadRepository {
       nivel = getNivelPropiedad(propiedadID, partidaID);
     }
 
-
     Connection conex = dataService.createConnection();
 
-    String query = "SELECT * FROM Propiedad " +
-                  "INNER JOIN Casilla " +
-                  "ON Propiedad.PosicionTablero = Casilla.PosicionTablero " +
-                  "WHERE Propiedad.PosicionTablero = ?";
+    String query =
+        "SELECT * FROM Propiedad "
+            + "INNER JOIN Casilla "
+            + "ON Propiedad.PosicionTablero = Casilla.PosicionTablero "
+            + "WHERE Propiedad.PosicionTablero = ?";
 
     try {
       PreparedStatement ps = conex.prepareStatement(query);
@@ -78,25 +79,24 @@ public class PropiedadRepository {
       }
 
       return new Propiedad(
-              rs.getInt("Casilla.PosicionTablero"),
-              rs.getString("Casilla.NombreCasilla"),
-              rs.getInt("PropiedadID"),
-              rs.getInt("GrupoPropiedades"),
-              nivel, //Nivel depende si tiene o no dueño
-              rs.getInt("PrecioCompra"),
-              new int[] {
-                      rs.getInt("RentaNivel1"),
-                      rs.getInt("RentaNivel2"),
-                      rs.getInt("RentaNivel3"),
-                      rs.getInt("RentaNivel4"),
-                      rs.getInt("RentaNivel5")
-              }
-      );
+          rs.getInt("Casilla.PosicionTablero"),
+          rs.getString("Casilla.NombreCasilla"),
+          rs.getInt("PropiedadID"),
+          rs.getInt("GrupoPropiedades"),
+          nivel, // Nivel depende si tiene o no dueño
+          rs.getInt("PrecioCompra"),
+          new int[] {
+            rs.getInt("RentaNivel1"),
+            rs.getInt("RentaNivel2"),
+            rs.getInt("RentaNivel3"),
+            rs.getInt("RentaNivel4"),
+            rs.getInt("RentaNivel5")
+          });
 
     } catch (SQLException e) {
       throw new RuntimeException(e);
     } finally {
-      //Cerrar la conexion
+      // Cerrar la conexion
       try {
         conex.close();
       } catch (SQLException e) {
@@ -109,11 +109,10 @@ public class PropiedadRepository {
     Connection conex = dataService.createConnection();
 
     String query =
-            "SELECT * " +
-            "FROM Jugador " +
-            "INNER JOIN Adquisiciones ON Jugador.JugadorID = Adquisiciones.JugadorID " +
-            "WHERE Jugador.PartidaID = ? AND Adquisiciones.PropiedadID = ?";
-
+        "SELECT * "
+            + "FROM Jugador "
+            + "INNER JOIN Adquisiciones ON Jugador.JugadorID = Adquisiciones.JugadorID "
+            + "WHERE Jugador.PartidaID = ? AND Adquisiciones.PropiedadID = ?";
 
     try {
       PreparedStatement ps = conex.prepareStatement(query);
@@ -126,22 +125,18 @@ public class PropiedadRepository {
         return null;
       } else {
         return new Jugador(
-                rs.getInt("Jugador.JugadorID"),
-                rs.getString("Jugador.NombreJugador"),
-                rs.getInt("Jugador.PosicionTablero"),
-                rs.getBoolean("Jugador.Encarcelado"),
-                rs.getInt("Jugador.SaldoDinero"),
-                getPropiedadesByJugador(
-                        rs.getInt("Jugador.JugadorID")
-                )
-        );
+            rs.getInt("Jugador.JugadorID"),
+            rs.getString("Jugador.NombreJugador"),
+            rs.getInt("Jugador.PosicionTablero"),
+            rs.getBoolean("Jugador.Encarcelado"),
+            rs.getInt("Jugador.SaldoDinero"),
+            getPropiedadesByJugador(rs.getInt("Jugador.JugadorID")));
       }
-
 
     } catch (SQLException e) {
       throw new RuntimeException(e);
     } finally {
-      //Cerrar la conexion
+      // Cerrar la conexion
       try {
         conex.close();
       } catch (SQLException e) {
@@ -154,14 +149,12 @@ public class PropiedadRepository {
     Connection conex = dataService.createConnection();
 
     String query =
-            "SELECT NivelPropiedad " +
-            "FROM Adquisiciones " +
-            "INNER JOIN Jugador ON Adquisiciones.JugadorID = Jugador.JugadorID " +
-            "WHERE Adquisiciones.PropiedadID = ? AND Jugador.PartidaID = ?";
+        "SELECT NivelPropiedad "
+            + "FROM Adquisiciones "
+            + "INNER JOIN Jugador ON Adquisiciones.JugadorID = Jugador.JugadorID "
+            + "WHERE Adquisiciones.PropiedadID = ? AND Jugador.PartidaID = ?";
 
-    try (
-      PreparedStatement ps = conex.prepareStatement(query);
-    ) {
+    try (PreparedStatement ps = conex.prepareStatement(query); ) {
       ps.setInt(1, propiedadID);
       ps.setLong(2, partidaID);
       ResultSet rs = ps.executeQuery();
@@ -172,7 +165,7 @@ public class PropiedadRepository {
     } catch (SQLException e) {
       throw new RuntimeException(e);
     } finally {
-      //Cerrar la conexion
+      // Cerrar la conexion
       try {
         conex.close();
       } catch (SQLException e) {
@@ -185,12 +178,12 @@ public class PropiedadRepository {
     Connection conex = dataService.createConnection();
 
     String query =
-            "SELECT * " +
-            "FROM Propiedad " +
-            "INNER JOIN Adquisiciones ON Propiedad.PropiedadID = Adquisiciones.PropiedadID " +
-            "WHERE Adquisiciones.JugadorID = ?";
+        "SELECT * "
+            + "FROM Propiedad "
+            + "INNER JOIN Adquisiciones ON Propiedad.PropiedadID = Adquisiciones.PropiedadID "
+            + "WHERE Adquisiciones.JugadorID = ?";
 
-    try (PreparedStatement ps = conex.prepareStatement(query)){
+    try (PreparedStatement ps = conex.prepareStatement(query)) {
 
       ps.setInt(1, jugadorID);
       ResultSet rs = ps.executeQuery();
@@ -198,7 +191,8 @@ public class PropiedadRepository {
       List<Propiedad> propiedades = new java.util.ArrayList<>();
 
       while (rs.next()) {
-        propiedades.add(new Propiedad(
+        propiedades.add(
+            new Propiedad(
                 rs.getInt("Propiedad.PosicionTablero"),
                 getPropiedadNombreById(rs.getInt("Propiedad.PropiedadID")),
                 rs.getInt("Propiedad.PropiedadID"),
@@ -206,13 +200,12 @@ public class PropiedadRepository {
                 rs.getInt("Adquisiciones.NivelPropiedad"),
                 rs.getInt("Propiedad.PrecioCompra"),
                 new int[] {
-                        rs.getInt("Propiedad.RentaNivel1"),
-                        rs.getInt("Propiedad.RentaNivel2"),
-                        rs.getInt("Propiedad.RentaNivel3"),
-                        rs.getInt("Propiedad.RentaNivel4"),
-                        rs.getInt("Propiedad.RentaNivel5")
-                }
-        ));
+                  rs.getInt("Propiedad.RentaNivel1"),
+                  rs.getInt("Propiedad.RentaNivel2"),
+                  rs.getInt("Propiedad.RentaNivel3"),
+                  rs.getInt("Propiedad.RentaNivel4"),
+                  rs.getInt("Propiedad.RentaNivel5")
+                }));
       }
 
       return propiedades;
@@ -220,7 +213,7 @@ public class PropiedadRepository {
     } catch (SQLException e) {
       throw new RuntimeException(e);
     } finally {
-      //Cerrar la conexion
+      // Cerrar la conexion
       try {
         conex.close();
       } catch (SQLException e) {
@@ -232,9 +225,10 @@ public class PropiedadRepository {
   String getPropiedadNombreById(int propiedadID) {
     Connection conex = dataService.createConnection();
 
-    String query = "SELECT Casilla.NombreCasilla FROM Propiedad " +
-            "INNER JOIN Casilla ON Propiedad.PosicionTablero = Casilla.PosicionTablero " +
-            "WHERE Propiedad.PropiedadID = ?";
+    String query =
+        "SELECT Casilla.NombreCasilla FROM Propiedad "
+            + "INNER JOIN Casilla ON Propiedad.PosicionTablero = Casilla.PosicionTablero "
+            + "WHERE Propiedad.PropiedadID = ?";
 
     try {
       PreparedStatement ps = conex.prepareStatement(query);

@@ -7,10 +7,16 @@
   <version>1.0-SNAPSHOT</version>
 
   <properties>
-    <maven.compiler.source>24</maven.compiler.source>
-    <maven.compiler.target>24</maven.compiler.target>
+    <!-- Target Java 21 bytecode for tooling compatibility while building with JDK 24 -->
+    <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jme.version>3.8.1-stable</jme.version>
+    <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
+    <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+    <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
+    <checkstyle.plugin.version>3.3.1</checkstyle.plugin.version>
+    <checkstyle.version>10.18.2</checkstyle.version>
+    <spotbugs.plugin.version>4.9.8.1</spotbugs.plugin.version>
   </properties>
 
   <dependencies>
@@ -49,26 +55,135 @@
       <artifactId>lemur</artifactId>
       <version>1.16.0</version>
     </dependency>
-      <dependency>
+    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>2.17.2</version>
     </dependency>
-      <dependency>
+    <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>2.3.232</version>
     </dependency>
     <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter-engine</artifactId>
-        <version>6.0.0</version>
-        <scope>test</scope>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>6.0.0</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compiler.plugin.version}</version>
+        <configuration>
+          <release>${maven.compiler.release}</release>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <goals>
+              <goal>report</goal>
+            </goals>
+            <phase>test</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${checkstyle.plugin.version}</version>
+        <configuration>
+          <failsOnError>true</failsOnError>
+          <consoleOutput>true</consoleOutput>
+          <configLocation>${project.basedir}/config/checkstyle/checkstyle.xml</configLocation>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>checkstyle-check</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>${spotbugs.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>spotbugs-report</id>
+            <goals>
+              <goal>spotbugs</goal>
+            </goals>
+            <phase>verify</phase>
+            <configuration>
+              <effort>Min</effort>
+              <threshold>Low</threshold>
+              <failOnError>false</failOnError>
+              <xmlOutput>true</xmlOutput>
+              <htmlOutput>true</htmlOutput>
+              <excludeFilterFile>${project.basedir}/config/spotbugs/spotbugs-ignore.xml</excludeFilterFile>
+              <spotbugsXmlOutputFilename>spotbugs-report.xml</spotbugsXmlOutputFilename>
+            </configuration>
+          </execution>
+          <execution>
+            <id>spotbugs-enforce-analysis</id>
+            <goals>
+              <goal>spotbugs</goal>
+            </goals>
+            <phase>verify</phase>
+            <configuration>
+              <failOnError>false</failOnError>
+              <effort>Max</effort>
+              <threshold>Low</threshold>
+              <xmlOutput>true</xmlOutput>
+              <htmlOutput>false</htmlOutput>
+              <excludeFilterFile>${project.basedir}/config/spotbugs/spotbugs-ignore.xml</excludeFilterFile>
+              <includeFilterFile>${project.basedir}/config/spotbugs/spotbugs-enforce.xml</includeFilterFile>
+              <spotbugsXmlOutputFilename>spotbugs-enforce.xml</spotbugsXmlOutputFilename>
+            </configuration>
+          </execution>
+          <execution>
+            <id>spotbugs-enforce</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>verify</phase>
+            <configuration>
+              <failOnError>true</failOnError>
+              <spotbugsXmlOutputFilename>spotbugs-enforce.xml</spotbugsXmlOutputFilename>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <!-- Code formatting & style enforcement (similar to IntelliJ Ctrl+Alt+L) -->
       <plugin>
         <groupId>com.diffplug.spotless</groupId>

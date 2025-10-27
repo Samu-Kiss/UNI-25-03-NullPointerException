@@ -188,5 +188,8 @@ public class Jugador {
     }
     this.propiedades = propiedades;
   }
-  public long getPartida(){ return this.partidaId;}
+
+  public long getPartida() {
+    return this.partidaId;
+  }
 }

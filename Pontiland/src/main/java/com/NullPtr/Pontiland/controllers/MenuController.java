@@ -165,7 +165,12 @@ public class MenuController implements IMenuActions {
         });
   }
 
-  /** Muestra el menú de carga con una lista y callback de selección. */
+  /**
+   * Muestra el menú de carga con una lista y callback de selección.
+   *
+   * @param saves partidas disponibles para mostrar en el menú de carga
+   * @param onSelect acción a ejecutar cuando el usuario selecciona un guardado
+   */
   public void showLoadMenu(List<SavedGame> saves, java.util.function.Consumer<String> onSelect) {
     detachIfAttached(menuCarga);
     menuCarga = new MenuCarga(this, saves, onSelect);

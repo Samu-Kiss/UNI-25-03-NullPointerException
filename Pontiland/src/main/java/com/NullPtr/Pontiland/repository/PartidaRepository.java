@@ -37,18 +37,18 @@ public class PartidaRepository implements IPartidaRepository {
    * @throws RuntimeException si ocurre un error de SQL durante la inserción.
    */
   public long newPartida(int numJugadores) {
-    Connection conn = dataService.createConnection();
     LocalDateTime myDateObj = LocalDateTime.now();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     String formatted = myDateObj.format(formatter);
     partidaID = Long.parseLong(formatted);
 
     String creacionPartida = "INSERT INTO PARTIDA(PartidaID, NumeroJugadores) VALUES( ? , ? )";
-    try {
-      PreparedStatement crearPartida = conn.prepareStatement(creacionPartida);
-      crearPartida.setLong(1, partidaID);
-      crearPartida.setInt(2, numJugadores);
-      crearPartida.executeUpdate();
+    try (Connection conn = dataService.createConnection()) {
+      try (PreparedStatement crearPartida = conn.prepareStatement(creacionPartida)) {
+        crearPartida.setLong(1, partidaID);
+        crearPartida.setInt(2, numJugadores);
+        crearPartida.executeUpdate();
+      }
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }

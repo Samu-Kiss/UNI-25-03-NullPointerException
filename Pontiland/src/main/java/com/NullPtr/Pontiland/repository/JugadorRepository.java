@@ -38,11 +38,10 @@ public class JugadorRepository implements IJugadorRepository {
    */
   @Override
   public void newPlayer(Jugador newPlayer, int icono) throws SQLException {
-    Connection conn = dataService.createConnection();
     String nuevoJugador =
         "INSERT INTO Jugador(NumJugador, NombreJugador, IconoID, Partida) VALUES(?, ? , ? , ? )";
-    try {
-      PreparedStatement crearJugador = conn.prepareStatement(nuevoJugador);
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement crearJugador = conn.prepareStatement(nuevoJugador)) {
       crearJugador.setInt(1, newPlayer.getJugadorId());
       crearJugador.setString(2, newPlayer.getNombreJugador());
       crearJugador.setInt(3, icono);
@@ -50,12 +49,6 @@ public class JugadorRepository implements IJugadorRepository {
       crearJugador.executeUpdate();
     } catch (SQLException e) {
       throw new RuntimeException(e);
-    } finally {
-      try {
-        conn.close();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
     }
   }
 
@@ -66,22 +59,14 @@ public class JugadorRepository implements IJugadorRepository {
    */
   @Override
   public void changeActivePlayer(int nuevoID) throws SQLException {
-
-    Connection conn = dataService.createConnection();
     String cambiarTurno = "UPDATE JugadorActivo SET JugadorActualID = ? WHERE PartidaID = ?";
-    try {
-      PreparedStatement cambiarJugador = conn.prepareStatement(cambiarTurno);
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement cambiarJugador = conn.prepareStatement(cambiarTurno)) {
       cambiarJugador.setInt(1, nuevoID);
       cambiarJugador.setLong(2, partidaID);
       cambiarJugador.executeUpdate();
     } catch (SQLException e) {
       throw new RuntimeException(e);
-    } finally {
-      try {
-        conn.close();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
     }
   }
 
@@ -105,14 +90,14 @@ public class JugadorRepository implements IJugadorRepository {
           return -1;
         }
       }
-
     }
   }
 
   @Override
   public void goToJail(int jugadorID) throws SQLException {
     Connection conn = dataService.createConnection();
-    String consulta = "UPDATE Jugador SET Posicion = ?, Encarcelado = ? WHERE JugadorID = ? AND Partida = ?";
+    String consulta =
+        "UPDATE Jugador SET Posicion = ?, Encarcelado = ? WHERE JugadorID = ? AND Partida = ?";
     try {
       PreparedStatement stmt = conn.prepareStatement(consulta);
       stmt.setInt(1, 11); // Posición de la cárcel
@@ -144,26 +129,19 @@ public class JugadorRepository implements IJugadorRepository {
    */
   @Override
   public int getPlayerIdByNumJugador(int numJugador) throws SQLException {
-    Connection conn = dataService.createConnection();
     String consulta = "SELECT JugadorID FROM Jugador WHERE NumJugador = ? AND Partida = ?";
-    try {
-      PreparedStatement stmt = conn.prepareStatement(consulta);
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
       stmt.setInt(1, numJugador);
       stmt.setLong(2, partidaID);
-      var rs = stmt.executeQuery();
-      if (rs.next()) {
-        return rs.getInt("JugadorID");
-      } else {
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("JugadorID");
+        }
         throw new RuntimeException("No se encontró el jugador con NumJugador: " + numJugador);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
-    } finally {
-      try {
-        conn.close();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
     }
   }
 
@@ -209,22 +187,15 @@ public class JugadorRepository implements IJugadorRepository {
    */
   @Override
   public void newActivePlayer(int jugadorID) throws SQLException {
-    Connection conn = dataService.createConnection();
     String insertarJugadorActivo =
         "INSERT INTO JugadorActivo(JugadorActualID, PartidaID) VALUES(?, ?)";
-    try {
-      PreparedStatement crearJugadorActivo = conn.prepareStatement(insertarJugadorActivo);
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement crearJugadorActivo = conn.prepareStatement(insertarJugadorActivo)) {
       crearJugadorActivo.setInt(1, jugadorID);
       crearJugadorActivo.setLong(2, partidaID);
       crearJugadorActivo.executeUpdate();
     } catch (SQLException e) {
       throw new RuntimeException(e);
-    } finally {
-      try {
-        conn.close();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
     }
   }
 
