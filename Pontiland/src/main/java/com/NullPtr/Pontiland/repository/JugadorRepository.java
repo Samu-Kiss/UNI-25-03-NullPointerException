@@ -99,9 +99,11 @@ public class JugadorRepository implements IJugadorRepository {
         PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setLong(1, partidaID);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return rs.getInt("JugadorActualID");
-        throw new IllegalStateException(
-            "[JUGADOR] No hay jugador activo para PartidaID=" + partidaID);
+        if (rs.next()) {
+          return rs.getInt("JugadorActualID");
+        } else {
+          return -1;
+        }
       }
     }
   }
