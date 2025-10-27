@@ -37,7 +37,7 @@ public class PropiedadRepository {
       ps.setInt(1, position);
       ResultSet rs = ps.executeQuery();
       if (!rs.next()) {
-        return 1;
+        return -1;
       }
 
       return rs.getInt("PropiedadID");
