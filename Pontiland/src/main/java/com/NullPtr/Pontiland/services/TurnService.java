@@ -17,7 +17,6 @@ public class TurnService implements ITurnService {
   private int lastMovedPos = -1;
   private int tiradas = 1;
 
-
   public TurnService(
       IJugadorRepository jugadorRepository,
       IPartidaRepository partidaRepository,
@@ -87,17 +86,24 @@ public class TurnService implements ITurnService {
     if (dados == null) return;
     Byte d1 = dados[0];
     Byte d2 = dados[1];
+
       Jugador jugadorActual = null;
       try {
+          if( jugadorRepository.getActivePlayer() != -1)
           jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
       } catch (SQLException e) {
-          throw new RuntimeException(e);
       }
       if (jugadorActual != null) {
       if (diceService.getCanInteract()) {
-        casillaService.interaccion( jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+        casillaService.interaccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
       }
     }
+      if(casillaService.getIrACarcel())
+      {
+          System.out.println("sisssisisisisisisiis");
+          moveToJail();
+      }
+
 
     if (d1 != null && d2 != null) {
       int movimiento = d1 + d2;
@@ -151,4 +157,23 @@ public class TurnService implements ITurnService {
     lastMovedJugadorId = jugadorId;
     lastMovedPos = nuevaPos;
   }
+  @Override
+    public void moveToJail()
+    {
+        int jailPosition = 11;
+        Jugador jugadorActual;
+        try {
+            jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+            jugadorRepository.goToJail(jugadorRepository.getNumJugadorByPlayerId(jugadorActual.getJugadorId()));
+
+            System.out.println(
+                    "El jugador "
+                            + jugadorActual.getJugadorId()
+                            + " ha sido enviado a la cárcel en la posición "
+                            + jailPosition);
+            markLastMove(jugadorActual.getJugadorId(), jailPosition);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

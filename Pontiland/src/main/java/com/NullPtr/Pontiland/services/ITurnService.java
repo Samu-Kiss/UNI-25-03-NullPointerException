@@ -13,4 +13,6 @@ public interface ITurnService {
     int[] consumeLastMove();
 
     boolean hasMovePending();
+
+    void moveToJail();
 }

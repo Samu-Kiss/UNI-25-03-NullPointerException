@@ -139,12 +139,12 @@ public class Scene {
         // Siguiente segmento
         mvSeg++;
         mvTimer = 0f;
+        System.out.println("Reached target " + mvSeg + " at " + target);
         if (mvSeg < mvTargets.size()) {
           mvStart.set(target);
 
         } else {
           mvSeg = -1;
-          // aqui pa despues propiedad o lo que sea que haga la casilla
           lanzamientoController.enableThrow(true);
           resetCamera();
         }
@@ -220,19 +220,32 @@ public class Scene {
         }
 
         List<Vector3f> targets = new ArrayList<>();
-        List<Integer> indices  = new ArrayList<>();
+        List<Integer> indices = new ArrayList<>();
 
-        for (int i = 1; i <= steps; i++) {
-            int idx = (currentIndex + i) % TOTAL_CASILLAS;
-            Vector3f center = posFromCell(idx);
-            targets.add(center);
-            indices.add(idx);
+        if (steps > 0) {
+            for (int i = 1; i <= steps; i++) {
+                int idx = (currentIndex + i) % TOTAL_CASILLAS;
+                Vector3f center = posFromCell(idx);
+                targets.add(center);
+                indices.add(idx);
+            }
         }
+        /*
+        else
+        {
+            for (int i = steps -1 ; i == 0 ; i--) {
+                int idx = (currentIndex - i) % TOTAL_CASILLAS;
+                Vector3f center = posFromCell(idx);
+                targets.add(center);
+                indices.add(idx);
+            }
 
+        }*/
 
         RigidBodyControl rb = s.getControl(RigidBodyControl.class);
         animateMoveAlongPath(s, rb, targets, indices, 0.45f, 0.9f);
     }
+
 
   /**
    * Animate a spatial sequentially through the provided targets. Updates the spatial's `cellIndex`
@@ -271,7 +284,6 @@ public class Scene {
 
         float x = 0f;
         float z = 0f;
-        System.out.println("posicion en el lado " + pos);
         switch (side) {
             case 0:
                 cellSize = 1.5385f;
@@ -283,7 +295,7 @@ public class Scene {
             case 1:
                 cellSize = 1.357500558970818f;
                 x = -BOARD_FIRST_POSITION.getX() * 2f;
-                z = -(((pos+1) * cellSize) + pos * 0.23f);
+                z = -(((pos+1) * cellSize) + (pos+1) * 0.23f);
                 break;
 
 

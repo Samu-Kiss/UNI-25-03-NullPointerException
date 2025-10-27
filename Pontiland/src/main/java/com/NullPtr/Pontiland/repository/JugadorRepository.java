@@ -105,6 +105,31 @@ public class JugadorRepository implements IJugadorRepository {
           return -1;
         }
       }
+
+    }
+  }
+
+  @Override
+  public void goToJail(int jugadorID) throws SQLException {
+    Connection conn = dataService.createConnection();
+    String consulta = "UPDATE Jugador SET Posicion = ?, Encarcelado = ? WHERE JugadorID = ? AND Partida = ?";
+    try {
+      PreparedStatement stmt = conn.prepareStatement(consulta);
+      stmt.setInt(1, 11); // Posición de la cárcel
+      stmt.setBoolean(2, true); // Encarcelado
+      stmt.setInt(3, jugadorID);
+      stmt.setLong(4, partidaID);
+
+      stmt.executeUpdate();
+
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    } finally {
+      try {
+        conn.close();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 
