@@ -3,6 +3,7 @@ package com.NullPtr.Pontiland.repository;
 import com.NullPtr.Pontiland.services.IDataService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -43,12 +44,11 @@ public class PartidaRepository implements IPartidaRepository {
     partidaID = Long.parseLong(formatted);
 
     String creacionPartida = "INSERT INTO PARTIDA(PartidaID, NumeroJugadores) VALUES( ? , ? )";
-    try (Connection conn = dataService.createConnection()) {
-      try (PreparedStatement crearPartida = conn.prepareStatement(creacionPartida)) {
-        crearPartida.setLong(1, partidaID);
-        crearPartida.setInt(2, numJugadores);
-        crearPartida.executeUpdate();
-      }
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement crearPartida = conn.prepareStatement(creacionPartida)) {
+      crearPartida.setLong(1, partidaID);
+      crearPartida.setInt(2, numJugadores);
+      crearPartida.executeUpdate();
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -57,26 +57,20 @@ public class PartidaRepository implements IPartidaRepository {
 
   @Override
   public int getNumJugadores() {
-    Connection conn = dataService.createConnection();
     String consulta = "SELECT NumeroJugadores FROM Partida WHERE PartidaID = ?";
-    try {
-      PreparedStatement stmt = conn.prepareStatement(consulta);
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
       stmt.setLong(1, partidaID);
-      var rs = stmt.executeQuery();
-      if (rs.next()) {
-        return rs.getInt("NumeroJugadores");
-      } else {
-        throw new RuntimeException(
-            "No se encontró un jugador activo para la partida: " + partidaID);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("NumeroJugadores");
+        } else {
+          throw new RuntimeException(
+              "No se encontró un jugador activo para la partida: " + partidaID);
+        }
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
-    } finally {
-      try {
-        conn.close();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
     }
   }
 

@@ -95,26 +95,17 @@ public class JugadorRepository implements IJugadorRepository {
 
   @Override
   public void goToJail(int jugadorID) throws SQLException {
-    Connection conn = dataService.createConnection();
     String consulta =
         "UPDATE Jugador SET Posicion = ?, Encarcelado = ? WHERE JugadorID = ? AND Partida = ?";
-    try {
-      PreparedStatement stmt = conn.prepareStatement(consulta);
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
       stmt.setInt(1, 11); // Posición de la cárcel
       stmt.setBoolean(2, true); // Encarcelado
       stmt.setInt(3, jugadorID);
       stmt.setLong(4, partidaID);
-
       stmt.executeUpdate();
-
     } catch (SQLException e) {
       throw new RuntimeException(e);
-    } finally {
-      try {
-        conn.close();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
     }
   }
 
@@ -156,26 +147,20 @@ public class JugadorRepository implements IJugadorRepository {
    */
   @Override
   public int getNumJugadorByPlayerId(int playerId) throws SQLException {
-    Connection conn = dataService.createConnection();
     String consulta = "SELECT NumJugador FROM Jugador WHERE JugadorID = ? AND Partida = ?";
-    try {
-      PreparedStatement stmt = conn.prepareStatement(consulta);
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
       stmt.setInt(1, playerId);
       stmt.setLong(2, partidaID);
-      var rs = stmt.executeQuery();
-      if (rs.next()) {
-        return rs.getInt("NumJugador");
-      } else {
-        throw new RuntimeException("No se encontró el jugador con playerID: " + playerId);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("NumJugador");
+        } else {
+          throw new RuntimeException("No se encontró el jugador con playerID: " + playerId);
+        }
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
-    } finally {
-      try {
-        conn.close();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
     }
   }
 
@@ -209,31 +194,30 @@ public class JugadorRepository implements IJugadorRepository {
    */
   @Override
   public Jugador getJugadorByID(int jugadorID) throws SQLException {
-    Connection conn = dataService.createConnection();
     String obtenerJugadores =
         "SELECT JugadorID, NumJugador, NombreJugador, IconoID, Posicion, Encarcelado, Dinero, Partida FROM JUGADOR WHERE Partida = ? AND JugadorID = ?";
 
-    try {
-      PreparedStatement preparedStatement = conn.prepareStatement(obtenerJugadores);
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement preparedStatement = conn.prepareStatement(obtenerJugadores)) {
       preparedStatement.setLong(1, partidaID);
       preparedStatement.setInt(2, jugadorID);
-      ResultSet rs = preparedStatement.executeQuery();
-      if (!rs.next()) {
-        throw new SQLException(
-            "Jugador no encontrado (partida=" + partidaID + ", id=" + jugadorID + ")");
+      try (ResultSet rs = preparedStatement.executeQuery()) {
+        if (!rs.next()) {
+          throw new SQLException(
+              "Jugador no encontrado (partida=" + partidaID + ", id=" + jugadorID + ")");
+        }
+        Jugador jugador =
+            new Jugador(
+                rs.getInt("JugadorID"),
+                rs.getInt("NumJugador"),
+                rs.getString("NombreJugador"),
+                rs.getInt("IconoID"),
+                rs.getInt("Posicion"),
+                rs.getBoolean("Encarcelado"),
+                rs.getInt("Dinero"),
+                rs.getLong("Partida"));
+        return jugador;
       }
-      Jugador jugador =
-          new Jugador(
-              rs.getInt("JugadorID"),
-              rs.getInt("NumJugador"),
-              rs.getString("NombreJugador"),
-              rs.getInt("IconoID"),
-              rs.getInt("Posicion"),
-              rs.getBoolean("Encarcelado"),
-              rs.getInt("Dinero"),
-              rs.getLong("Partida"));
-
-      return jugador;
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -246,59 +230,43 @@ public class JugadorRepository implements IJugadorRepository {
 
   @Override
   public Ficha[] getFichas(int numJugadores) throws SQLException {
-    Connection conn = dataService.createConnection();
     Ficha[] fichas = new Ficha[numJugadores];
     String consulta =
         "SELECT Jugador.JugadorID, Jugador.NumJugador, Icono.IconoID, Icono.IconoNombre "
             + "FROM Jugador "
             + "INNER JOIN Icono ON Icono.IconoID = Jugador.IconoID "
             + "WHERE Partida = ? ORDER BY NumJugador ASC";
-    try {
-      PreparedStatement stmt = conn.prepareStatement(consulta);
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
       stmt.setLong(1, partidaID);
-      var rs = stmt.executeQuery();
-      int index = 0;
-      while (rs.next()) {
-        fichas[index] =
-            new Ficha(rs.getInt("JugadorID"), rs.getInt("IconoID"), rs.getString("IconoNombre"));
-        index++;
+      try (ResultSet rs = stmt.executeQuery()) {
+        int index = 0;
+        while (rs.next()) {
+          fichas[index] =
+              new Ficha(rs.getInt("JugadorID"), rs.getInt("IconoID"), rs.getString("IconoNombre"));
+          index++;
+        }
       }
       return fichas;
     } catch (SQLException e) {
       throw new RuntimeException(e);
-    } finally {
-      try {
-        conn.close();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
     }
   }
 
   @Override
   public void updateJugador(Jugador jugador) throws SQLException {
-
-    Connection conn = dataService.createConnection();
     String consulta =
         "UPDATE Jugador SET Posicion = ?, Encarcelado = ?, Dinero = ? WHERE JugadorID = ? AND Partida = ?";
-    try {
-      PreparedStatement stmt = conn.prepareStatement(consulta);
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
       stmt.setInt(1, jugador.getPosicion());
       stmt.setBoolean(2, jugador.getEstado());
       stmt.setInt(3, jugador.getDinero());
       stmt.setInt(4, jugador.getJugadorId());
       stmt.setLong(5, partidaID);
-
       stmt.executeUpdate();
-
     } catch (SQLException e) {
       throw new RuntimeException(e);
-    } finally {
-      try {
-        conn.close();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
     }
   }
 
