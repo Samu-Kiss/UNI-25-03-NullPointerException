@@ -61,7 +61,6 @@ public class StartGameService implements IStartGameService {
     for (int i = 1; i <= jugadores.size(); i++) {
       jugadorRepository.newPlayer(jugadores.get(i - 1), iconos.get(i - 1));
     }
-    ;
     int playerID = jugadorRepository.getPlayerIdByNumJugador(1);
     jugadorRepository.newActivePlayer(playerID);
 

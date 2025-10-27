@@ -10,9 +10,9 @@ public interface ITurnService {
 
   void payRent();
 
-  boolean canThrowDice();
-
   int[] consumeLastMove();
 
   boolean hasMovePending();
+
+  void moveToJail();
 }

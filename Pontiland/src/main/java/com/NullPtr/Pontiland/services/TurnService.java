@@ -1,6 +1,7 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.Jugador;
+import com.NullPtr.Pontiland.repository.ICasillaRepository;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import java.sql.SQLException;
@@ -8,9 +9,9 @@ import java.sql.SQLException;
 public class TurnService implements ITurnService {
   private IJugadorRepository jugadorRepository;
   private IPartidaRepository partidaRepository;
+  private ICasillaService casillaService;
   private DiceService diceService;
-  private int playerID = 0;
-  private boolean canThrowDice = true;
+  private ICasillaRepository casillaRepository;
   private boolean movePending = false;
   private int lastMovedJugadorId = -1;
   private int lastMovedPos = -1;
@@ -19,7 +20,11 @@ public class TurnService implements ITurnService {
   public TurnService(
       IJugadorRepository jugadorRepository,
       IPartidaRepository partidaRepository,
-      DiceService diceService) {
+      DiceService diceService,
+      ICasillaRepository casillaRepository,
+      ICasillaService casillaService) {
+    this.casillaService = casillaService;
+    this.casillaRepository = casillaRepository;
     this.diceService = diceService;
     this.jugadorRepository = jugadorRepository;
     this.partidaRepository = partidaRepository;
@@ -28,7 +33,7 @@ public class TurnService implements ITurnService {
   @Override
   public void nextTurn() {
     try {
-      playerID =
+      int playerID =
           jugadorRepository.getPlayerIdByNumJugador(
               (jugadorRepository.getActivePlayer() % partidaRepository.getNumJugadores()) + 1);
       jugadorRepository.changeActivePlayer(playerID);
@@ -41,7 +46,6 @@ public class TurnService implements ITurnService {
   public void movePlayer(int numCasillas) {
     int nuevaPosicion;
     Jugador jugadorActual;
-
     try {
       jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
       nuevaPosicion = (jugadorActual.getPosicion() + numCasillas) % 40;
@@ -56,6 +60,13 @@ public class TurnService implements ITurnService {
               + jugadorRepository.getActivePlayer()
               + " a la posición = "
               + jugadorActual.getPosicion());
+      System.out.println(
+          casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getNombreCasilla()
+              + " de "
+              + casillaRepository
+                  .casillaFromPosition(jugadorActual.getPosicion())
+                  .getTipoCasilla());
+
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -73,16 +84,30 @@ public class TurnService implements ITurnService {
   public void update() {
     Byte[] dados = diceService.getResultados();
     if (dados == null) return;
-
     Byte d1 = dados[0];
     Byte d2 = dados[1];
 
-    canThrowDice = true;
+    Jugador jugadorActual = null;
+    try {
+      if (jugadorRepository.getActivePlayer() != -1)
+        jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+    } catch (SQLException e) {
+    }
+    if (jugadorActual != null) {
+      if (diceService.getCanInteract()) {
+        casillaService.interaccion(
+            jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+      }
+    }
+    if (casillaService.getIrACarcel()) {
+      System.out.println("sisssisisisisisisiis");
+      moveToJail();
+    }
+
     if (d1 != null && d2 != null) {
       int movimiento = d1 + d2;
 
       System.out.println("Resultados dados: [" + d1 + ", " + d2 + "]");
-      canThrowDice = false;
 
       movePlayer(movimiento);
 
@@ -115,11 +140,6 @@ public class TurnService implements ITurnService {
   public void payRent() {}
 
   @Override
-  public boolean canThrowDice() {
-    return canThrowDice;
-  }
-
-  @Override
   public boolean hasMovePending() {
     return movePending;
   }
@@ -135,5 +155,25 @@ public class TurnService implements ITurnService {
     movePending = true;
     lastMovedJugadorId = jugadorId;
     lastMovedPos = nuevaPos;
+  }
+
+  @Override
+  public void moveToJail() {
+    int jailPosition = 11;
+    Jugador jugadorActual;
+    try {
+      jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+      jugadorRepository.goToJail(
+          jugadorRepository.getNumJugadorByPlayerId(jugadorActual.getJugadorId()));
+
+      System.out.println(
+          "El jugador "
+              + jugadorActual.getJugadorId()
+              + " ha sido enviado a la cárcel en la posición "
+              + jailPosition);
+      markLastMove(jugadorActual.getJugadorId(), jailPosition);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

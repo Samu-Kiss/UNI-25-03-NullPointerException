@@ -2,13 +2,11 @@ package com.NullPtr.Pontiland.entities;
 
 /** Enum que representa los diferentes tipos de casillas en el juego */
 public enum Tipo {
-  SALIDA("Salida"),
-  CARCEL("Carcel"),
-  PARADA_LIBRE("ParadaLibre"),
-  MOVIMIENTO("Movimiento"),
-  IR_CARCEL("IrALaCarcel"),
+  PARADALIBRE("ParadaLibre"),
   EVENTO("Evento"),
-  PROPIEDAD("Propiedad");
+  PROPIEDAD("Propiedad"),
+  MOVIMIENTO("Movimiento"),
+  IRALACARCEL("IrALaCarcel");
 
   private final String action;
 

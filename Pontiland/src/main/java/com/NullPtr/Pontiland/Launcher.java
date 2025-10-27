@@ -34,10 +34,12 @@ public class Launcher extends SimpleApplication {
   private Scene scene;
 
   private IDataService dataService;
+  private ICasillaRepository casillaRepository;
   private IStartGameService startGameService;
 
   private IJugadorRepository jugadorRepository;
   private IPartidaRepository partidaRepository;
+  private ICasillaService casillaService;
 
   public static void main(String[] args) {
     Launcher app = new Launcher();
@@ -72,10 +74,11 @@ public class Launcher extends SimpleApplication {
 
     partidaRepository = new PartidaRepository(dataService);
     jugadorRepository = new JugadorRepository(dataService);
-    turnService = new TurnService(jugadorRepository, partidaRepository, diceService);
-
-    diceService.setTurnService(turnService);
-
+    casillaRepository = new CasillaRepository(dataService);
+    casillaService = new CasillaService();
+    turnService =
+        new TurnService(
+            jugadorRepository, partidaRepository, diceService, casillaRepository, casillaService);
     lanzamientoDadosController = new LanzamientoDadosController(diceService);
     lanzamientoDadosController.registerInputs(getInputManager());
 
@@ -92,7 +95,7 @@ public class Launcher extends SimpleApplication {
     if (scene != null) scene.update(tpf);
 
     turnService.update();
-
+    // TODO refactor this
     if (scene != null && turnService.hasMovePending()) {
       int[] mv = turnService.consumeLastMove();
       if (mv != null) {

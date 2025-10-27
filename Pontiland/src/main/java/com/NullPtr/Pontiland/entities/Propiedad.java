@@ -2,14 +2,14 @@ package com.NullPtr.Pontiland.entities;
 
 /** Clase que representa una propiedad en el juego */
 public class Propiedad {
-  private byte idPropiedad = -1;
+  private int idPropiedad = -1;
   // REVIEW: Id grupo podría ser eliminado si se usa una matriz de propiedades para separarlas por
   //    grupo
-  private byte idGrupo = -1;
+  private int idGrupo = -1;
   private Tipo tipoCasilla = Tipo.PROPIEDAD;
   private String nombreCasilla = null;
   private Byte posicionTablero = -1;
-  private byte nivelPropiedad = 1;
+  private int nivelPropiedad = 1;
   private int precioCompra = -1;
   private int[] rentaPorNivel = null;
   private Jugador dueno = null;
@@ -27,11 +27,11 @@ public class Propiedad {
    * @throws IllegalArgumentException Si los identificadores, nivel, precio o renta son invalidos
    */
   public Propiedad(
-      byte posicionTablero,
+      int posicionTablero,
       String nombreCasilla,
-      byte idPropiedad,
-      byte idGrupo,
-      byte nivelPropiedad,
+      int idPropiedad,
+      int idGrupo,
+      int nivelPropiedad,
       int precioCompra,
       int[] rentaPorNivel) {
 
@@ -51,22 +51,22 @@ public class Propiedad {
     this.rentaPorNivel = rentaPorNivel;
   }
 
-  public byte getIdPropiedad() {
+  public int getIdPropiedad() {
     return idPropiedad;
   }
 
-  public void setIdPropiedad(byte idPropiedad) {
+  public void setIdPropiedad(int idPropiedad) {
     if (idPropiedad < 1 || idPropiedad > 24) {
       throw new IllegalArgumentException("Identificador de propiedad invalido");
     }
     this.idPropiedad = idPropiedad;
   }
 
-  public byte getNivelPropiedad() {
+  public int getNivelPropiedad() {
     return nivelPropiedad;
   }
 
-  public void setNivelPropiedad(byte nivelPropiedad) {
+  public void setNivelPropiedad(int nivelPropiedad) {
     if (nivelPropiedad < 1 || nivelPropiedad > 5) {
       throw new IllegalArgumentException("Nivel de propiedad invalido");
     }

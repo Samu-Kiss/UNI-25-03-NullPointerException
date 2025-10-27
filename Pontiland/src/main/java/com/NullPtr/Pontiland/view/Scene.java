@@ -34,9 +34,9 @@ import java.util.List;
  */
 public class Scene {
   private final int totalCasillas = 40;
-  private float cellSize = 1.6999993f;
-  private final int cellsPerSide = totalCasillas / 4;
-  private final Vector3f boardFirstPosition = new Vector3f(8.3f, 0.5f, 8.5f);
+  private float cellSize = 1.5385f;
+  private final int side = totalCasillas / 4;
+  private final Vector3f boardFirstPosition = new Vector3f(9.3f, 0.5f, 9.3f);
 
   // --- Cámara suave ---
   private final Vector3f camLookTarget = new Vector3f(0, 0, 0); // a dónde mirar (dado o ficha)
@@ -134,17 +134,20 @@ public class Scene {
         }
         mvSpatial.setLocalTranslation(target);
 
-        // Actualiza cellIndex autoritativo
+        // Actualiza cellIndex
         Integer finalIdx = mvIndices.get(mvSeg);
         mvSpatial.setUserData("cellIndex", finalIdx);
 
         // Siguiente segmento
         mvSeg++;
         mvTimer = 0f;
+        System.out.println("Reached target " + mvSeg + " at " + target);
         if (mvSeg < mvTargets.size()) {
           mvStart.set(target);
+
         } else {
           mvSeg = -1;
+          lanzamientoController.enableThrow(true);
           resetCamera();
         }
       }
@@ -199,6 +202,8 @@ public class Scene {
   }
 
   public void replicateFichaPosition(int jugadorId, int casillaIndex) {
+
+    lanzamientoController.enableThrow(false);
     Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
     if (s == null) return;
 
@@ -207,8 +212,8 @@ public class Scene {
     if (ciUd instanceof Integer) currentIndex = (Integer) ciUd;
 
     s.setUserData("jugadorId", jugadorId);
-
-    int steps = (casillaIndex - currentIndex + totalCasillas) % totalCasillas;
+    int steps = (casillaIndex - currentIndex) % totalCasillas;
+    System.out.println("pasos: " + steps);
     if (steps == 0) {
       s.setUserData("cellIndex", casillaIndex);
       return;
@@ -216,12 +221,26 @@ public class Scene {
 
     List<Vector3f> targets = new ArrayList<>();
     List<Integer> indices = new ArrayList<>();
-    for (int i = 1; i <= steps; i++) {
-      int idx = (currentIndex + i) % totalCasillas;
-      Vector3f center = posFromCell(idx);
-      targets.add(center);
-      indices.add(idx);
+
+    if (steps > 0) {
+      for (int i = 1; i <= steps; i++) {
+        int idx = (currentIndex + i) % totalCasillas;
+        Vector3f center = posFromCell(idx);
+        targets.add(center);
+        indices.add(idx);
+      }
     }
+    /*
+    else
+    {
+        for (int i = steps -1 ; i == 0 ; i--) {
+            int idx = (currentIndex - i) % TOTAL_CASILLAS;
+            Vector3f center = posFromCell(idx);
+            targets.add(center);
+            indices.add(idx);
+        }
+
+    }*/
 
     RigidBodyControl rb = s.getControl(RigidBodyControl.class);
     animateMoveAlongPath(s, rb, targets, indices, 0.45f, 0.9f);
@@ -250,7 +269,6 @@ public class Scene {
     this.mvDuration = durationSeconds;
     this.mvJump = jumpHeight;
 
-    // Punto de partida del primer segmento
     Vector3f start =
         (rb != null && rb.getPhysicsLocation() != null)
             ? rb.getPhysicsLocation()
@@ -263,44 +281,47 @@ public class Scene {
   }
 
   private Vector3f posFromCell(int c) {
-    int idx = ((c % totalCasillas) + totalCasillas) % totalCasillas;
+    int idx = (c % totalCasillas);
 
-    int sideIndex = idx / cellsPerSide;
-    int pos = idx % cellsPerSide;
+    int sideLocal = idx / side;
+    int pos = idx % side;
 
     float x = 0f;
     float z = 0f;
-
-    switch (sideIndex) {
+    switch (sideLocal) {
       case 0:
-        cellSize = 1.6999993f;
-        x = -pos * cellSize;
+        cellSize = 1.5385f;
+        x =
+            -(pos + 1)
+                * cellSize; // lograr llegar a ese pos+1 por mas absurdo que parezca me tomo como 2
+        // horas de mi vida
         z = 0;
         break;
 
         // Left side: bottom -> top
       case 1:
-        cellSize = 1.5f;
+        cellSize = 1.357500558970818f;
         x = -boardFirstPosition.getX() * 2f;
-        z = -((pos * cellSize) + pos * 0.23f);
+        z = -(((pos + 1) * cellSize) + (pos + 1) * 0.23f);
         break;
 
         // Top side: left -> right
       case 2:
-        cellSize = 1.6999993f;
+        cellSize = 1.357500558970818f;
         z = -boardFirstPosition.getZ() * 2f;
-        if (pos == 0) {
-          x = (-boardFirstPosition.getX() * 2f) + (pos * cellSize);
+        if ((pos + 1) == 0) {
+          x = (-boardFirstPosition.getX() * 2f) + ((pos + 1) * cellSize);
           break;
         } else {
-          x = (-boardFirstPosition.getX() * 2f) + (pos * cellSize) + pos * 0.24f;
+          x = (-boardFirstPosition.getX() * 2f) + ((pos + 1) * cellSize) + (pos + 1) * 0.24f;
           break;
         }
 
         // Right side: top -> bottom
       case 3:
-        cellSize = 1.5f;
-        z = (-boardFirstPosition.getZ() * 2f) + (pos * cellSize) + pos * 0.24f;
+        cellSize = 1.5385f;
+        if ((pos + 1) == 0) cellSize *= 2f;
+        z = (-boardFirstPosition.getZ() * 2f) + ((pos + 1) * cellSize) + (pos + 1) * 0.24f;
         break;
     }
 
@@ -323,6 +344,7 @@ public class Scene {
       RigidBodyControl boardPhysics = new RigidBodyControl(0f);
       board.addControl(boardPhysics);
       bullet.getPhysicsSpace().add(boardPhysics);
+      medirTamanoCasilla(board);
     } catch (Exception ex) {
       // Objeto de respaldo si falla la carga del tablero
       Box fallback = new Box(1, 1, 1);
@@ -334,46 +356,47 @@ public class Scene {
     }
   }
 
-  /*  // Mide la distancia entre dos marcas en el tablero para calcular el tamaño de una casilla
+  // Mide la distancia entre dos marcas en el tablero para calcular el tamaño de una casilla
   private float medirTamanoCasilla(Spatial board) {
-      Geometry markA = (Geometry) rootNode.getChild("MeasureA");
-      Geometry markB = (Geometry) rootNode.getChild("MeasureB");
+    Geometry markA = (Geometry) rootNode.getChild("MeasureA");
+    Geometry markB = (Geometry) rootNode.getChild("MeasureB");
+    // EL TAMAÑO DEL TABLERO ES DE 20X20 UNIDADES
+    final float CELL = 20f / 13f; // 0.384615f
+    if (markA == null || markB == null) {
+      Box bx = new Box(0.1f, 0.1f, 0.1f);
 
-      if (markA == null || markB == null) {
-          Box bx = new Box(0.1f, 0.1f, 0.1f);
-
-          if (markA == null) {
-              markA = new Geometry("MeasureA", bx);
-              Material mA = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-              mA.setColor("Color", ColorRGBA.Green);
-              markA.setMaterial(mA);
-              markA.setLocalTranslation(boardFirstPosition.add(-0.68f, -0.4f, -0.68f));
-              markA.setLocalTranslation(boardFirstPosition.add(-0.68f, -0.4f, -0.88f));
-              rootNode.attachChild(markA);
-          }
-          if (markB == null) {
-              markB = new Geometry("MeasureB", bx);
-              Material mB = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-              mB.setColor("Color", ColorRGBA.Yellow);
-              markB.setMaterial(mB);
-              markB.setLocalTranslation(boardFirstPosition.add(1.02f, -0.4f, -0.68f));
-              markB.setLocalTranslation(boardFirstPosition.add(-0.68f, -0.4f, -2.38f));
-              rootNode.attachChild(markB);
-          }
+      if (markA == null) {
+        markA = new Geometry("MeasureA", bx);
+        Material mA = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mA.setColor("Color", ColorRGBA.Green);
+        markA.setMaterial(mA);
+        markA.setLocalTranslation(boardFirstPosition.add(-CELL * 2, -0.4f, -0.2f));
+        // markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-0.68f, -0.4f, -0.88f));
+        rootNode.attachChild(markA);
       }
+      if (markB == null) {
+        markB = new Geometry("MeasureB", bx);
+        Material mB = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mB.setColor("Color", ColorRGBA.Yellow);
+        markB.setMaterial(mB);
+        markB.setLocalTranslation(boardFirstPosition.add(-CELL * 3, -0.4f, -0.2f));
+        // markB.setLocalTranslation(BOARD_FIRST_POSITION.add( -0.68f, -0.4f, -2.38f));
+        rootNode.attachChild(markB);
+      }
+    }
 
-      board.updateGeometricState();
+    board.updateGeometricState();
 
-      Vector3f a = markA.getWorldTranslation();
-      Vector3f b = markB.getWorldTranslation();
-      float dx = Math.abs(b.x - a.x);
-      float dz = Math.abs(b.z - a.z);
+    Vector3f a = markA.getWorldTranslation();
+    Vector3f b = markB.getWorldTranslation();
+    float dx = Math.abs(b.x - a.x);
+    float dz = Math.abs(b.z - a.z);
 
-      float cellSize = (dx >= dz) ? dx : dz;
+    float cellSize = (dx >= dz) ? dx : dz;
 
-      System.out.printf("CellSize(UNA casilla) = %.4f  | dx=%.4f  dz=%.4f%n", cellSize, dx, dz);
-      return cellSize;
-  }*/
+    System.out.printf("CellSize(UNA casilla) = %.4f  | dx=%.4f  dz=%.4f%n", cellSize, dx, dz);
+    return cellSize;
+  }
 
   /** Carga el modelo del peón (conito) con cuerpo físico estático. */
   private void loadConitoModel() {
