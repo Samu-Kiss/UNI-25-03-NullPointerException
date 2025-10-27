@@ -166,9 +166,9 @@ public class MenuPrincipal extends AbstractAppState {
     buttonsRow.setInsets(new com.simsilica.lemur.Insets3f(10, 20, 20, 20));
 
     // Botones como sprites con rotación ligera sobre su centro
-    Button btnIniciar = createSpriteButton("graphics/sprites/Button_Iniciar.png", 1, -8f);
-    Button btnCargar = createSpriteButton("graphics/sprites/Button_Cargar.png", 2, 7f);
-    Button btnCredits = createSpriteButton("graphics/sprites/Button_Credits.png", 3, -5f);
+    Button btnIniciar = createSpriteButton("graphics/sprites/MainMenu/Button_Iniciar.png", 1, -8f);
+    Button btnCargar = createSpriteButton("graphics/sprites/MainMenu/Button_Cargar.png", 2, 7f);
+    Button btnCredits = createSpriteButton("graphics/sprites/MainMenu/Button_Credits.png", 3, -5f);
 
     // Orden de apilado: rosa (2) encima del azul (3) encima del verde (4)
     zLayers.put(btnIniciar, 0.3f);

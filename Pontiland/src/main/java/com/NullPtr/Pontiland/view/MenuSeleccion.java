@@ -59,10 +59,10 @@ public class MenuSeleccion extends AbstractAppState {
 
   /** Rutas de los sprites de billetes. */
   private static final String[] BILL_SPRITES = {
-    "graphics/sprites/Bill_Rosado.png",
-    "graphics/sprites/Bill_Morado.png",
-    "graphics/sprites/Bill_Azul.png",
-    "graphics/sprites/Bill_Verde.png"
+    "graphics/sprites/Common/Bill_Rosado.png",
+    "graphics/sprites/Common/Bill_Morado.png",
+    "graphics/sprites/Common/Bill_Azul.png",
+    "graphics/sprites/Common/Bill_Verde.png"
   };
 
   /** Mensaje de error para personajes repetidos. */
@@ -172,7 +172,7 @@ public class MenuSeleccion extends AbstractAppState {
     backBar.setInsets(new Insets3f(6, 10, 6, 10));
     Container row = new Container(new BorderLayout(), "pontiland");
 
-    TextureKey key = new TextureKey("graphics/sprites/Icon_Back_White.png", true);
+    TextureKey key = new TextureKey("graphics/sprites/Common/Icons/Icon_Back_White.png", true);
     key.setGenerateMips(false);
     Texture2D iconTex = (Texture2D) this.app.getAssetManager().loadTexture(key);
     iconTex.setWrap(Texture.WrapMode.EdgeClamp);
@@ -399,8 +399,8 @@ public class MenuSeleccion extends AbstractAppState {
   private Button createArrowButton(boolean forward, int playerIdx) {
     String asset =
         forward
-            ? "graphics/sprites/Icon_Forward_Black.png"
-            : "graphics/sprites/Icon_Back_Black.png";
+            ? "graphics/sprites/Common/Icons/Icon_Forward_Black.png"
+            : "graphics/sprites/Common/Icons/Icon_Back_Black.png";
     // Calcular tamaño proporcional del icono
     Vector2f iconSize = computeArrowIconSize(asset);
     IconComponent icon = new IconComponent(asset);

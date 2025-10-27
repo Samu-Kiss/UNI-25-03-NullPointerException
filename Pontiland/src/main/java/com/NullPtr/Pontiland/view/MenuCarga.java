@@ -168,7 +168,7 @@ public class MenuCarga extends AbstractAppState {
 
     Container row = new Container(new BorderLayout(), "pontiland");
 
-    TextureKey key = new TextureKey("graphics/sprites/Icon_Back_White.png", true);
+    TextureKey key = new TextureKey("graphics/sprites/Common/Icons/Icon_Back_White.png", true);
     key.setGenerateMips(false);
     Texture2D iconTex = (Texture2D) this.app.getAssetManager().loadTexture(key);
     iconTex.setWrap(Texture.WrapMode.EdgeClamp);
