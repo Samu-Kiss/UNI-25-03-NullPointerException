@@ -81,6 +81,8 @@ public class Jugador {
    * @param enCarcel Estado del jugador (si está en la cárcel o no)
    * @param dinero Cantidad de dinero que posee el jugador
    * @param partidaId Identificador de la partida a la que pertenece el jugador
+   * @throws IllegalArgumentException si algún argumento es inválido (dinero negativo, nombre vacío,
+   *     posición fuera de rango, identificadores fuera de rango)
    */
   public Jugador(
       int jugadorId,

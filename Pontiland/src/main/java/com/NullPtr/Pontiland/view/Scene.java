@@ -33,10 +33,10 @@ import java.util.List;
  * lógica.
  */
 public class Scene {
-  private final int TOTAL_CASILLAS = 40;
+  private final int totalCasillas = 40;
   private float cellSize = 1.5385f;
-  private final int SIDE = TOTAL_CASILLAS / 4;
-  private final Vector3f BOARD_FIRST_POSITION = new Vector3f(9.3f, 0.5f, 9.3f);
+  private final int side = totalCasillas / 4;
+  private final Vector3f boardFirstPosition = new Vector3f(9.3f, 0.5f, 9.3f);
 
   // --- Cámara suave ---
   private final Vector3f camLookTarget = new Vector3f(0, 0, 0); // a dónde mirar (dado o ficha)
@@ -175,13 +175,11 @@ public class Scene {
       Vector3f placed;
       if (i < 2) {
         placed =
-            new Vector3f(BOARD_FIRST_POSITION.getX() + i * 0.5f, 0.5f, BOARD_FIRST_POSITION.getZ());
+            new Vector3f(boardFirstPosition.getX() + i * 0.5f, 0.5f, boardFirstPosition.getZ());
       } else {
         placed =
             new Vector3f(
-                BOARD_FIRST_POSITION.getX() + i % 2 * 0.5f,
-                0.5f,
-                BOARD_FIRST_POSITION.getZ() + 0.5f);
+                boardFirstPosition.getX() + i % 2 * 0.5f, 0.5f, boardFirstPosition.getZ() + 0.5f);
       }
 
       s.setLocalTranslation(placed);
@@ -214,7 +212,7 @@ public class Scene {
     if (ciUd instanceof Integer) currentIndex = (Integer) ciUd;
 
     s.setUserData("jugadorId", jugadorId);
-    int steps = (casillaIndex - currentIndex) % TOTAL_CASILLAS;
+    int steps = (casillaIndex - currentIndex) % totalCasillas;
     System.out.println("pasos: " + steps);
     if (steps == 0) {
       s.setUserData("cellIndex", casillaIndex);
@@ -226,7 +224,7 @@ public class Scene {
 
     if (steps > 0) {
       for (int i = 1; i <= steps; i++) {
-        int idx = (currentIndex + i) % TOTAL_CASILLAS;
+        int idx = (currentIndex + i) % totalCasillas;
         Vector3f center = posFromCell(idx);
         targets.add(center);
         indices.add(idx);
@@ -283,14 +281,14 @@ public class Scene {
   }
 
   private Vector3f posFromCell(int c) {
-    int idx = (c % TOTAL_CASILLAS);
+    int idx = (c % totalCasillas);
 
-    int side = idx / SIDE;
-    int pos = idx % SIDE;
+    int sideLocal = idx / side;
+    int pos = idx % side;
 
     float x = 0f;
     float z = 0f;
-    switch (side) {
+    switch (sideLocal) {
       case 0:
         cellSize = 1.5385f;
         x =
@@ -303,19 +301,19 @@ public class Scene {
         // Left side: bottom -> top
       case 1:
         cellSize = 1.357500558970818f;
-        x = -BOARD_FIRST_POSITION.getX() * 2f;
+        x = -boardFirstPosition.getX() * 2f;
         z = -(((pos + 1) * cellSize) + (pos + 1) * 0.23f);
         break;
 
         // Top side: left -> right
       case 2:
         cellSize = 1.357500558970818f;
-        z = -BOARD_FIRST_POSITION.getZ() * 2f;
+        z = -boardFirstPosition.getZ() * 2f;
         if ((pos + 1) == 0) {
-          x = (-BOARD_FIRST_POSITION.getX() * 2f) + ((pos + 1) * cellSize);
+          x = (-boardFirstPosition.getX() * 2f) + ((pos + 1) * cellSize);
           break;
         } else {
-          x = (-BOARD_FIRST_POSITION.getX() * 2f) + ((pos + 1) * cellSize) + (pos + 1) * 0.24f;
+          x = (-boardFirstPosition.getX() * 2f) + ((pos + 1) * cellSize) + (pos + 1) * 0.24f;
           break;
         }
 
@@ -323,12 +321,11 @@ public class Scene {
       case 3:
         cellSize = 1.5385f;
         if ((pos + 1) == 0) cellSize *= 2f;
-        z = (-BOARD_FIRST_POSITION.getZ() * 2f) + ((pos + 1) * cellSize) + (pos + 1) * 0.24f;
+        z = (-boardFirstPosition.getZ() * 2f) + ((pos + 1) * cellSize) + (pos + 1) * 0.24f;
         break;
     }
 
-    return new Vector3f(
-        BOARD_FIRST_POSITION.x + x, BOARD_FIRST_POSITION.y, BOARD_FIRST_POSITION.z + z);
+    return new Vector3f(boardFirstPosition.x + x, boardFirstPosition.y, boardFirstPosition.z + z);
   }
 
   /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
@@ -373,7 +370,7 @@ public class Scene {
         Material mA = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mA.setColor("Color", ColorRGBA.Green);
         markA.setMaterial(mA);
-        markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-CELL * 2, -0.4f, -0.2f));
+        markA.setLocalTranslation(boardFirstPosition.add(-CELL * 2, -0.4f, -0.2f));
         // markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-0.68f, -0.4f, -0.88f));
         rootNode.attachChild(markA);
       }
@@ -382,7 +379,7 @@ public class Scene {
         Material mB = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mB.setColor("Color", ColorRGBA.Yellow);
         markB.setMaterial(mB);
-        markB.setLocalTranslation(BOARD_FIRST_POSITION.add(-CELL * 3, -0.4f, -0.2f));
+        markB.setLocalTranslation(boardFirstPosition.add(-CELL * 3, -0.4f, -0.2f));
         // markB.setLocalTranslation(BOARD_FIRST_POSITION.add( -0.68f, -0.4f, -2.38f));
         rootNode.attachChild(markB);
       }
