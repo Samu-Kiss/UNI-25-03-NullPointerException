@@ -100,7 +100,7 @@ public class Jugador {
     if (nombreJugador == null || nombreJugador.isEmpty()) {
       throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
     }
-    if (posicion < 0 || posicion > 40) {
+    if (posicion < 1 || posicion > 40) {
       throw new IllegalArgumentException("Posicion invalida");
     }
     if (partidaId < 0) {
@@ -155,7 +155,7 @@ public class Jugador {
 
   public void setPosicion(int posicion) {
     if (posicion < 1 || posicion > 40) {
-      throw new IllegalArgumentException("Posicion invalida");
+      throw new IllegalArgumentException("Posicion invalida, posicion " + posicion);
     }
     this.posicion = posicion;
   }

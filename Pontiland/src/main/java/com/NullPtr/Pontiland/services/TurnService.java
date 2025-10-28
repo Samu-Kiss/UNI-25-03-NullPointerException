@@ -100,6 +100,7 @@ public class TurnService implements ITurnService {
       }
     }
     if (casillaService.getIrACarcel()) {
+        //TODO: Revisar si funciona bien
       System.out.println("sisssisisisisisisiis");
       moveToJail();
     }
@@ -112,10 +113,12 @@ public class TurnService implements ITurnService {
       movePlayer(movimiento);
 
       if (d1.equals(d2)) {
-        if (tiradas == 2) {
+        if (tiradas >= 1) {
           System.out.println("3 dobles seguidos, vas a la cárcel!");
-          tiradas = 1;
-          nextTurn();
+            tiradas = 1;
+            System.out.println("Antes de ir a carcel");
+            moveToJail();
+            nextTurn();
           dados[0] = dados[1] = null;
           return;
         } else {
@@ -126,6 +129,7 @@ public class TurnService implements ITurnService {
         }
       } else {
         tiradas = 1;
+        System.out.println("Cambiar jugador no dobles");
         nextTurn();
       }
 
@@ -164,7 +168,8 @@ public class TurnService implements ITurnService {
     try {
       jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
       jugadorRepository.goToJail(
-          jugadorRepository.getNumJugadorByPlayerId(jugadorActual.getJugadorId()));
+          jugadorRepository.getNumJugadorByPlayerId(jugadorActual.getJugadorId())
+        );
 
       System.out.println(
           "El jugador "

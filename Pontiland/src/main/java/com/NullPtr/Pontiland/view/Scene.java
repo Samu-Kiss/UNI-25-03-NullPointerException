@@ -212,6 +212,10 @@ public class Scene {
     if (ciUd instanceof Integer) currentIndex = (Integer) ciUd;
 
     s.setUserData("jugadorId", jugadorId);
+
+    if (casillaIndex < currentIndex) {
+      casillaIndex += totalCasillas;
+    }
     int steps = (casillaIndex - currentIndex) % totalCasillas;
     System.out.println("pasos: " + steps);
     if (steps == 0) {
