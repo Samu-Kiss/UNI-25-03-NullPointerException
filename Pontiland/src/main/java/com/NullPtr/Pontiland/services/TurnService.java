@@ -113,7 +113,7 @@ public class TurnService implements ITurnService {
       movePlayer(movimiento);
 
       if (d1.equals(d2)) {
-        if (tiradas >= 1) {
+        if (tiradas >= 3) {
           System.out.println("3 dobles seguidos, vas a la cárcel!");
             tiradas = 1;
             System.out.println("Antes de ir a carcel");
