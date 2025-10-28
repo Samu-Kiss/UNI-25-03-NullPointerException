@@ -18,6 +18,7 @@ public class TurnService implements ITurnService {
     private IScene scene;
     private int tiradas = 1;
     private boolean changeTurn = false;
+    private boolean canMove =  false;
 
     public TurnService(
             IJugadorRepository jugadorRepository,
@@ -55,7 +56,7 @@ public class TurnService implements ITurnService {
         Jugador jugadorActual;
         try {
             jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-            nuevaPosicion = (jugadorActual.getPosicion() + numCasillas) % 40;
+            nuevaPosicion = (jugadorActual.getPosicion() -1 + numCasillas) % 40 + 1;
             jugadorActual.setPosicion(nuevaPosicion);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -97,7 +98,7 @@ public class TurnService implements ITurnService {
         Byte d1 = dados[0];
         Byte d2 = dados[1];
 
-        if (casillaService.getIrACarcel() && diceService.getCanInteract()) {
+        if (casillaService.getIrACarcel() && diceService.getCanInteract() && canMove) {
             changeTurn = true;
             moveToJail();
         }
@@ -107,7 +108,7 @@ public class TurnService implements ITurnService {
 
             System.out.println("Resultados dados: [" + d1 + ", " + d2 + "]");
 
-            movePlayer(30);
+            movePlayer(movimiento);
 
             if (d1.equals(d2)) {
                 if (tiradas >= 3) {
@@ -127,9 +128,14 @@ public class TurnService implements ITurnService {
                 changeTurn = true;
             }
 
+
+            canMove = true;
+
             dados[0] = dados[1] = null;
 
         }
+        else
+            canMove = false;
 
         System.out.println("siguiente turno: " + changeTurn + " - puede interactuar: " + diceService.getCanInteract());
 
