@@ -146,7 +146,6 @@ public class Scene implements IScene{
         } else {
           mvSeg = -1;
           lanzamientoController.enableThrow(true);
-          resetCamera();
         }
       }
     }
@@ -338,7 +337,6 @@ public class Scene implements IScene{
       RigidBodyControl boardPhysics = new RigidBodyControl(0f);
       board.addControl(boardPhysics);
       bullet.getPhysicsSpace().add(boardPhysics);
-      medirTamanoCasilla(board);
     } catch (Exception ex) {
       // Objeto de respaldo si falla la carga del tablero
       Box fallback = new Box(1, 1, 1);
@@ -348,48 +346,6 @@ public class Scene implements IScene{
       geom.setMaterial(mat);
       rootNode.attachChild(geom);
     }
-  }
-
-  // Mide la distancia entre dos marcas en el tablero para calcular el tamaño de una casilla
-  private float medirTamanoCasilla(Spatial board) {
-    Geometry markA = (Geometry) rootNode.getChild("MeasureA");
-    Geometry markB = (Geometry) rootNode.getChild("MeasureB");
-    // EL TAMAÑO DEL TABLERO ES DE 20X20 UNIDADES
-    final float CELL = 20f / 13f; // 0.384615f
-    if (markA == null || markB == null) {
-      Box bx = new Box(0.1f, 0.1f, 0.1f);
-
-      if (markA == null) {
-        markA = new Geometry("MeasureA", bx);
-        Material mA = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mA.setColor("Color", ColorRGBA.Green);
-        markA.setMaterial(mA);
-        markA.setLocalTranslation(boardFirstPosition.add(-CELL * 2, -0.4f, -0.2f));
-        // markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-0.68f, -0.4f, -0.88f));
-        rootNode.attachChild(markA);
-      }
-      if (markB == null) {
-        markB = new Geometry("MeasureB", bx);
-        Material mB = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mB.setColor("Color", ColorRGBA.Yellow);
-        markB.setMaterial(mB);
-        markB.setLocalTranslation(boardFirstPosition.add(-CELL * 3, -0.4f, -0.2f));
-        // markB.setLocalTranslation(BOARD_FIRST_POSITION.add( -0.68f, -0.4f, -2.38f));
-        rootNode.attachChild(markB);
-      }
-    }
-
-    board.updateGeometricState();
-
-    Vector3f a = markA.getWorldTranslation();
-    Vector3f b = markB.getWorldTranslation();
-    float dx = Math.abs(b.x - a.x);
-    float dz = Math.abs(b.z - a.z);
-
-    float cellSize = (dx >= dz) ? dx : dz;
-
-    System.out.printf("CellSize(UNA casilla) = %.4f  | dx=%.4f  dz=%.4f%n", cellSize, dx, dz);
-    return cellSize;
   }
 
   /** Carga el modelo del peón (conito) con cuerpo físico estático. */
@@ -499,6 +455,7 @@ public class Scene implements IScene{
     cam.setFrustumPerspective(60f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 500f);
   }
 
+ @Override
   public void resetCamera() {
     Vector3f offset = new Vector3f(0, 7, 3);
 

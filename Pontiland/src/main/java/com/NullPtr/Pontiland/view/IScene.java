@@ -9,4 +9,5 @@ public interface IScene {
     void replicateFichaPosition(int jugadorId, int casillaIndex);
     void loadFichasModels(Ficha[] data);
     void update(float tpf);
+    void resetCamera();
 }

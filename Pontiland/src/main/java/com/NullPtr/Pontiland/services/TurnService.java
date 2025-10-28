@@ -16,10 +16,8 @@ public class TurnService implements ITurnService {
     private DiceService diceService;
     private ICasillaRepository casillaRepository;
     private IScene scene;
-    private boolean movePending = false;
-    private int lastMovedJugadorId = -1;
-    private int lastMovedPos = -1;
     private int tiradas = 1;
+    private boolean changeTurn = false;
 
     public TurnService(
             IJugadorRepository jugadorRepository,
@@ -76,6 +74,9 @@ public class TurnService implements ITurnService {
                             .casillaFromPosition(jugadorActual.getPosicion())
                             .getTipoCasilla());
 
+
+            casillaService.interaccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -96,26 +97,9 @@ public class TurnService implements ITurnService {
         Byte d1 = dados[0];
         Byte d2 = dados[1];
 
-        Jugador jugadorActual = null;
-        try {
-            if (jugadorRepository.getActivePlayer() != -1)
-                jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-        } catch (SQLException e) {
-        }
-        if (jugadorActual != null) {
-            if (diceService.getCanInteract()) {
-                casillaService.interaccion(
-                        jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
-            }
-        }
-        if (casillaService.getIrACarcel()) {
+        if (casillaService.getIrACarcel() && diceService.getCanInteract()) {
+            changeTurn = true;
             moveToJail();
-        }
-
-        if(movePending)
-        {
-            movePending = false;
-            scene.replicateFichaPosition(lastMovedJugadorId, lastMovedPos);
         }
 
         if (d1 != null && d2 != null) {
@@ -131,22 +115,29 @@ public class TurnService implements ITurnService {
                     tiradas = 1;
                     System.out.println("Antes de ir a carcel");
                     moveToJail();
-                    nextTurn();
-                    dados[0] = dados[1] = null;
-                    return;
+                    changeTurn = true;
                 } else {
                     tiradas++;
                     System.out.println("Doble! Tira de nuevo");
-                    dados[0] = dados[1] = null;
-                    return;
+                    changeTurn = false;
                 }
             } else {
                 tiradas = 1;
                 System.out.println("Cambiar jugador no dobles");
-                nextTurn();
+                changeTurn = true;
             }
 
             dados[0] = dados[1] = null;
+
+        }
+
+        System.out.println("siguiente turno: " + changeTurn + " - puede interactuar: " + diceService.getCanInteract());
+
+    if(changeTurn && diceService.getCanInteract())
+        {
+            nextTurn();
+            scene.resetCamera();
+            changeTurn = false;
         }
     }
 
@@ -157,9 +148,8 @@ public class TurnService implements ITurnService {
     public void payRent() {}
 
     private void markLastMove(int jugadorId, int nuevaPos) {
-        movePending = true;
-        lastMovedJugadorId = jugadorId;
-        lastMovedPos = nuevaPos;
+
+        scene.replicateFichaPosition(jugadorId, nuevaPos);
     }
 
     public void moveToJail() {
@@ -175,7 +165,7 @@ public class TurnService implements ITurnService {
                             + jugadorActual.getJugadorId()
                             + " ha sido enviado a la cárcel en la posición "
                             + jailPosition);
-            markLastMove(jugadorActual.getJugadorId(), jailPosition);
+            markLastMove(jugadorActual.getJugadorId(), jailPosition - 1);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
