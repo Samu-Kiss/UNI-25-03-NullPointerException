@@ -96,7 +96,7 @@ public class JugadorRepository implements IJugadorRepository {
   @Override
   public void goToJail(int jugadorID) throws SQLException {
     String consulta =
-        "UPDATE Jugador SET Posicion = ?, Encarcelado = ? WHERE JugadorID = ? AND PartidaID = ?";
+        "UPDATE Jugador SET Posicion = ?, Encarcelado = ? WHERE JugadorID = ? AND Partida = ?";
     try (Connection conn = dataService.createConnection();
         PreparedStatement stmt = conn.prepareStatement(consulta)) {
       stmt.setInt(1, 11); // Posición de la cárcel
