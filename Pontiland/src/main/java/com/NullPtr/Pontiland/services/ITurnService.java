@@ -1,6 +1,10 @@
 package com.NullPtr.Pontiland.services;
 
+import com.NullPtr.Pontiland.view.IScene;
+
 public interface ITurnService {
+
+  void setScene(IScene scene);
 
   void nextTurn();
 
@@ -10,9 +14,5 @@ public interface ITurnService {
 
   void payRent();
 
-  int[] consumeLastMove();
 
-  boolean hasMovePending();
-
-  void moveToJail();
 }

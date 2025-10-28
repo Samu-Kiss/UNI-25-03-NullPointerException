@@ -3,6 +3,7 @@ package com.NullPtr.Pontiland.services;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
+import com.NullPtr.Pontiland.view.IScene;
 import com.NullPtr.Pontiland.view.Scene;
 import java.sql.*;
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public class StartGameService implements IStartGameService {
   /** Servicio para la gestión de la base de datos y persistencia. */
   private IDataService dataService;
 
-  private Scene scene;
+  private IScene scene;
 
   /**
    * Constructor que permite la inyección de dependencias.
@@ -36,7 +37,7 @@ public class StartGameService implements IStartGameService {
       IJugadorRepository jugadorRepository,
       IPartidaRepository partidaRepository,
       IDataService dataService,
-      Scene scene) {
+      IScene scene) {
     this.jugadorRepository = jugadorRepository;
     this.partidaRepository = partidaRepository;
     this.dataService = dataService;

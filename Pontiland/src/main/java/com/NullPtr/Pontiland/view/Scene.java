@@ -32,7 +32,7 @@ import java.util.List;
  * cámara. Además, inyecta el dado creado en la escena en el {@link DiceService} para permitir su
  * lógica.
  */
-public class Scene {
+public class Scene implements IScene{
   private final int totalCasillas = 40;
   private float cellSize = 1.5385f;
   private final int side = totalCasillas / 4;
@@ -75,10 +75,7 @@ public class Scene {
    * @param lanzamientoController controlador encargado de manejar el lanzamiento de dados en la
    *     escena
    */
-  public Scene(
-      LegacyApplication app,
-      BulletAppState bullet,
-      LanzamientoDadosController lanzamientoController) {
+  public Scene(LegacyApplication app, BulletAppState bullet, LanzamientoDadosController lanzamientoController) {
     this.app = app;
     Launcher launcher = (Launcher) app;
     this.assetManager = launcher.getAssetManager();
@@ -100,6 +97,7 @@ public class Scene {
    *
    * @param tpf Tiempo por frame
    */
+  @Override
   public void update(float tpf) {
     if (mvSeg >= 0 && mvSeg < mvTargets.size() && mvSpatial != null) {
       mvTimer += tpf;
@@ -162,6 +160,7 @@ public class Scene {
     cam.lookAt(camLookCurr, Vector3f.UNIT_Y);
   }
 
+  @Override
   public void loadFichasModels(Ficha[] data) {
     for (int i = 0; i < data.length; i++) {
       Spatial s = assetManager.loadModel(data[i].getRutaFicha());
@@ -201,6 +200,7 @@ public class Scene {
     }
   }
 
+  @Override
   public void replicateFichaPosition(int jugadorId, int casillaIndex) {
 
     lanzamientoController.enableThrow(false);
@@ -234,17 +234,7 @@ public class Scene {
         indices.add(idx);
       }
     }
-    /*
-    else
-    {
-        for (int i = steps -1 ; i == 0 ; i--) {
-            int idx = (currentIndex - i) % TOTAL_CASILLAS;
-            Vector3f center = posFromCell(idx);
-            targets.add(center);
-            indices.add(idx);
-        }
 
-    }*/
 
     RigidBodyControl rb = s.getControl(RigidBodyControl.class);
     animateMoveAlongPath(s, rb, targets, indices, 0.45f, 0.9f);
