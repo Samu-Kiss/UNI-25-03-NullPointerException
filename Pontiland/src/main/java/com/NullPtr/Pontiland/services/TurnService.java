@@ -128,22 +128,22 @@ public class TurnService implements ITurnService {
                 changeTurn = true;
             }
 
-
             canMove = true;
 
             dados[0] = dados[1] = null;
 
         }
-        else
-            canMove = false;
+        else canMove = false;
 
         System.out.println("siguiente turno: " + changeTurn + " - puede interactuar: " + diceService.getCanInteract());
 
-    if(changeTurn && diceService.getCanInteract())
+        if(diceService.getCanInteract())
         {
-            nextTurn();
             scene.resetCamera();
-            changeTurn = false;
+            if(changeTurn) {
+                nextTurn();
+                changeTurn = false;
+            }
         }
     }
 
