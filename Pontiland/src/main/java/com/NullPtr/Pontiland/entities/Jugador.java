@@ -18,6 +18,16 @@ public class Jugador {
   private long partidaId = -1;
   private List<Propiedad> propiedades;
 
+  /**
+   * Constructor completo de la clase Jugador con lista de propiedades
+   *
+   * @param jugadorId Identificador único del jugador
+   * @param nombreJugador Nombre del jugador
+   * @param posicion Posición actual del jugador en el tablero
+   * @param enCarcel Estado del jugador (si está en la cárcel o no)
+   * @param dinero Cantidad de dinero que posee el jugador
+   * @param propiedades Lista de propiedades que posee el jugador
+   */
   public Jugador(
       int jugadorId,
       String nombreJugador,
@@ -71,7 +81,8 @@ public class Jugador {
    * @param enCarcel Estado del jugador (si está en la cárcel o no)
    * @param dinero Cantidad de dinero que posee el jugador
    * @param partidaId Identificador de la partida a la que pertenece el jugador
-   * @throws IllegalArgumentException si alguno de los valores proporcionados es inválido
+   * @throws IllegalArgumentException si algún argumento es inválido (dinero negativo, nombre vacío,
+   *     posición fuera de rango, identificadores fuera de rango)
    */
   public Jugador(
       int jugadorId,
@@ -144,7 +155,7 @@ public class Jugador {
 
   public void setPosicion(int posicion) {
     if (posicion < 1 || posicion > 40) {
-      throw new IllegalArgumentException("Posicion invalida");
+      throw new IllegalArgumentException("Posicion invalida, posicion " + posicion);
     }
     this.posicion = posicion;
   }
@@ -178,5 +189,9 @@ public class Jugador {
       throw new IllegalArgumentException("La lista de propiedades no puede ser nula");
     }
     this.propiedades = propiedades;
+  }
+
+  public long getPartida() {
+    return this.partidaId;
   }
 }

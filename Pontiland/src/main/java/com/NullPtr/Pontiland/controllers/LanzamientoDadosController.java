@@ -25,7 +25,7 @@ public class LanzamientoDadosController {
           if (!evt.isPressed()) return;
 
           int code = evt.getKeyCode();
-          if (code == KeyInput.KEY_Y && diceService.canThrowDice()) {
+          if (code == KeyInput.KEY_Y && diceService.getCanThrowDice()) {
             diceService.lanzamientoDados();
           }
         }
@@ -66,6 +66,10 @@ public class LanzamientoDadosController {
 
   public void onDadosCreados(Spatial dado1, Spatial dado2) {
     diceService.setDados(dado1, dado2);
+  }
+
+  public void enableThrow(boolean canInteract) {
+    diceService.enableInteract(canInteract);
   }
 
   public void update() {

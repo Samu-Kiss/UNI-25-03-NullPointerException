@@ -84,10 +84,28 @@ public class JugadorRepository implements IJugadorRepository {
         PreparedStatement ps = conn.prepareStatement(sql)) {
       ps.setLong(1, partidaID);
       try (ResultSet rs = ps.executeQuery()) {
-        if (rs.next()) return rs.getInt("JugadorActualID");
-        throw new IllegalStateException(
-            "[JUGADOR] No hay jugador activo para PartidaID=" + partidaID);
+        if (rs.next()) {
+          return rs.getInt("JugadorActualID");
+        } else {
+          return -1;
+        }
       }
+    }
+  }
+
+  @Override
+  public void goToJail(int jugadorID) throws SQLException {
+    String consulta =
+        "UPDATE Jugador SET Posicion = ?, Encarcelado = ? WHERE JugadorID = ? AND Partida = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
+      stmt.setInt(1, 11); // Posición de la cárcel
+      stmt.setBoolean(2, true); // Encarcelado
+      stmt.setInt(3, jugadorID);
+      stmt.setLong(4, partidaID);
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -137,8 +155,9 @@ public class JugadorRepository implements IJugadorRepository {
       try (ResultSet rs = stmt.executeQuery()) {
         if (rs.next()) {
           return rs.getInt("NumJugador");
+        } else {
+          throw new RuntimeException("No se encontró el jugador con playerID: " + playerId);
         }
-        throw new RuntimeException("No se encontró el jugador con playerID: " + playerId);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -187,15 +206,17 @@ public class JugadorRepository implements IJugadorRepository {
           throw new SQLException(
               "Jugador no encontrado (partida=" + partidaID + ", id=" + jugadorID + ")");
         }
-        return new Jugador(
-            rs.getInt("JugadorID"),
-            rs.getInt("NumJugador"),
-            rs.getString("NombreJugador"),
-            rs.getInt("IconoID"),
-            rs.getInt("Posicion"),
-            rs.getBoolean("Encarcelado"),
-            rs.getInt("Dinero"),
-            rs.getLong("Partida"));
+        Jugador jugador =
+            new Jugador(
+                rs.getInt("JugadorID"),
+                rs.getInt("NumJugador"),
+                rs.getString("NombreJugador"),
+                rs.getInt("IconoID"),
+                rs.getInt("Posicion"),
+                rs.getBoolean("Encarcelado"),
+                rs.getInt("Dinero"),
+                rs.getLong("Partida"));
+        return jugador;
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -234,7 +255,6 @@ public class JugadorRepository implements IJugadorRepository {
 
   @Override
   public void updateJugador(Jugador jugador) throws SQLException {
-
     String consulta =
         "UPDATE Jugador SET Posicion = ?, Encarcelado = ?, Dinero = ? WHERE JugadorID = ? AND Partida = ?";
     try (Connection conn = dataService.createConnection();
@@ -244,11 +264,44 @@ public class JugadorRepository implements IJugadorRepository {
       stmt.setInt(3, jugador.getDinero());
       stmt.setInt(4, jugador.getJugadorId());
       stmt.setLong(5, partidaID);
-
       stmt.executeUpdate();
-
     } catch (SQLException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  public void rentPaymentTransaction(Jugador j1, Jugador j2) throws SQLException {
+    Connection conn = dataService.createConnection();
+    String updateSql = "UPDATE Jugador SET Dinero = ? WHERE NumJugador = ? AND Partida = ?";
+    boolean originalAutoCommit = conn.getAutoCommit();
+    try {
+      conn.setAutoCommit(false);
+
+      try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
+        // Actualizar primer jugador
+        ps.setInt(1, j1.getDinero());
+        ps.setInt(2, j1.getNumJugador());
+        ps.setLong(3, j1.getPartida());
+        ps.executeUpdate();
+
+        // Actualizar segundo jugador
+        ps.setInt(1, j2.getDinero());
+        ps.setInt(2, j2.getNumJugador());
+        ps.setLong(3, j2.getPartida());
+        ps.executeUpdate();
+      }
+
+      conn.commit();
+    } catch (SQLException ex) {
+      try {
+        conn.rollback();
+      } catch (SQLException rbEx) {
+        // ignorar o registrar según necesidad
+      }
+      throw ex;
+    } finally {
+      conn.setAutoCommit(originalAutoCommit);
+      conn.close();
     }
   }
 }

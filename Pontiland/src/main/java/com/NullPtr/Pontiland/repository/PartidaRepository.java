@@ -44,12 +44,11 @@ public class PartidaRepository implements IPartidaRepository {
     partidaID = Long.parseLong(formatted);
 
     String creacionPartida = "INSERT INTO PARTIDA(PartidaID, NumeroJugadores) VALUES( ? , ? )";
-    try (Connection conn = dataService.createConnection()) {
-      try (PreparedStatement crearPartida = conn.prepareStatement(creacionPartida)) {
-        crearPartida.setLong(1, partidaID);
-        crearPartida.setInt(2, numJugadores);
-        crearPartida.executeUpdate();
-      }
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement crearPartida = conn.prepareStatement(creacionPartida)) {
+      crearPartida.setLong(1, partidaID);
+      crearPartida.setInt(2, numJugadores);
+      crearPartida.executeUpdate();
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -59,13 +58,13 @@ public class PartidaRepository implements IPartidaRepository {
   @Override
   public int getNumJugadores() {
     String consulta = "SELECT NumeroJugadores FROM Partida WHERE PartidaID = ?";
-    try (Connection conn = dataService.createConnection()) {
-      try (PreparedStatement stmt = conn.prepareStatement(consulta)) {
-        stmt.setLong(1, partidaID);
-        try (ResultSet rs = stmt.executeQuery()) {
-          if (rs.next()) {
-            return rs.getInt("NumeroJugadores");
-          }
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
+      stmt.setLong(1, partidaID);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("NumeroJugadores");
+        } else {
           throw new RuntimeException(
               "No se encontró un jugador activo para la partida: " + partidaID);
         }

@@ -15,7 +15,9 @@ public interface IDiceService {
 
   void update();
 
-  boolean canThrowDice();
+  boolean getCanThrowDice();
 
-  void setTurnService(ITurnService turnService);
+  void enableInteract(boolean canInteract);
+
+  boolean getCanInteract();
 }

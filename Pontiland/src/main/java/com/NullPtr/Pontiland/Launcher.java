@@ -10,6 +10,7 @@ import com.NullPtr.Pontiland.repository.PartidaRepository;
 import com.NullPtr.Pontiland.services.*;
 import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
+import com.NullPtr.Pontiland.view.IScene;
 import com.NullPtr.Pontiland.view.MenuPrincipal;
 import com.NullPtr.Pontiland.view.Scene;
 import com.jme3.app.SimpleApplication;
@@ -31,13 +32,15 @@ public class Launcher extends SimpleApplication {
   private ITurnService turnService;
   private LanzamientoDadosController lanzamientoDadosController;
   private Byte[] resultados = new Byte[2];
-  private Scene scene;
+  private IScene scene;
 
   private IDataService dataService;
+  private ICasillaRepository casillaRepository;
   private IStartGameService startGameService;
 
   private IJugadorRepository jugadorRepository;
   private IPartidaRepository partidaRepository;
+  private ICasillaService casillaService;
 
   public static void main(String[] args) {
     Launcher app = new Launcher();
@@ -72,17 +75,18 @@ public class Launcher extends SimpleApplication {
 
     partidaRepository = new PartidaRepository(dataService);
     jugadorRepository = new JugadorRepository(dataService);
-    turnService = new TurnService(jugadorRepository, partidaRepository, diceService);
-
-    diceService.setTurnService(turnService);
-
+    casillaRepository = new CasillaRepository(dataService);
+    casillaService = new CasillaService();
+    turnService =
+        new TurnService(
+            jugadorRepository, partidaRepository, diceService, casillaRepository, casillaService);
     lanzamientoDadosController = new LanzamientoDadosController(diceService);
     lanzamientoDadosController.registerInputs(getInputManager());
 
     scene = new Scene(this, bulletAppState, lanzamientoDadosController);
     startGameService =
         new StartGameService(jugadorRepository, partidaRepository, dataService, scene);
-
+    turnService.setScene(scene);
     IMenuActions actions = new MenuController(this, startGameService, dataService);
     stateManager.attach(new MenuPrincipal(actions));
   }
@@ -92,13 +96,6 @@ public class Launcher extends SimpleApplication {
     if (scene != null) scene.update(tpf);
 
     turnService.update();
-
-    if (scene != null && turnService.hasMovePending()) {
-      int[] mv = turnService.consumeLastMove();
-      if (mv != null) {
-        scene.replicateFichaPosition(mv[0], mv[1] - 1);
-      }
-    }
 
     lanzamientoDadosController.update();
   }

@@ -61,7 +61,6 @@ public class DataService implements IDataService {
   public Connection createConnection() {
     try {
       return DriverManager.getConnection(url, "sa", "");
-
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -79,13 +78,17 @@ public class DataService implements IDataService {
   public void newDataBase() {
     try (Connection conn = createConnection();
         Statement stmt = conn.createStatement();
-        InputStream ddlStream = getResourceStream(ddlResource);
-        InputStream insStream = getResourceStream(insResource)) {
+        InputStream ddlIn = this.getClass().getResourceAsStream(ddlResource);
+        InputStream insIn = this.getClass().getResourceAsStream(insResource)) {
 
-      String schemaSql = new String(ddlStream.readAllBytes(), StandardCharsets.UTF_8);
+      if (ddlIn == null || insIn == null) {
+        throw new RuntimeException("No se pudieron cargar los recursos DDL/INSERTS");
+      }
+
+      String schemaSql = new String(ddlIn.readAllBytes(), StandardCharsets.UTF_8);
       stmt.execute(schemaSql);
 
-      String dataSql = new String(insStream.readAllBytes(), StandardCharsets.UTF_8);
+      String dataSql = new String(insIn.readAllBytes(), StandardCharsets.UTF_8);
       stmt.execute(dataSql);
 
     } catch (SQLException | IOException e) {
@@ -104,12 +107,13 @@ public class DataService implements IDataService {
   public void loadDataBase(String archivoSeleccionado) {
     String ubicacionArchivo = savesDir + archivoSeleccionado;
     Path path = Paths.get(ubicacionArchivo);
-    if (!Files.exists(path) || !Files.isRegularFile(path)) {
-      return;
+    if (!(Files.exists(path) && Files.isRegularFile(path))) {
+      return; // nada que cargar
     }
 
+    String runscript = "RUNSCRIPT FROM ?";
     try (Connection conn = createConnection();
-        PreparedStatement cargarPartida = conn.prepareStatement("RUNSCRIPT FROM ?")) {
+        PreparedStatement cargarPartida = conn.prepareStatement(runscript)) {
       cargarPartida.setString(1, ubicacionArchivo);
       cargarPartida.executeUpdate();
     } catch (SQLException e) {
@@ -178,8 +182,9 @@ public class DataService implements IDataService {
    */
   public void saveDataBase(long partidaID) {
     String ubicacionArchivo = savesDir + partidaID + ".sql";
+    String script = "SCRIPT TO ?";
     try (Connection conn = createConnection();
-        PreparedStatement guardarPartida = conn.prepareStatement("SCRIPT TO ?")) {
+        PreparedStatement guardarPartida = conn.prepareStatement(script)) {
       guardarPartida.setString(1, ubicacionArchivo);
       guardarPartida.execute();
     } catch (SQLException e) {
@@ -187,11 +192,22 @@ public class DataService implements IDataService {
     }
   }
 
-  private InputStream getResourceStream(String resourcePath) throws IOException {
-    InputStream stream = this.getClass().getResourceAsStream(resourcePath);
-    if (stream == null) {
-      throw new IOException("No se encontró el recurso: " + resourcePath);
+  /**
+   * Elimina todos los objetos de la base de datos actual.
+   *
+   * <p>Ejecuta el comando SQL "DROP ALL OBJECTS" para eliminar todas las tablas, vistas y otros
+   * objetos presentes en la base de datos.
+   *
+   * @throws RuntimeException si ocurre un error de SQL durante la eliminación.
+   */
+  @Override
+  public void deleteDataBase() {
+    String query = "DROP ALL OBJECTS";
+    try (Connection conn = createConnection();
+        Statement stmt = conn.createStatement()) {
+      stmt.execute(query);
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
-    return stream;
   }
 }
