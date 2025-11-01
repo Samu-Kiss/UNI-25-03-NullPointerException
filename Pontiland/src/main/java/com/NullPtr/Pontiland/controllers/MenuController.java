@@ -139,12 +139,10 @@ public class MenuController implements IMenuActions {
 
     startGameService.creatingNewGame(jugadores, personajeIds);
 
-    // Enable the turn loop now that DB and game are set up
     if (turnService != null) {
       turnService.setEnabled(true);
     }
 
-    // Desconectar cualquier menú de UI
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuJugadores);
     detachIfAttached(menuCarga);
