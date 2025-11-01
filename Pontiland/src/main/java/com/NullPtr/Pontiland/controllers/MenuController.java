@@ -36,6 +36,9 @@ public class MenuController implements IMenuActions {
   private final IStartGameService startGameService;
   private final IDataService dataService;
 
+  // HUD controller para mostrar la UI del juego
+  private final HUDController hudController;
+
   public MenuController(
       Launcher app, IStartGameService startGameService, IDataService dataService) {
     this.dataService = dataService;
@@ -44,6 +47,7 @@ public class MenuController implements IMenuActions {
     }
     this.startGameService = startGameService;
     this.app = app;
+    this.hudController = new HUDController(app);
   }
 
   private AppStateManager stateManager() {
@@ -59,6 +63,9 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuCarga);
     detachIfAttached(menuCreditos);
     detachIfAttached(menuSeleccion);
+
+    // Ocultar/detener HUD si estuviera activo
+    hudController.detachHUD();
 
     if (menuPrincipal == null) {
       menuPrincipal = new MenuPrincipal(this);
@@ -134,13 +141,18 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuCreditos);
     detachIfAttached(menuSeleccion);
 
-    // TODO controller no puede comunicarse directamente con app
+    // Asegurar escena y mostrar HUD del juego
     startGameService.ensureSceneReady();
+    hudController.showHUD();
+    // Poblar nombres de jugadores en las player cards
+    java.util.List<String> names = new java.util.ArrayList<>();
+    for (Jugador j : jugadores) names.add(j.getNombreJugador());
+    hudController.setPlayerNames(names);
 
     System.out.println("Juego iniciado con " + playerCount + " jugadores");
   }
 
-  /** Abre el menú de carga con datos de demo. */
+  /** Abre el menú de carga with datos de demo. */
   @Override
   public void loadSavedGame() {
     detachIfAttached(menuPrincipal);
@@ -160,8 +172,10 @@ public class MenuController implements IMenuActions {
           detachIfAttached(menuCreditos);
           detachIfAttached(menuSeleccion);
 
-          // TODO controller no puede comunicarse directamente con app
+          // Asegurar escena y mostrar HUD del juego
           startGameService.ensureSceneReady();
+          hudController.showHUD();
+          // TODO: si hubiera nombres disponibles en el guardado, poblarlos aquí
         });
   }
 
@@ -198,6 +212,9 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuCreditos);
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuSeleccion);
+
+    // Ocultar/detener HUD si estuviera activo
+    hudController.detachHUD();
 
     showStartScreen();
   }

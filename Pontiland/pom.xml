@@ -199,7 +199,7 @@
           <java>
             <!-- Google Java Format is close to IntelliJ default; adjust if you later add a custom style -->
             <googleJavaFormat>
-              <version>1.17.0</version>
+              <version>1.19.2</version>
             </googleJavaFormat>
             <removeUnusedImports></removeUnusedImports>
             <importOrder></importOrder>
