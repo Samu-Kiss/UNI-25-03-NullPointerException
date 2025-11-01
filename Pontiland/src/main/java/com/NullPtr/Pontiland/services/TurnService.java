@@ -14,6 +14,7 @@ public class TurnService implements ITurnService {
   private DiceService diceService;
   private ICasillaRepository casillaRepository;
   private IScene scene;
+  private boolean interactionStarted;
   private int tiradas = 1;
 
   private enum TurnState {
@@ -25,12 +26,11 @@ public class TurnService implements ITurnService {
   }
 
   private TurnState state = TurnState.AWAIT_ROLL;
-
   private Byte lastD1 = null;
   private Byte lastD2 = null;
   private int pendingMovement = 0;
 
-  private boolean interactionStarted = false;
+  private boolean enabled = false;
 
   public TurnService(
       IJugadorRepository jugadorRepository,
@@ -92,7 +92,6 @@ public class TurnService implements ITurnService {
       throw new RuntimeException(e);
     }
 
-    // Persist only the position change now; interaction may modify more fields later.
     try {
       jugadorRepository.updateJugador(jugadorActual);
     } catch (SQLException e) {
@@ -103,7 +102,14 @@ public class TurnService implements ITurnService {
   }
 
   @Override
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  @Override
   public void update() {
+    if (!enabled) return;
+
     try {
       switch (state) {
         case AWAIT_ROLL:

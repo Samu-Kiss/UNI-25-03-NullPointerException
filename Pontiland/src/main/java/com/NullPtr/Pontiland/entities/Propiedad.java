@@ -129,4 +129,17 @@ public class Propiedad {
   public Tipo getTipoCasilla() {
     return this.tipoCasilla;
   }
+
+  public int getGrupo() {
+    return this.idGrupo;
+  }
+
+  public String[] getRentasText() {
+    if (rentaPorNivel == null) return new String[0];
+    String[] out = new String[rentaPorNivel.length];
+    for (int i = 0; i < rentaPorNivel.length; i++) {
+      out[i] = String.valueOf(rentaPorNivel[i]);
+    }
+    return out;
+  }
 }

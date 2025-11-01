@@ -4,7 +4,8 @@ import com.NullPtr.Pontiland.entities.Propiedad;
 
 public interface IPropiedadRepository {
 
-  Propiedad getPropiedadById(int id);
+  void setPartidaID(long partidaID);
 
-  void updatePropiedad(Propiedad propiedad);
+  Propiedad getPropiedadByPosition(int position);
+
 }

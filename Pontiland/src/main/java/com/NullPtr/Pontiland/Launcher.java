@@ -3,6 +3,7 @@ package com.NullPtr.Pontiland;
 import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.NullPtr.Pontiland.controllers.LanzamientoDadosController;
 import com.NullPtr.Pontiland.controllers.MenuController;
+import com.NullPtr.Pontiland.controllers.HUDController;
 import com.NullPtr.Pontiland.repository.*;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import com.NullPtr.Pontiland.repository.JugadorRepository;
@@ -76,7 +77,13 @@ public class Launcher extends SimpleApplication {
     partidaRepository = new PartidaRepository(dataService);
     jugadorRepository = new JugadorRepository(dataService);
     casillaRepository = new CasillaRepository(dataService);
-    casillaService = new CasillaService();
+
+    HUDController hudController = new HUDController(this);
+    hudController.setDiceService(diceService);
+
+    PropiedadRepository propiedadRepository = new PropiedadRepository(dataService);
+    casillaService = new CasillaService(hudController, diceService, propiedadRepository);
+
     turnService =
         new TurnService(
             jugadorRepository, partidaRepository, diceService, casillaRepository, casillaService);
@@ -85,9 +92,9 @@ public class Launcher extends SimpleApplication {
 
     scene = new Scene(this, bulletAppState, lanzamientoDadosController);
     startGameService =
-        new StartGameService(jugadorRepository, partidaRepository, dataService, scene);
+        new StartGameService(jugadorRepository, partidaRepository, dataService, scene, propiedadRepository);
     turnService.setScene(scene);
-    IMenuActions actions = new MenuController(this, startGameService, dataService);
+    IMenuActions actions = new MenuController(this, startGameService, dataService, hudController, turnService);
     stateManager.attach(new MenuPrincipal(actions));
   }
 

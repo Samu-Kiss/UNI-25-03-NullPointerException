@@ -5,6 +5,7 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
+import com.NullPtr.Pontiland.services.ITurnService;
 import com.NullPtr.Pontiland.view.MenuCarga;
 import com.NullPtr.Pontiland.view.MenuCreditos;
 import com.NullPtr.Pontiland.view.MenuJugadores;
@@ -39,15 +40,19 @@ public class MenuController implements IMenuActions {
   // HUD controller para mostrar la UI del juego
   private final IHUDcontroller hudController;
 
+  // Turn service to enable the loop when a game is created
+  private final ITurnService turnService;
+
   public MenuController(
-      Launcher app, IStartGameService startGameService, IDataService dataService) {
+      Launcher app, IStartGameService startGameService, IDataService dataService, IHUDcontroller hudController, ITurnService turnService) {
     this.dataService = dataService;
     if (app == null) {
       throw new IllegalArgumentException("app no puede ser null");
     }
     this.startGameService = startGameService;
     this.app = app;
-    this.hudController = new HUDController(app);
+    this.hudController = hudController;
+    this.turnService = turnService;
   }
 
   private AppStateManager stateManager() {
@@ -65,7 +70,7 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuSeleccion);
 
     // Ocultar/detener HUD si estuviera activo
-    hudController.detachHUD();
+    if (hudController != null) hudController.detachHUD();
 
     if (menuPrincipal == null) {
       menuPrincipal = new MenuPrincipal(this);
@@ -134,6 +139,11 @@ public class MenuController implements IMenuActions {
 
     startGameService.creatingNewGame(jugadores, personajeIds);
 
+    // Enable the turn loop now that DB and game are set up
+    if (turnService != null) {
+      turnService.setEnabled(true);
+    }
+
     // Desconectar cualquier menú de UI
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuJugadores);
@@ -143,11 +153,11 @@ public class MenuController implements IMenuActions {
 
     // Asegurar escena y mostrar HUD del juego
     startGameService.ensureSceneReady();
-    hudController.showHUD();
+    if (hudController != null) hudController.showHUD();
     // Poblar nombres de jugadores en las player cards
     java.util.List<String> names = new java.util.ArrayList<>();
     for (Jugador j : jugadores) names.add(j.getNombreJugador());
-    hudController.setPlayerNames(names);
+    if (hudController != null) hudController.setPlayerNames(names);
 
     System.out.println("Juego iniciado con " + playerCount + " jugadores");
   }
@@ -174,7 +184,7 @@ public class MenuController implements IMenuActions {
 
           // Asegurar escena y mostrar HUD del juego
           startGameService.ensureSceneReady();
-          hudController.showHUD();
+          if (hudController != null) hudController.showHUD();
           // TODO: si hubiera nombres disponibles en el guardado, poblarlos aquí
         });
   }
@@ -214,7 +224,7 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuSeleccion);
 
     // Ocultar/detener HUD si estuviera activo
-    hudController.detachHUD();
+    if (hudController != null) hudController.detachHUD();
 
     showStartScreen();
   }

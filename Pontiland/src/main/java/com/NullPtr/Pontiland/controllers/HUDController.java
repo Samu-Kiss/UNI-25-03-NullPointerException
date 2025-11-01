@@ -2,6 +2,7 @@ package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.view.HUD;
+import com.NullPtr.Pontiland.services.DiceService;
 import com.jme3.app.state.AppStateManager;
 import java.util.List;
 import java.util.Objects;
@@ -15,8 +16,15 @@ public class HUDController implements IHUDcontroller {
   private final Launcher app;
   private HUD hud;
 
+  // Optional collaborator used to re-enable interactions when HUD closes
+  private DiceService diceService;
+
   public HUDController(Launcher app) {
     this.app = Objects.requireNonNull(app, "app no puede ser null");
+  }
+
+  public void setDiceService(DiceService diceService) {
+    this.diceService = diceService;
   }
 
   private AppStateManager stateManager() {
@@ -86,6 +94,9 @@ public class HUDController implements IHUDcontroller {
   public void hidePropertyCard() {
     if (hud != null) {
       hud.hidePropertyCard();
+    }
+    if (diceService != null) {
+      diceService.enableInteract(true);
     }
   }
 

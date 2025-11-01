@@ -1,13 +1,24 @@
 package com.NullPtr.Pontiland.services;
 
-import static com.NullPtr.Pontiland.entities.Tipo.*;
-
+import com.NullPtr.Pontiland.controllers.IHUDcontroller;
 import com.NullPtr.Pontiland.entities.Casilla;
 import com.NullPtr.Pontiland.entities.Jugador;
+import com.NullPtr.Pontiland.entities.Propiedad;
+import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 
 public class CasillaService implements ICasillaService {
 
   private boolean irACarcel = false;
+  private final IHUDcontroller hudController;
+  private final DiceService diceService;
+  private final IPropiedadRepository propiedadRepository;
+
+  public CasillaService(
+      IHUDcontroller hudController, DiceService diceService, IPropiedadRepository propiedadRepository) {
+    this.hudController = hudController;
+    this.diceService = diceService;
+    this.propiedadRepository = propiedadRepository;
+  }
 
   @Override
   public void interaccion(Jugador jugador, Casilla casilla) {
@@ -21,7 +32,7 @@ public class CasillaService implements ICasillaService {
         onEvento(jugador, casilla);
         break;
       case PROPIEDAD:
-        onPropiedad(jugador, casilla);
+        onPropiedad(casilla);
         break;
       case MOVIMIENTO:
         onMovimiento(jugador, casilla);
@@ -36,7 +47,33 @@ public class CasillaService implements ICasillaService {
 
   private void onEvento(Jugador j, Casilla c) {}
 
-  private void onPropiedad(Jugador j, Casilla c) {}
+  private void onPropiedad(Casilla casilla) {
+    Propiedad prop = null;
+    if (propiedadRepository != null) {
+      try {
+        prop = propiedadRepository.getPropiedadByPosition(casilla.getPosicionTablero());
+      } catch (Exception ex) {
+        System.err.println("Warning: failed to read Propiedad from repository: " + ex.getMessage());
+      }
+    }
+    if (diceService != null) {
+      diceService.enableInteract(false);
+    }
+
+    String name;
+    String priceText;
+    String[] rentsText;
+    int groupIndex;
+    name = prop.getNombreCasilla();
+    priceText = String.valueOf(prop.getPrecioCompra());
+    rentsText = prop.getRentasText();
+    groupIndex = prop.getGrupo();
+
+
+    if (hudController != null) {
+      hudController.showPropertyCard(name, priceText, rentsText, groupIndex);
+    }
+  }
 
   private void onMovimiento(Jugador j, Casilla c) {}
 

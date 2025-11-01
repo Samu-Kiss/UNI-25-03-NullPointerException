@@ -13,4 +13,6 @@ public interface ITurnService {
   void buyProperty();
 
   void payRent();
+
+  void setEnabled(boolean enabled);
 }
