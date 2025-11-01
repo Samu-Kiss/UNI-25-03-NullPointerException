@@ -15,8 +15,22 @@ public class TurnService implements ITurnService {
   private ICasillaRepository casillaRepository;
   private IScene scene;
   private int tiradas = 1;
-  private boolean changeTurn = false;
-  private boolean canMove = false;
+
+  private enum TurnState {
+    AWAIT_ROLL,
+    MOVING,
+    INTERACT,
+    POST_MOVE_CHECK,
+    END_TURN
+  }
+
+  private TurnState state = TurnState.AWAIT_ROLL;
+
+  private Byte lastD1 = null;
+  private Byte lastD2 = null;
+  private int pendingMovement = 0;
+
+  private boolean interactionStarted = false;
 
   public TurnService(
       IJugadorRepository jugadorRepository,
@@ -73,13 +87,12 @@ public class TurnService implements ITurnService {
                   .casillaFromPosition(jugadorActual.getPosicion())
                   .getTipoCasilla());
 
-      casillaService.interaccion(
-          jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
 
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
 
+    // Persist only the position change now; interaction may modify more fields later.
     try {
       jugadorRepository.updateJugador(jugadorActual);
     } catch (SQLException e) {
@@ -91,56 +104,103 @@ public class TurnService implements ITurnService {
 
   @Override
   public void update() {
-    Byte[] dados = diceService.getResultados();
-    if (dados == null) return;
-    Byte d1 = dados[0];
-    Byte d2 = dados[1];
+    try {
+      switch (state) {
+        case AWAIT_ROLL:
+          if (scene != null) scene.resetCamera();
+          Byte[] dados = diceService.getResultados();
+          if (dados == null) return;
 
-    if (casillaService.getIrACarcel() && diceService.getCanInteract() && canMove) {
-      changeTurn = true;
-      moveToJail();
-    }
+          if (dados[0] != null && dados[1] != null) {
+            lastD1 = dados[0];
+            lastD2 = dados[1];
+            pendingMovement = dados[0] + dados[1];
+            dados[0] = dados[1] = null;
 
-    if (d1 != null && d2 != null) {
-      int movimiento = d1 + d2;
+            state = TurnState.MOVING;
+          }
+          break;
 
-      System.out.println("Resultados dados: [" + d1 + ", " + d2 + "]");
+        case MOVING:
+          if (pendingMovement > 0) {
+            movePlayer(pendingMovement);
+            pendingMovement = 0;
+            interactionStarted = false;
+          }
 
-      movePlayer(movimiento);
+          if (!diceService.getCanInteract()) {
+            return;
+          }
 
-      if (d1.equals(d2)) {
-        if (tiradas >= 3) {
-          System.out.println("3 dobles seguidos, vas a la cárcel!");
-          tiradas = 1;
-          System.out.println("Antes de ir a carcel");
-          moveToJail();
-          changeTurn = true;
-        } else {
-          tiradas++;
-          System.out.println("Doble! Tira de nuevo");
-          changeTurn = false;
-        }
-      } else {
-        tiradas = 1;
-        System.out.println("Cambiar jugador no dobles");
-        changeTurn = true;
+          state = TurnState.INTERACT;
+
+          break;
+
+        case INTERACT:
+          if (!interactionStarted) {
+            if (diceService.getCanInteract()) {
+                try {
+                    Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+                    casillaService.interaccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+                    jugadorRepository.updateJugador(jugadorActual);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+
+                interactionStarted = true;
+            }
+
+          }
+          else {
+              if (diceService.getCanInteract()) {
+                  interactionStarted = false;
+                  state = TurnState.POST_MOVE_CHECK;
+                  break;
+              }
+          }
+
+
+
+        case POST_MOVE_CHECK:
+          if (casillaService.getIrACarcel()) {
+            System.out.println("La casilla pedido enviar a la cárcel después del movimiento");
+            moveToJail();
+            tiradas = 1;
+            state = TurnState.END_TURN;
+            break;
+          }
+
+          if (lastD1 != null && lastD1.equals(lastD2)) {
+            if (tiradas >= 3) {
+              System.out.println("3 dobles seguidos, vas a la cárcel!");
+              tiradas = 1;
+              moveToJail();
+              state = TurnState.END_TURN;
+            } else {
+              tiradas++;
+              System.out.println("Doble! Tira de nuevo");
+              lastD1 = lastD2 = null;
+              state = TurnState.AWAIT_ROLL;
+            }
+          } else {
+            tiradas = 1;
+            System.out.println("No doble: finalizar turno y cambiar jugador");
+            lastD1 = lastD2 = null;
+            state = TurnState.END_TURN;
+          }
+          break;
+
+        case END_TURN:
+          nextTurn();
+          state = TurnState.AWAIT_ROLL;
+          break;
+
+        default:
+          state = TurnState.AWAIT_ROLL;
+          break;
       }
-
-      canMove = true;
-
-      dados[0] = dados[1] = null;
-
-    } else canMove = false;
-
-    System.out.println(
-        "siguiente turno: " + changeTurn + " - puede interactuar: " + diceService.getCanInteract());
-
-    if (diceService.getCanInteract()) {
-      scene.resetCamera();
-      if (changeTurn) {
-        nextTurn();
-        changeTurn = false;
-      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 

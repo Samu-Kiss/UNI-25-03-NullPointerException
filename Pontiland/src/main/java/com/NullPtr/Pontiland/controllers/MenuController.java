@@ -37,7 +37,7 @@ public class MenuController implements IMenuActions {
   private final IDataService dataService;
 
   // HUD controller para mostrar la UI del juego
-  private final HUDController hudController;
+  private final IHUDcontroller hudController;
 
   public MenuController(
       Launcher app, IStartGameService startGameService, IDataService dataService) {
