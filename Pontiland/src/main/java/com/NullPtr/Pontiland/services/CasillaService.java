@@ -43,6 +43,28 @@ public class CasillaService implements ICasillaService {
     }
   }
 
+
+    @Override
+    public void terminarInteraccion(Jugador jugador, Casilla casilla) {
+      switch (casilla.getTipoCasilla()) {
+            case PARADALIBRE:
+                //onParadaLibre(jugador, casilla);
+                break;
+            case EVENTO:
+                //onEvento(jugador, casilla);
+                break;
+            case PROPIEDAD:
+                //onPropiedad(casilla);
+                break;
+            case MOVIMIENTO:
+                //onMovimiento(jugador, casilla);
+                break;
+            case IRALACARCEL:
+                //onCarcel();
+                break;
+        }
+    }
+
   private void onParadaLibre(Jugador j, Casilla c) {}
 
   private void onEvento(Jugador j, Casilla c) {}
@@ -57,7 +79,7 @@ public class CasillaService implements ICasillaService {
       }
     }
     if (diceService != null) {
-      diceService.enableInteract(false);
+      //diceService.enableInteract(false);
     }
 
     String name;
@@ -73,6 +95,8 @@ public class CasillaService implements ICasillaService {
     if (hudController != null) {
       hudController.showPropertyCard(name, priceText, rentsText, groupIndex);
     }
+
+
   }
 
   private void onMovimiento(Jugador j, Casilla c) {}

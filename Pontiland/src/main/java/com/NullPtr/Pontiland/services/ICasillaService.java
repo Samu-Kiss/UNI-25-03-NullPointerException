@@ -8,4 +8,6 @@ public interface ICasillaService {
   boolean getIrACarcel();
 
   void interaccion(Jugador jugador, Casilla casilla);
+
+  void terminarInteraccion(Jugador jugador, Casilla casilla);
 }

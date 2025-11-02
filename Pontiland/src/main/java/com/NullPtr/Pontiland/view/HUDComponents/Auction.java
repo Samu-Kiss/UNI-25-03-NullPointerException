@@ -69,7 +69,6 @@ public class Auction {
       int h = tex.getImage().getHeight();
       root.setPreferredSize(new Vector3f(w * SPRITE_SCALE, h * SPRITE_SCALE, 0));
     } catch (Exception e) {
-      // fallback silencioso
       root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.05f, 0.06f, 0.08f, 0.95f)));
     }
   }
@@ -92,7 +91,6 @@ public class Auction {
       int h = tex.getImage().getHeight();
       b.setPreferredSize(new Vector3f(w * 0.45f, h * 0.45f, 0));
     } catch (Exception e) {
-      // fallback silencioso
     }
   }
 }
