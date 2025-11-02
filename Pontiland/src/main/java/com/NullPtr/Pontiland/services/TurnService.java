@@ -197,7 +197,7 @@ public class TurnService implements ITurnService {
         case END_TURN:
             try {
             Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-            casillaService.terminarInteraccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+            //casillaService.terminarInteraccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
             jugadorRepository.updateJugador(jugadorActual);
         } catch (SQLException e) {
             throw new RuntimeException(e);

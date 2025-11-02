@@ -54,7 +54,9 @@ public class CasillaService implements ICasillaService {
                 //onEvento(jugador, casilla);
                 break;
             case PROPIEDAD:
-                //onPropiedad(casilla);
+                if (hudController != null) {
+                    hudController.hidePropertyCard();
+                }
                 break;
             case MOVIMIENTO:
                 //onMovimiento(jugador, casilla);
@@ -91,11 +93,9 @@ public class CasillaService implements ICasillaService {
     rentsText = prop.getRentasText();
     groupIndex = prop.getGrupo();
 
-
     if (hudController != null) {
       hudController.showPropertyCard(name, priceText, rentsText, groupIndex);
     }
-
 
   }
 
