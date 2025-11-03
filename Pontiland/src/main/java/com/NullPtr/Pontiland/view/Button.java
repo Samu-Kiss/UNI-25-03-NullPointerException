@@ -4,6 +4,8 @@ import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.control.AbstractControl;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 import com.simsilica.lemur.Insets3f;
@@ -56,7 +58,13 @@ public class Button {
     this.assets = assets;
   }
 
-  /** Atajo con escala por defecto (0.5f). */
+  /**
+   * Atajo con escala por defecto (0.5f).
+   *
+   * @param type tipo de botón a renderizar (Base/Accent/Positive/Negative)
+   * @param text texto a mostrar centrado sobre el botón
+   * @return una instancia de com.simsilica.lemur.Button lista para añadirse al GUI
+   */
   public com.simsilica.lemur.Button render(Type type, String text) {
     return render(type, text, 0.5f);
   }
@@ -86,42 +94,66 @@ public class Button {
     Vector3f size = new Vector3f(w * scaleFactor, h * scaleFactor, 0);
     b.setPreferredSize(size);
 
+    // Color de texto según tipo: Base -> negro; resto -> blanco
+    ColorRGBA stableColor = (type == Type.BASE) ? ColorRGBA.Black : ColorRGBA.White;
+
     // Texto y padding
     b.setText(text != null ? text : "");
     b.setTextHAlignment(com.simsilica.lemur.HAlignment.Center);
     b.setTextVAlignment(com.simsilica.lemur.VAlignment.Center);
     b.setInsets(textPadding);
+    b.setColor(stableColor);
 
     // Auto ajuste de fuente para encajar en el área útil
     float maxTextWidth = size.x * 0.88f; // margen lateral de seguridad
     float maxTextHeight = size.y * 0.70f; // margen vertical (evitar tocar bordes redondeados)
     fitTextToButton(b, maxTextWidth, maxTextHeight);
 
-    // Animación simple de hover: escala inmediata (sin lerp) para mantenerlo ligero
-    addHoverScale(b, hoverScale);
+    // Animación de hover con pivote centrado y color estable
+    addHoverScale(b, hoverScale, stableColor);
 
     return b;
   }
 
-  /** Cambia el factor de escala en hover (por ejemplo 1.05f). */
+  /**
+   * Cambia el factor de escala en hover (por ejemplo 1.05f).
+   *
+   * @param hoverScale nuevo factor de escala al pasar el cursor
+   * @return esta instancia para encadenar llamadas (fluent API)
+   */
   public Button setHoverScale(float hoverScale) {
     this.hoverScale = hoverScale;
     return this;
   }
 
-  /** Ajusta el tamaño de fuente base usado antes del auto-ajuste. */
+  /**
+   * Ajusta el tamaño de fuente base usado antes del auto-ajuste.
+   *
+   * @param size tamaño de fuente base en puntos Lemur
+   * @return esta instancia para encadenar llamadas (fluent API)
+   */
   public Button setDefaultFontSize(float size) {
     this.defaultFontSize = size;
     return this;
   }
 
-  /** Define el tamaño mínimo de fuente permitido por el auto-ajuste. */
+  /**
+   * Define el tamaño mínimo de fuente permitido por el auto-ajuste.
+   *
+   * @param size tamaño mínimo de fuente en puntos Lemur
+   * @return esta instancia para encadenar llamadas (fluent API)
+   */
   public Button setMinFontSize(float size) {
     this.minFontSize = size;
     return this;
   }
 
-  /** Define el padding interno usado para el texto (top, left, bottom, right). */
+  /**
+   * Define el padding interno usado para el texto (top, left, bottom, right).
+   *
+   * @param padding insets (arriba, izquierda, abajo, derecha) para el área de texto
+   * @return esta instancia para encadenar llamadas (fluent API)
+   */
   public Button setTextPadding(Insets3f padding) {
     this.textPadding = padding != null ? padding : new Insets3f(0, 0, 0, 0);
     return this;
@@ -162,9 +194,12 @@ public class Button {
     b.setFontSize(Math.max(size, minFontSize));
   }
 
-  private void addHoverScale(final com.simsilica.lemur.Button b, final float factor) {
-    final Vector3f baseLoc = new Vector3f();
-    final boolean[] captured = new boolean[] {false};
+  private void addHoverScale(
+      final com.simsilica.lemur.Button b, final float factor, final ColorRGBA stableColor) {
+    // Control que interpola suavemente la escala manteniendo pivote centrado
+    final CenterScaleControl ctrl = new CenterScaleControl(b);
+    b.addControl(ctrl);
+
     CursorEventControl.addListenersToSpatial(
         b,
         new DefaultCursorListener() {
@@ -173,19 +208,9 @@ public class Button {
               CursorMotionEvent event,
               com.jme3.scene.Spatial target,
               com.jme3.scene.Spatial capture) {
-            // Capturar la posición base una sola vez
-            if (!captured[0]) {
-              baseLoc.set(b.getLocalTranslation());
-              captured[0] = true;
-            }
-            // Mantener color blanco (evitar highlight amarillo por estilos)
-            b.setColor(ColorRGBA.White);
-            // Calcular offset para pivotar en el centro visual (top-left origin en GUI)
-            Vector3f size = b.getPreferredSize();
-            Vector3f center = new Vector3f(size.x * 0.5f, -size.y * 0.5f, 0);
-            Vector3f offset = center.subtract(center.mult(factor)); // (1-s)*center
-            b.setLocalScale(factor);
-            b.setLocalTranslation(baseLoc.x + offset.x, baseLoc.y + offset.y, baseLoc.z);
+            // Mantener el color del texto estable (evitar highlight)
+            b.setColor(stableColor);
+            ctrl.setTargetScale(factor);
           }
 
           @Override
@@ -193,13 +218,59 @@ public class Button {
               CursorMotionEvent event,
               com.jme3.scene.Spatial target,
               com.jme3.scene.Spatial capture) {
-            // Restaurar color y transformaciones
-            b.setColor(ColorRGBA.White);
-            b.setLocalScale(1f);
-            if (captured[0]) {
-              b.setLocalTranslation(baseLoc);
-            }
+            b.setColor(stableColor);
+            ctrl.setTargetScale(1f);
           }
         });
+  }
+
+  // Control interno para escalar desde el centro con lerp suave
+  private static class CenterScaleControl extends AbstractControl {
+    private final com.simsilica.lemur.Button button;
+    private final Vector3f baseLoc = new Vector3f();
+    private boolean captured = false;
+    private float current = 1f;
+    private float target = 1f;
+    private float speed = 12f; // mayor = más rápido
+
+    CenterScaleControl(com.simsilica.lemur.Button button) {
+      this.button = button;
+    }
+
+    private void setTargetScale(float t) {
+      this.target = t <= 0 ? 1f : t;
+    }
+
+    @Override
+    protected void controlUpdate(float tpf) {
+      Spatial s = getSpatial();
+      if (s == null) return;
+
+      if (!captured) {
+        baseLoc.set(s.getLocalTranslation());
+        captured = true;
+      }
+
+      // Lerp de escala
+      float alpha = Math.min(1f, speed * Math.max(0, tpf));
+      if (Math.abs(target - current) > 0.0005f) {
+        current = current + (target - current) * alpha;
+      }
+
+      // Calcular offset para pivotar en el centro visual
+      Vector3f size = button.getPreferredSize();
+      if (size == null) return;
+      Vector3f center = new Vector3f(size.x * 0.5f, -size.y * 0.5f, 0);
+      Vector3f offset = center.subtract(center.mult(current)); // (1-s)*center
+
+      s.setLocalScale(current);
+      s.setLocalTranslation(baseLoc.x + offset.x, baseLoc.y + offset.y, baseLoc.z);
+    }
+
+    @Override
+    protected void controlRender(
+        com.jme3.renderer.RenderManager rm, com.jme3.renderer.ViewPort vp) {
+      // No-op
+    }
   }
 }
