@@ -2,7 +2,6 @@ package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.services.DiceService;
 import com.NullPtr.Pontiland.services.ITurnService;
-import com.NullPtr.Pontiland.services.TurnService;
 import com.NullPtr.Pontiland.view.HUD;
 
 import java.util.List;
@@ -37,4 +36,8 @@ public interface IHUDcontroller {
   void hideAuction();
 
   void terminarTurno();
+
+  void setCurrentPropertyPosition(int position);
+
+  void setAdquisicionService(com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService);
 }

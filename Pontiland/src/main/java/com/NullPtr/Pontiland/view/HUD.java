@@ -240,7 +240,7 @@ public class HUD extends AbstractAppState {
 
   public void updatePlayerCard(
       String playerName, String moneyText, boolean inJail, int playerIndex) {
-    // Si existe una card para ese índice, actualizarla; si no, ignorar
+
     int idx = Math.max(1, playerIndex) - 1;
     if (idx >= 0 && idx < playerCards.size()) {
       playerCards.get(idx).setInfo(playerName, moneyText, inJail, playerIndex);
@@ -263,7 +263,7 @@ public class HUD extends AbstractAppState {
 
     for (int i = 0; i < names.size(); i++) {
       PlayerCard card = new PlayerCard(app.getAssetManager());
-      card.setInfo(names.get(i), "$0", false, i + 1);
+      card.setInfo(names.get(i), "$1500", false, i + 1);
       playerCards.add(card);
       playersBox.addChild(card.getRoot());
       // Añadir un pequeño separador

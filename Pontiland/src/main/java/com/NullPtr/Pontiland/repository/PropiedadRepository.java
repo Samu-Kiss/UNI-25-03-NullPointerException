@@ -203,4 +203,36 @@ public class PropiedadRepository implements IPropiedadRepository {
       throw new RuntimeException(e);
     }
   }
+
+  @Override
+  public Integer getOwnerIdByPropiedadId(int propiedadId) {
+    String query =
+        "SELECT JugadorID FROM Adquisiciones WHERE PropiedadID = ?";
+    try (Connection conex = dataService.createConnection();
+        PreparedStatement ps = conex.prepareStatement(query)) {
+      ps.setInt(1, propiedadId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (!rs.next()) {
+          return null;
+        }
+        return rs.getInt("JugadorID");
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void addAdquisicion(int jugadorId, int propiedadId, int nivel) {
+    String insert = "INSERT INTO Adquisiciones(JugadorID, PropiedadID, NivelPropiedad) VALUES(?, ?, ?)";
+    try (Connection conex = dataService.createConnection();
+        PreparedStatement ps = conex.prepareStatement(insert)) {
+      ps.setInt(1, jugadorId);
+      ps.setInt(2, propiedadId);
+      ps.setInt(3, nivel);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

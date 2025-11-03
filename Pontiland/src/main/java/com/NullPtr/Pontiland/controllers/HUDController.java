@@ -3,7 +3,6 @@ package com.NullPtr.Pontiland.controllers;
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.services.DiceService;
 import com.NullPtr.Pontiland.services.ITurnService;
-import com.NullPtr.Pontiland.services.TurnService;
 import com.NullPtr.Pontiland.view.HUD;
 import com.jme3.app.state.AppStateManager;
 import java.util.List;
@@ -22,6 +21,10 @@ public class HUDController implements IHUDcontroller {
 
   private ITurnService turnService;
 
+  // Nuevo: servicio de adquisiciones y posición de la propiedad mostrada actualmente
+  private com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService;
+  private int currentPropertyPosition = -1;
+
   public HUDController(Launcher app) {
     this.app = Objects.requireNonNull(app, "app no puede ser null");
   }
@@ -31,9 +34,33 @@ public class HUDController implements IHUDcontroller {
   {
       this.hud = hud;
   }
+
   @Override
   public void comprarPropiedad(int precio) {
-      turnService.setTerminarTurno(true);
+      if (adquisicionService != null && currentPropertyPosition > 0) {
+        try {
+          if (adquisicionService.comprarPropiedadPorPosicion(currentPropertyPosition)) {
+            if (turnService != null) turnService.setTerminarTurno(true);
+            if (hud != null) hud.hidePropertyCard();
+            return;
+          }
+        } catch (Exception ex) {
+          System.err.println("Error al comprar propiedad: " + ex.getMessage());
+        }
+      }
+      if (turnService != null) {
+        turnService.setTerminarTurno(true);
+      }
+  }
+
+  @Override
+  public void setAdquisicionService(com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService) {
+    this.adquisicionService = adquisicionService;
+  }
+
+  @Override
+  public void setCurrentPropertyPosition(int position) {
+    this.currentPropertyPosition = position;
   }
 
   @Override
@@ -86,10 +113,10 @@ public class HUDController implements IHUDcontroller {
   // ==== Wrappers de actualización ====
 
   @Override
-  public void updatePlayerCard(
-      String playerName, String moneyText, boolean inJail, int playerIndex) {
-    if (hud != null) {
-      hud.updatePlayerCard(playerName, moneyText, inJail, playerIndex);
+  public void updatePlayerCard(String playerName, String moneyText, boolean inJail, int playerIndex) {
+    String money = "$" + moneyText;
+      if (hud != null) {
+      hud.updatePlayerCard(playerName,money , inJail, playerIndex);
     }
   }
 

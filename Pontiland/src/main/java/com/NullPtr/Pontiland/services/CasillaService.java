@@ -98,6 +98,7 @@ public class CasillaService implements ICasillaService {
     groupIndex = prop.getGrupo();
 
     if (hudController != null) {
+      hudController.setCurrentPropertyPosition(casilla.getPosicionTablero());
       hudController.showPropertyCard(name, priceText, rentsText, groupIndex);
     }
   }
