@@ -95,7 +95,8 @@ public class Button {
     b.setPreferredSize(size);
 
     // Color de texto según tipo: Base -> negro; resto -> blanco
-    ColorRGBA stableColor = (type == Type.BASE) ? ColorRGBA.Black : ColorRGBA.White;
+    ColorRGBA stableColor =
+        (type == Type.BASE || type == Type.POSITIVE) ? ColorRGBA.Black : ColorRGBA.White;
 
     // Texto y padding
     b.setText(text != null ? text : "");

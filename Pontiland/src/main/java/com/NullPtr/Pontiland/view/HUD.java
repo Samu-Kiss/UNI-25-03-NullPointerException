@@ -3,8 +3,8 @@ package com.NullPtr.Pontiland.view;
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.view.HUDComponents.Auction;
 import com.NullPtr.Pontiland.view.HUDComponents.PlayerCard;
+import com.NullPtr.Pontiland.view.HUDComponents.PropertyCard;
 import com.NullPtr.Pontiland.view.HUDComponents.PropertyToken;
-import com.NullPtr.Pontiland.view.HUDComponents.ProperyCard;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
@@ -16,6 +16,7 @@ import com.jme3.scene.Node;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
+import com.simsilica.lemur.component.SpringGridLayout;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +35,7 @@ public class HUD extends AbstractAppState {
   private Container playersBox; // contendrá varias PlayerCard apiladas
 
   private List<PlayerCard> playerCards = new ArrayList<>();
-  private ProperyCard propertyCard;
+  private PropertyCard propertyCard;
   private PropertyToken propertyToken;
   private Auction auction;
 
@@ -48,6 +49,11 @@ public class HUD extends AbstractAppState {
   private boolean showPropertyCard = false;
 
   private boolean visible = false;
+
+  private Container actionBar; // barra de acciones bajo la property card
+  private com.simsilica.lemur.Button buyBtn;
+  private com.simsilica.lemur.Button auctionBtn;
+  private String currentPriceDigits = "0";
 
   public HUD() {}
 
@@ -71,7 +77,7 @@ public class HUD extends AbstractAppState {
 
   private void buildPanes() {
     // Crear subcomponentes con AssetManager para cargar sprites
-    this.propertyCard = new ProperyCard(app.getAssetManager());
+    this.propertyCard = new PropertyCard(app.getAssetManager());
     this.propertyToken = new PropertyToken(app.getAssetManager());
     this.auction = new Auction(app.getAssetManager());
 
@@ -98,7 +104,6 @@ public class HUD extends AbstractAppState {
     bottomPane = new Container();
     bottomPane.setBackground(new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0)));
     bottomPane.addChild(propertyToken.getRoot());
-
     // Ocultar tokens por defecto hasta que haya propiedades
     bottomPane.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
 
@@ -106,12 +111,41 @@ public class HUD extends AbstractAppState {
     overlayPane = new Container();
     overlayPane.setBackground(new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.25f)));
     overlayPane.addChild(auction.getRoot());
+    overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+
+    // Action bar debajo de la tarjeta
+    actionBar = new Container();
+    actionBar.setBackground(null);
+    actionBar.setInsets(new com.simsilica.lemur.Insets3f(8, 0, 0, 0));
+    Container actionRow =
+        new Container(new SpringGridLayout(com.simsilica.lemur.Axis.X, com.simsilica.lemur.Axis.Y));
+    actionBar.addChild(actionRow);
+
+    com.NullPtr.Pontiland.view.Button renderer =
+        new com.NullPtr.Pontiland.view.Button(app.getAssetManager())
+            .setDefaultFontSize(16f)
+            .setHoverScale(1.06f);
+
+    buyBtn = renderer.render(com.NullPtr.Pontiland.view.Button.Type.POSITIVE, "Comprar -$0", 0.55f);
+    buyBtn.addClickCommands(
+        ignored -> System.out.println("HUD Acción: Comprar -$" + currentPriceDigits));
+
+    auctionBtn =
+        renderer.render(com.NullPtr.Pontiland.view.Button.Type.NEGATIVE, "Subastar", 0.55f);
+    auctionBtn.addClickCommands(ignored -> System.out.println("HUD Acción: Subastar"));
+
+    actionRow.addChild(buyBtn);
+    Container spacer = new Container();
+    spacer.setBackground(null);
+    spacer.setPreferredSize(new Vector3f(12f, 0f, 0));
+    actionRow.addChild(spacer);
+    actionRow.addChild(auctionBtn);
 
     guiNode.attachChild(leftPane);
     guiNode.attachChild(rightPane);
     guiNode.attachChild(bottomPane);
     guiNode.attachChild(overlayPane);
-    overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+    guiNode.attachChild(actionBar);
   }
 
   private void layoutComponents() {
@@ -129,6 +163,13 @@ public class HUD extends AbstractAppState {
     float rightY = h - 16f;
     rightPane.setLocalTranslation(rightX, rightY, 0);
     rightPane.setPreferredSize(rightSize);
+
+    // Action bar justo debajo de la tarjeta
+    Vector3f actionSize = actionBar.getPreferredSize();
+    float actionX = rightX + (rightSize.x - actionSize.x) / 2f;
+    float actionY = rightY - rightSize.y - 8f; // 8px debajo
+    actionBar.setLocalTranslation(actionX, actionY, 0);
+    actionBar.setPreferredSize(actionSize);
 
     Vector3f bottomSize = propertyToken.getPreferredSize();
     float bottomX = (w - bottomSize.x) / 2f;
@@ -165,6 +206,11 @@ public class HUD extends AbstractAppState {
           value ? com.jme3.scene.Spatial.CullHint.Inherit : com.jme3.scene.Spatial.CullHint.Always);
     if (rightPane != null)
       rightPane.setCullHint(
+          value && showPropertyCard
+              ? com.jme3.scene.Spatial.CullHint.Inherit
+              : com.jme3.scene.Spatial.CullHint.Always);
+    if (actionBar != null)
+      actionBar.setCullHint(
           value && showPropertyCard
               ? com.jme3.scene.Spatial.CullHint.Inherit
               : com.jme3.scene.Spatial.CullHint.Always);
@@ -222,6 +268,14 @@ public class HUD extends AbstractAppState {
 
   public void updatePropertyCard(String name, String priceText, String[] rentsText) {
     propertyCard.setInfo(name, priceText, rentsText);
+
+    // Actualizar el texto del botón de compra con el precio recibido (si viene)
+    if (priceText != null && !priceText.isBlank()) {
+      String digits = priceText.replaceAll("[^0-9]", "");
+      if (digits.isEmpty()) digits = "0";
+      currentPriceDigits = digits;
+      if (buyBtn != null) buyBtn.setText("Comprar -$" + currentPriceDigits);
+    }
   }
 
   public void setPropertyGroup(int groupIndex) {
@@ -232,9 +286,21 @@ public class HUD extends AbstractAppState {
   public void showPropertyCard(String name, String priceText, String[] rentsText, int groupIndex) {
     propertyCard.setGroup(groupIndex);
     propertyCard.setInfo(name, priceText, rentsText);
+
+    // Precio inicial solo si se recibió
+    if (priceText != null && !priceText.isBlank()) {
+      String digits = priceText.replaceAll("[^0-9]", "");
+      if (digits.isEmpty()) digits = "0";
+      currentPriceDigits = digits;
+      if (buyBtn != null) buyBtn.setText("Comprar -$" + currentPriceDigits);
+    }
+
     showPropertyCard = true;
     if (rightPane != null) {
       rightPane.setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
+    }
+    if (actionBar != null) {
+      actionBar.setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
     }
   }
 
@@ -242,6 +308,9 @@ public class HUD extends AbstractAppState {
     showPropertyCard = false;
     if (rightPane != null) {
       rightPane.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+    }
+    if (actionBar != null) {
+      actionBar.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
     }
   }
 

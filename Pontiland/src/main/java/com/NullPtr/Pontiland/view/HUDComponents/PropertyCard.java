@@ -17,19 +17,15 @@ import com.simsilica.lemur.component.QuadBackgroundComponent;
  * Tarjeta de propiedad con sprite de fondo por grupo. Nota: el archivo se llama ProperyCard por
  * tipografía en el repo.
  */
-public class ProperyCard {
+public class PropertyCard {
 
   private static final float SPRITE_SCALE = 0.60f;
 
   private final Container root;
-  // Contenedor del encabezado para poder darle padding superior y bajar el texto
-  private final Container header;
-  // Contenedor central para el resto de información
-  private final Container content;
+  private final Container header; // encabezado superior
+  private final Container content; // contenido central
   private final Label nameLbl;
-  private final Label priceLbl;
-  // Contenedor de rentas con una línea (Label) por valor
-  private final Container rentsContainer;
+  private final Container rentsContainer; // lista de rentas
   private final AssetManager assets;
 
   // Layout de rentas configurable
@@ -38,7 +34,6 @@ public class ProperyCard {
   private float rentLineSpacing = 0f; // espacio mínimo entre líneas
 
   // Control fino por nivel (offset superior adicional por etiqueta)
-  // Nota: valores positivos = baja la línea; negativos = sube la línea
   public float nivel1YPos = 25f;
   public float nivel2YPos = 0f;
   public float nivel3YPos = 0f;
@@ -48,34 +43,23 @@ public class ProperyCard {
   private String[] lastRents;
   private int groupIndex = 1;
 
-  public ProperyCard(AssetManager assets) {
+  public PropertyCard(AssetManager assets) {
     this.assets = assets;
-    // Usamos BorderLayout para poder fijar un encabezado arriba y centrar su texto
     root = new Container(new BorderLayout());
     root.setInsets(new Insets3f(14, 16, 14, 16));
 
     nameLbl = new Label("Propiedad");
     nameLbl.setFontSize(18);
-    // Centrar el texto horizontalmente ocupando el ancho del encabezado
     nameLbl.setTextHAlignment(HAlignment.Center);
-    nameLbl.setColor(ColorRGBA.Black); // texto en negro
+    nameLbl.setColor(ColorRGBA.Black);
 
-    // Encabezado con padding superior para bajar un poco el texto
     header = new Container();
-    header.setInsets(new Insets3f(12, 0, 6, 0)); // más padding arriba para bajar el título
+    header.setInsets(new Insets3f(12, 0, 6, 0));
     header.addChild(nameLbl);
     root.addChild(header, BorderLayout.Position.North);
 
-    // Contenido: BorderLayout para poder anclar la lista de rentas a la derecha
     content = new Container(new BorderLayout());
 
-    // Columna central con datos generales
-    Container fields = new Container();
-    priceLbl = fields.addChild(new Label("Precio: $0"));
-    priceLbl.setColor(ColorRGBA.Black);
-    content.addChild(fields, BorderLayout.Position.Center);
-
-    // Columna derecha con las rentas en vertical (una etiqueta por renta)
     rentsContainer = new Container();
     rentsContainer.setInsets(new Insets3f(rentsTopMargin, 4, 0, rentsRightPadding));
     content.addChild(rentsContainer, BorderLayout.Position.East);
@@ -94,14 +78,15 @@ public class ProperyCard {
   }
 
   public void setInfo(String name, String priceText, String[] rentsText) {
-    nameLbl.setText(name != null ? name : "Propiedad");
-    priceLbl.setText(priceText != null ? priceText : "Precio: $0");
-
-    this.lastRents = rentsText;
-    renderRents();
+    if (name != null) {
+      nameLbl.setText(name);
+    }
+    if (rentsText != null) {
+      this.lastRents = rentsText;
+      renderRents();
+    }
   }
 
-  // Permite configurar márgenes y espaciado de las rentas en tiempo de ejecución (opcional)
   public void setRentsLayout(float topMargin, float rightPadding, float lineSpacing) {
     this.rentsTopMargin = Math.max(0f, topMargin);
     this.rentsRightPadding = Math.max(0f, rightPadding);
@@ -143,10 +128,9 @@ public class ProperyCard {
           manual = nivel5YPos;
           break;
         default:
-          manual = 0f; // no debería ocurrir por el límite i<5
+          manual = 0f;
       }
 
-      // Espaciado base mínimo + offset manual por nivel
       line.setInsets(new Insets3f((i == 0 ? 0f : rentLineSpacing) + manual, 0, 0, 0));
     }
   }
