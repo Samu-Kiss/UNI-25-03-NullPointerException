@@ -200,12 +200,19 @@ public class MenuSeleccion extends AbstractAppState {
     for (int i = 0; i < playerCount; i++) createPlayerPanel(i);
     layoutPlayerPanels();
 
-    // Botón PLAY centrado (mantiene estilo anterior, pero ahora texto blanco sobre fondo amarillo)
-    startButton = new Button("PLAY", "pontiland");
-    startButton.setFontSize(28);
+    // Botón PLAY centrado con renderer de botones comunes (sprite + texto + hover)
+    com.NullPtr.Pontiland.view.Button renderer =
+        new com.NullPtr.Pontiland.view.Button(this.app.getAssetManager())
+            .setDefaultFontSize(30f) // texto grande por defecto
+            .setHoverScale(1.08f); // ligera animación al pasar el cursor
+
+    startButton =
+        renderer.render(
+            com.NullPtr.Pontiland.view.Button.Type.BASE, // tipo de sprite
+            "PLAY",
+            0.5f // factor de escala del sprite
+            );
     startButton.setEnabled(false);
-    startButton.setColor(new ColorRGBA(0.1f, 0.1f, 0.1f, 1f));
-    startButton.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.95f, 0.9f, 0.3f, 1f)));
     startButton.addClickCommands(
         ignored -> {
           try {
