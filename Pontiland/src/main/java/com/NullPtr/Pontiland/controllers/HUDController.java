@@ -1,8 +1,8 @@
 package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.Launcher;
-import com.NullPtr.Pontiland.view.HUD;
 import com.NullPtr.Pontiland.services.DiceService;
+import com.NullPtr.Pontiland.view.HUD;
 import com.jme3.app.state.AppStateManager;
 import java.util.List;
 import java.util.Objects;

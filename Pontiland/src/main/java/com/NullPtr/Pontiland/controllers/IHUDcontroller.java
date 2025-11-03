@@ -26,4 +26,3 @@ public interface IHUDcontroller {
 
   void hideAuction();
 }
-

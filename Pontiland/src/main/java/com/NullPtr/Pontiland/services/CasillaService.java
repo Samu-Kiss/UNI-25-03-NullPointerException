@@ -14,7 +14,9 @@ public class CasillaService implements ICasillaService {
   private final IPropiedadRepository propiedadRepository;
 
   public CasillaService(
-      IHUDcontroller hudController, DiceService diceService, IPropiedadRepository propiedadRepository) {
+      IHUDcontroller hudController,
+      DiceService diceService,
+      IPropiedadRepository propiedadRepository) {
     this.hudController = hudController;
     this.diceService = diceService;
     this.propiedadRepository = propiedadRepository;
@@ -43,29 +45,28 @@ public class CasillaService implements ICasillaService {
     }
   }
 
-
-    @Override
-    public void terminarInteraccion(Jugador jugador, Casilla casilla) {
-      switch (casilla.getTipoCasilla()) {
-            case PARADALIBRE:
-                //onParadaLibre(jugador, casilla);
-                break;
-            case EVENTO:
-                //onEvento(jugador, casilla);
-                break;
-            case PROPIEDAD:
-                if (hudController != null) {
-                    hudController.hidePropertyCard();
-                }
-                break;
-            case MOVIMIENTO:
-                //onMovimiento(jugador, casilla);
-                break;
-            case IRALACARCEL:
-                //onCarcel();
-                break;
+  @Override
+  public void terminarInteraccion(Jugador jugador, Casilla casilla) {
+    switch (casilla.getTipoCasilla()) {
+      case PARADALIBRE:
+        // onParadaLibre(jugador, casilla);
+        break;
+      case EVENTO:
+        // onEvento(jugador, casilla);
+        break;
+      case PROPIEDAD:
+        if (hudController != null) {
+          hudController.hidePropertyCard();
         }
+        break;
+      case MOVIMIENTO:
+        // onMovimiento(jugador, casilla);
+        break;
+      case IRALACARCEL:
+        // onCarcel();
+        break;
     }
+  }
 
   private void onParadaLibre(Jugador j, Casilla c) {}
 
@@ -81,7 +82,7 @@ public class CasillaService implements ICasillaService {
       }
     }
     if (diceService != null) {
-      //diceService.enableInteract(false);
+      // diceService.enableInteract(false);
     }
 
     String name;
@@ -96,7 +97,6 @@ public class CasillaService implements ICasillaService {
     if (hudController != null) {
       hudController.showPropertyCard(name, priceText, rentsText, groupIndex);
     }
-
   }
 
   private void onMovimiento(Jugador j, Casilla c) {}

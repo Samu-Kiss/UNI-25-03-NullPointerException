@@ -44,7 +44,11 @@ public class MenuController implements IMenuActions {
   private final ITurnService turnService;
 
   public MenuController(
-      Launcher app, IStartGameService startGameService, IDataService dataService, IHUDcontroller hudController, ITurnService turnService) {
+      Launcher app,
+      IStartGameService startGameService,
+      IDataService dataService,
+      IHUDcontroller hudController,
+      ITurnService turnService) {
     this.dataService = dataService;
     if (app == null) {
       throw new IllegalArgumentException("app no puede ser null");

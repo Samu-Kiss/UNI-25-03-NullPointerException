@@ -1,7 +1,6 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.Jugador;
-import com.NullPtr.Pontiland.repository.ICasillaRepository;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
@@ -35,6 +34,7 @@ public class StartGameService implements IStartGameService {
    * @param partidaRepository Repositorio de partidas.
    * @param dataService Servicio de datos.
    * @param scene escena principal usada para cargar los modelos al iniciar partida.
+   * @param propiedadRepository Repositorio de propiedades.
    */
   public StartGameService(
       IJugadorRepository jugadorRepository,

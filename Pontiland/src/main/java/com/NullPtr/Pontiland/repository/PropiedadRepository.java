@@ -30,7 +30,7 @@ public class PropiedadRepository implements IPropiedadRepository {
   /**
    * Obtiene el ID de la propiedad que esté en la casilla dada
    *
-   * @param position
+   * @param position Posición en el tablero
    * @return
    */
   int getPropiedadIdByPosition(int position) {
@@ -57,44 +57,44 @@ public class PropiedadRepository implements IPropiedadRepository {
    */
   @Override
   public Propiedad getPropiedadByPosition(int position) {
-      int nivel = 1;
-      int propiedadID = getPropiedadIdByPosition(position);
+    int nivel = 1;
+    int propiedadID = getPropiedadIdByPosition(position);
 
-      if (propiedadHasOwner(propiedadID) != null) {
-          nivel = getNivelPropiedad(propiedadID);
+    if (propiedadHasOwner(propiedadID) != null) {
+      nivel = getNivelPropiedad(propiedadID);
+    }
+
+    String query =
+        "SELECT * FROM Propiedad "
+            + "INNER JOIN Casilla ON Propiedad.PosicionTablero = Casilla.PosicionTablero "
+            + "WHERE Propiedad.PosicionTablero = ?";
+
+    try (Connection conex = dataService.createConnection();
+        PreparedStatement ps = conex.prepareStatement(query)) {
+      ps.setInt(1, position);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (!rs.next()) {
+          return null;
+        }
+
+        return new Propiedad(
+            rs.getInt("Casilla.PosicionTablero"),
+            rs.getString("Casilla.NombreCasilla"),
+            rs.getInt("PropiedadID"),
+            rs.getInt("GrupoPropiedades"),
+            nivel, // Nivel depende si tiene o no dueño
+            rs.getInt("PrecioCompra"),
+            new int[] {
+              rs.getInt("RentaNivel1"),
+              rs.getInt("RentaNivel2"),
+              rs.getInt("RentaNivel3"),
+              rs.getInt("RentaNivel4"),
+              rs.getInt("RentaNivel5")
+            });
       }
-
-      String query =
-              "SELECT * FROM Propiedad "
-                      + "INNER JOIN Casilla ON Propiedad.PosicionTablero = Casilla.PosicionTablero "
-                      + "WHERE Propiedad.PosicionTablero = ?";
-
-      try (Connection conex = dataService.createConnection();
-           PreparedStatement ps = conex.prepareStatement(query)) {
-          ps.setInt(1, position);
-          try (ResultSet rs = ps.executeQuery()) {
-              if (!rs.next()) {
-                  return null;
-              }
-
-              return new Propiedad(
-                      rs.getInt("Casilla.PosicionTablero"),
-                      rs.getString("Casilla.NombreCasilla"),
-                      rs.getInt("PropiedadID"),
-                      rs.getInt("GrupoPropiedades"),
-                      nivel, // Nivel depende si tiene o no dueño
-                      rs.getInt("PrecioCompra"),
-                      new int[] {
-                              rs.getInt("RentaNivel1"),
-                              rs.getInt("RentaNivel2"),
-                              rs.getInt("RentaNivel3"),
-                              rs.getInt("RentaNivel4"),
-                              rs.getInt("RentaNivel5")
-                      });
-          }
-      } catch (SQLException e) {
-          throw new RuntimeException(e);
-      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   Jugador propiedadHasOwner(int propiedadID) {

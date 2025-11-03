@@ -81,10 +81,19 @@ public class DataService implements IDataService {
         InputStream ddlIn = this.getClass().getResourceAsStream(ddlResource);
         InputStream insIn = this.getClass().getResourceAsStream(insResource)) {
 
-      System.out.println("DataService.newDataBase: ddlResource='" + ddlResource + "' insResource='" + insResource + "'");
+      System.out.println(
+          "DataService.newDataBase: ddlResource='"
+              + ddlResource
+              + "' insResource='"
+              + insResource
+              + "'");
 
       if (ddlIn == null || insIn == null) {
-        System.err.println("DataService.newDataBase: FAILED to load DDL or INSERT resources. ddlIn=" + (ddlIn==null) + " insIn=" + (insIn==null));
+        System.err.println(
+            "DataService.newDataBase: FAILED to load DDL or INSERT resources. ddlIn="
+                + (ddlIn == null)
+                + " insIn="
+                + (insIn == null));
         throw new RuntimeException("No se pudieron cargar los recursos DDL/INSERTS");
       }
 

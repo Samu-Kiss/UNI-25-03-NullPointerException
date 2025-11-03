@@ -1,9 +1,9 @@
 package com.NullPtr.Pontiland;
 
+import com.NullPtr.Pontiland.controllers.HUDController;
 import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.NullPtr.Pontiland.controllers.LanzamientoDadosController;
 import com.NullPtr.Pontiland.controllers.MenuController;
-import com.NullPtr.Pontiland.controllers.HUDController;
 import com.NullPtr.Pontiland.repository.*;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import com.NullPtr.Pontiland.repository.JugadorRepository;
@@ -92,9 +92,11 @@ public class Launcher extends SimpleApplication {
 
     scene = new Scene(this, bulletAppState, lanzamientoDadosController);
     startGameService =
-        new StartGameService(jugadorRepository, partidaRepository, dataService, scene, propiedadRepository);
+        new StartGameService(
+            jugadorRepository, partidaRepository, dataService, scene, propiedadRepository);
     turnService.setScene(scene);
-    IMenuActions actions = new MenuController(this, startGameService, dataService, hudController, turnService);
+    IMenuActions actions =
+        new MenuController(this, startGameService, dataService, hudController, turnService);
     stateManager.attach(new MenuPrincipal(actions));
   }
 

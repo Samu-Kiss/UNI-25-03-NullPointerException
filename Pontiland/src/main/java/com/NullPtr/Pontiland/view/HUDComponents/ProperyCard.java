@@ -7,8 +7,10 @@ import com.jme3.math.Vector3f;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 import com.simsilica.lemur.Container;
+import com.simsilica.lemur.HAlignment;
 import com.simsilica.lemur.Insets3f;
 import com.simsilica.lemur.Label;
+import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 
 /**
@@ -20,22 +22,65 @@ public class ProperyCard {
   private static final float SPRITE_SCALE = 0.60f;
 
   private final Container root;
+  // Contenedor del encabezado para poder darle padding superior y bajar el texto
+  private final Container header;
+  // Contenedor central para el resto de información
+  private final Container content;
   private final Label nameLbl;
   private final Label priceLbl;
-  private final Label rentsLbl;
+  // Contenedor de rentas con una línea (Label) por valor
+  private final Container rentsContainer;
   private final AssetManager assets;
 
+  // Layout de rentas configurable
+  private float rentsTopMargin = 12f;
+  private float rentsRightPadding = 24f; // despegar del borde derecho
+  private float rentLineSpacing = 0f; // espacio mínimo entre líneas
+
+  // Control fino por nivel (offset superior adicional por etiqueta)
+  // Nota: valores positivos = baja la línea; negativos = sube la línea
+  public float nivel1YPos = 25f;
+  public float nivel2YPos = 0f;
+  public float nivel3YPos = 0f;
+  public float nivel4YPos = -3f;
+  public float nivel5YPos = -5f;
+
+  private String[] lastRents;
   private int groupIndex = 1;
 
   public ProperyCard(AssetManager assets) {
     this.assets = assets;
-    root = new Container();
+    // Usamos BorderLayout para poder fijar un encabezado arriba y centrar su texto
+    root = new Container(new BorderLayout());
     root.setInsets(new Insets3f(14, 16, 14, 16));
 
-    nameLbl = root.addChild(new Label("Propiedad"));
+    nameLbl = new Label("Propiedad");
     nameLbl.setFontSize(18);
-    priceLbl = root.addChild(new Label("Precio: $0"));
-    rentsLbl = root.addChild(new Label("Rentas: -"));
+    // Centrar el texto horizontalmente ocupando el ancho del encabezado
+    nameLbl.setTextHAlignment(HAlignment.Center);
+    nameLbl.setColor(ColorRGBA.Black); // texto en negro
+
+    // Encabezado con padding superior para bajar un poco el texto
+    header = new Container();
+    header.setInsets(new Insets3f(12, 0, 6, 0)); // más padding arriba para bajar el título
+    header.addChild(nameLbl);
+    root.addChild(header, BorderLayout.Position.North);
+
+    // Contenido: BorderLayout para poder anclar la lista de rentas a la derecha
+    content = new Container(new BorderLayout());
+
+    // Columna central con datos generales
+    Container fields = new Container();
+    priceLbl = fields.addChild(new Label("Precio: $0"));
+    priceLbl.setColor(ColorRGBA.Black);
+    content.addChild(fields, BorderLayout.Position.Center);
+
+    // Columna derecha con las rentas en vertical (una etiqueta por renta)
+    rentsContainer = new Container();
+    rentsContainer.setInsets(new Insets3f(rentsTopMargin, 4, 0, rentsRightPadding));
+    content.addChild(rentsContainer, BorderLayout.Position.East);
+
+    root.addChild(content, BorderLayout.Position.Center);
 
     applyBackground();
   }
@@ -51,15 +96,58 @@ public class ProperyCard {
   public void setInfo(String name, String priceText, String[] rentsText) {
     nameLbl.setText(name != null ? name : "Propiedad");
     priceLbl.setText(priceText != null ? priceText : "Precio: $0");
-    if (rentsText == null || rentsText.length == 0) {
-      rentsLbl.setText("Rentas: -");
-    } else {
-      StringBuilder sb = new StringBuilder("Rentas: ");
-      for (int i = 0; i < rentsText.length; i++) {
-        if (i > 0) sb.append(", ");
-        sb.append(rentsText[i]);
+
+    this.lastRents = rentsText;
+    renderRents();
+  }
+
+  // Permite configurar márgenes y espaciado de las rentas en tiempo de ejecución (opcional)
+  public void setRentsLayout(float topMargin, float rightPadding, float lineSpacing) {
+    this.rentsTopMargin = Math.max(0f, topMargin);
+    this.rentsRightPadding = Math.max(0f, rightPadding);
+    this.rentLineSpacing = Math.max(0f, lineSpacing);
+    rentsContainer.setInsets(new Insets3f(rentsTopMargin, 4, 0, rentsRightPadding));
+    renderRents();
+  }
+
+  private void renderRents() {
+    rentsContainer.detachAllChildren();
+    if (lastRents == null || lastRents.length == 0) {
+      Label dash = rentsContainer.addChild(new Label("-"));
+      dash.setColor(ColorRGBA.Black);
+      dash.setTextHAlignment(HAlignment.Right);
+      return;
+    }
+
+    for (int i = 0; i < lastRents.length && i < 5; i++) {
+      String text = lastRents[i];
+      Label line = rentsContainer.addChild(new Label(text != null ? text : "-"));
+      line.setColor(ColorRGBA.Black);
+      line.setTextHAlignment(HAlignment.Right);
+
+      float manual;
+      switch (i) {
+        case 0:
+          manual = nivel1YPos;
+          break;
+        case 1:
+          manual = nivel2YPos;
+          break;
+        case 2:
+          manual = nivel3YPos;
+          break;
+        case 3:
+          manual = nivel4YPos;
+          break;
+        case 4:
+          manual = nivel5YPos;
+          break;
+        default:
+          manual = 0f; // no debería ocurrir por el límite i<5
       }
-      rentsLbl.setText(sb.toString());
+
+      // Espaciado base mínimo + offset manual por nivel
+      line.setInsets(new Insets3f((i == 0 ? 0f : rentLineSpacing) + manual, 0, 0, 0));
     }
   }
 
