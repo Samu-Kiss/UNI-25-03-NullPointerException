@@ -1,6 +1,8 @@
 package com.NullPtr.Pontiland.view;
 
 import com.NullPtr.Pontiland.Launcher;
+import com.NullPtr.Pontiland.controllers.HUDController;
+import com.NullPtr.Pontiland.controllers.IHUDcontroller;
 import com.NullPtr.Pontiland.view.HUDComponents.Auction;
 import com.NullPtr.Pontiland.view.HUDComponents.PlayerCard;
 import com.NullPtr.Pontiland.view.HUDComponents.PropertyCard;
@@ -39,6 +41,8 @@ public class HUD extends AbstractAppState {
   private PropertyToken propertyToken;
   private Auction auction;
 
+  private IHUDcontroller hudController;
+
   // Nombres pendientes si se llaman antes de construir playersBox
   private List<String> pendingPlayerNames;
 
@@ -75,7 +79,11 @@ public class HUD extends AbstractAppState {
     setVisible(true);
   }
 
-  private void buildPanes() {
+    public void setHudController(IHUDcontroller hudController) {
+        this.hudController = hudController;
+    }
+
+    private void buildPanes() {
     // Crear subcomponentes con AssetManager para cargar sprites
     this.propertyCard = new PropertyCard(app.getAssetManager());
     this.propertyToken = new PropertyToken(app.getAssetManager());
@@ -128,7 +136,7 @@ public class HUD extends AbstractAppState {
 
     buyBtn = renderer.render(com.NullPtr.Pontiland.view.Button.Type.POSITIVE, "Comprar -$0", 0.55f);
     buyBtn.addClickCommands(
-        ignored -> System.out.println("HUD Acción: Comprar -$" + currentPriceDigits));
+        ignored -> hudController.comprarPropiedad(Integer.parseInt(currentPriceDigits)));
 
     auctionBtn =
         renderer.render(com.NullPtr.Pontiland.view.Button.Type.NEGATIVE, "Subastar", 0.55f);

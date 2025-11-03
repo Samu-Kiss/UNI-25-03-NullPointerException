@@ -15,4 +15,6 @@ public interface ITurnService {
   void payRent();
 
   void setEnabled(boolean enabled);
+
+  void setTerminarTurno(boolean terminarTurno);
 }

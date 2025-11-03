@@ -14,7 +14,8 @@ public class TurnService implements ITurnService {
   private DiceService diceService;
   private ICasillaRepository casillaRepository;
   private IScene scene;
-  private boolean interactionStarted;
+  private boolean interactionStarted = false;
+  private boolean terminarTurno = false;
   private int tiradas = 1;
 
   private enum TurnState {
@@ -106,12 +107,18 @@ public class TurnService implements ITurnService {
   }
 
   @Override
+  public void setTerminarTurno(boolean terminarTurno) {
+      this.terminarTurno = terminarTurno;
+  }
+
+  @Override
   public void update() {
     if (!enabled) return;
 
     try {
       switch (state) {
         case AWAIT_ROLL:
+          terminarTurno = false;
           if (scene != null) scene.resetCamera();
           Byte[] dados = diceService.getResultados();
           if (dados == null) return;
@@ -195,11 +202,10 @@ public class TurnService implements ITurnService {
           break;
 
         case END_TURN:
+          if(!terminarTurno) return;
           try {
-            Jugador jugadorActual =
-                jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-            // casillaService.terminarInteraccion(jugadorActual,
-            // casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+            Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+            casillaService.terminarInteraccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
             jugadorRepository.updateJugador(jugadorActual);
           } catch (SQLException e) {
             throw new RuntimeException(e);

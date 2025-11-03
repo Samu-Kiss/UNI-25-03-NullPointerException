@@ -1,8 +1,16 @@
 package com.NullPtr.Pontiland.controllers;
 
+import com.NullPtr.Pontiland.services.DiceService;
+import com.NullPtr.Pontiland.services.ITurnService;
+import com.NullPtr.Pontiland.services.TurnService;
+import com.NullPtr.Pontiland.view.HUD;
+
 import java.util.List;
 
 public interface IHUDcontroller {
+  void setTurnService(ITurnService turnService);
+  void setDiceService(DiceService diceService);
+  void setHud(HUD hud);
 
   void showHUD();
 
@@ -24,5 +32,9 @@ public interface IHUDcontroller {
 
   void showAuction(String propertyName, String currentPriceText);
 
+  void comprarPropiedad(int precio);
+
   void hideAuction();
+
+  void terminarTurno();
 }

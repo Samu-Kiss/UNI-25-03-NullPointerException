@@ -2,6 +2,8 @@ package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.services.DiceService;
+import com.NullPtr.Pontiland.services.ITurnService;
+import com.NullPtr.Pontiland.services.TurnService;
 import com.NullPtr.Pontiland.view.HUD;
 import com.jme3.app.state.AppStateManager;
 import java.util.List;
@@ -16,27 +18,42 @@ public class HUDController implements IHUDcontroller {
   private final Launcher app;
   private HUD hud;
 
-  // Optional collaborator used to re-enable interactions when HUD closes
   private DiceService diceService;
+
+  private ITurnService turnService;
 
   public HUDController(Launcher app) {
     this.app = Objects.requireNonNull(app, "app no puede ser null");
   }
 
-  public void setDiceService(DiceService diceService) {
-    this.diceService = diceService;
+  @Override
+  public void setHud(HUD hud)
+  {
+      this.hud = hud;
+  }
+  @Override
+  public void comprarPropiedad(int precio) {
+      turnService.setTerminarTurno(true);
   }
 
-  private AppStateManager stateManager() {
+  @Override
+  public void setDiceService(DiceService diceService) {
+        this.diceService = diceService;
+    }
+
+  @Override
+  public void setTurnService(ITurnService turnService) {
+        this.turnService = turnService;
+    }
+
+
+    private AppStateManager stateManager() {
     return app.getStateManager();
   }
 
-  /** Crea (si es necesario) y adjunta el HUD al gestor de estados. */
+
   @Override
   public void showHUD() {
-    if (hud == null) {
-      hud = new HUD();
-    }
     if (!stateManager().hasState(hud)) {
       stateManager().attach(hud);
     }
@@ -119,5 +136,11 @@ public class HUDController implements IHUDcontroller {
     if (hud != null) {
       hud.hideAuction();
     }
+  }
+
+  @Override
+  public void terminarTurno()
+  {
+      turnService.setTerminarTurno(true);
   }
 }

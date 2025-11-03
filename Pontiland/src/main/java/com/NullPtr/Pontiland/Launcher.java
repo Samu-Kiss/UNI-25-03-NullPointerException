@@ -1,9 +1,6 @@
 package com.NullPtr.Pontiland;
 
-import com.NullPtr.Pontiland.controllers.HUDController;
-import com.NullPtr.Pontiland.controllers.IMenuActions;
-import com.NullPtr.Pontiland.controllers.LanzamientoDadosController;
-import com.NullPtr.Pontiland.controllers.MenuController;
+import com.NullPtr.Pontiland.controllers.*;
 import com.NullPtr.Pontiland.repository.*;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import com.NullPtr.Pontiland.repository.JugadorRepository;
@@ -11,6 +8,7 @@ import com.NullPtr.Pontiland.repository.PartidaRepository;
 import com.NullPtr.Pontiland.services.*;
 import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
+import com.NullPtr.Pontiland.view.HUD;
 import com.NullPtr.Pontiland.view.IScene;
 import com.NullPtr.Pontiland.view.MenuPrincipal;
 import com.NullPtr.Pontiland.view.Scene;
@@ -29,7 +27,7 @@ public class Launcher extends SimpleApplication {
   }
 
   private final BulletAppState bulletAppState = new BulletAppState();
-  private final DiceService diceService = new DiceService();
+  private DiceService diceService;
   private ITurnService turnService;
   private LanzamientoDadosController lanzamientoDadosController;
   private Byte[] resultados = new Byte[2];
@@ -77,18 +75,25 @@ public class Launcher extends SimpleApplication {
     partidaRepository = new PartidaRepository(dataService);
     jugadorRepository = new JugadorRepository(dataService);
     casillaRepository = new CasillaRepository(dataService);
+    HUD hud = new HUD();
 
-    HUDController hudController = new HUDController(this);
-    hudController.setDiceService(diceService);
+    IHUDcontroller hudController = new HUDController(this);
+    hudController.setHud(hud);
+
+    hud.setHudController(hudController);
+
+    diceService = new DiceService();
 
     PropiedadRepository propiedadRepository = new PropiedadRepository(dataService);
     casillaService = new CasillaService(hudController, diceService, propiedadRepository);
-
-    turnService =
-        new TurnService(
+    turnService = new TurnService(
             jugadorRepository, partidaRepository, diceService, casillaRepository, casillaService);
     lanzamientoDadosController = new LanzamientoDadosController(diceService);
     lanzamientoDadosController.registerInputs(getInputManager());
+
+
+    hudController.setDiceService(diceService);
+    hudController.setTurnService(turnService);
 
     scene = new Scene(this, bulletAppState, lanzamientoDadosController);
     startGameService =
