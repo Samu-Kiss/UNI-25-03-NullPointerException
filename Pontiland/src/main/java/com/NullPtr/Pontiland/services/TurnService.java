@@ -25,7 +25,7 @@ public class TurnService implements ITurnService {
     INTERACT,
     POST_MOVE_CHECK,
     END_TURN,
-      NEXT_TURN
+    NEXT_TURN
   }
 
   private TurnState state = TurnState.AWAIT_ROLL;
@@ -217,18 +217,18 @@ public class TurnService implements ITurnService {
 
         case END_TURN:
           if (terminarTurno) {
-              state = TurnState.NEXT_TURN;
-          }
-          else{
-              try {
-                  Jugador jugadorActual =
-                          jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-                  casillaService.terminarInteraccion(
-                          jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
-                  jugadorRepository.updateJugador(jugadorActual);
-              } catch (SQLException e) {
-                  throw new RuntimeException(e);
-              }
+            state = TurnState.NEXT_TURN;
+          } else {
+            try {
+              Jugador jugadorActual =
+                  jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+              casillaService.terminarInteraccion(
+                  jugadorActual,
+                  casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+              jugadorRepository.updateJugador(jugadorActual);
+            } catch (SQLException e) {
+              throw new RuntimeException(e);
+            }
           }
           break;
 

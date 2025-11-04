@@ -65,13 +65,12 @@ public class CasillaService implements ICasillaService {
 
             try {
               adquisicionService.comprarPropiedadPorPosicion(casilla.getPosicionTablero());
-              if (diceService != null)  diceService.enableInteract(true);
+              if (diceService != null) diceService.enableInteract(true);
               hudController.hidePropertyCard();
               hudController.terminarTurno();
             } catch (Exception ex) {
               System.err.println("Warning: failed to purchase property: " + ex.getMessage());
             }
-
           }
         }
 

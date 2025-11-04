@@ -18,31 +18,47 @@ import com.simsilica.lemur.event.DefaultCursorListener;
 /**
  * Renderizador de botones con sprite + texto centrado basado en Lemur.
  *
- * <p>- Usa los sprites en graphics/sprites/Common/Buttons/{Base,Accent,Positive,Negative}.png -
- * Ajusta el tamaño preferido al del sprite escalado. - Centra el texto y reduce el tamaño de fuente
- * si es necesario para que quede dentro del botón. - Incluye animación simple de escala al hacer
- * hover.
+ * <p>- Usa los sprites en
+ * graphics/sprites/Common/Buttons/{Base,Accent,Positive,Negative}_{Main,Long}.png - Ajusta el
+ * tamaño preferido al del sprite escalado. - Centra el texto y reduce el tamaño de fuente si es
+ * necesario para que quede dentro del botón. - Incluye animación simple de escala al hacer hover.
  *
  * <p>Uso: Button ui = new Button(assets); com.simsilica.lemur.Button play =
- * ui.render(Button.Type.POSITIVE, "Jugar", 0.5f); play.addClickCommands(src ->
+ * ui.render(Button.Type.POSITIVE, "Jugar", 0.5f, Button.Variant.MAIN); play.addClickCommands(src ->
  * System.out.println("click"));
  */
 public class Button {
 
   public enum Type {
-    BASE("graphics/sprites/Common/Buttons/Base.png"),
-    ACCENT("graphics/sprites/Common/Buttons/Accent.png"),
-    POSITIVE("graphics/sprites/Common/Buttons/Positive.png"),
-    NEGATIVE("graphics/sprites/Common/Buttons/Negative.png");
+    BASE("graphics/sprites/Common/Buttons/Base"),
+    ACCENT("graphics/sprites/Common/Buttons/Accent"),
+    POSITIVE("graphics/sprites/Common/Buttons/Positive"),
+    NEGATIVE("graphics/sprites/Common/Buttons/Negative");
 
-    private final String path;
+    private final String basePath;
 
-    Type(String path) {
-      this.path = path;
+    Type(String basePath) {
+      this.basePath = basePath;
     }
 
-    public String getPath() {
-      return path;
+    public String getBasePath() {
+      return basePath;
+    }
+  }
+
+  /** Variant de sprite disponible para cada tipo de botón. */
+  public enum Variant {
+    MAIN("_Main"),
+    LONG("_Long");
+
+    private final String suffix;
+
+    Variant(String suffix) {
+      this.suffix = suffix;
+    }
+
+    public String getSuffix() {
+      return suffix;
     }
   }
 
@@ -66,7 +82,7 @@ public class Button {
    * @return una instancia de com.simsilica.lemur.Button lista para añadirse al GUI
    */
   public com.simsilica.lemur.Button render(Type type, String text) {
-    return render(type, text, 0.5f);
+    return render(type, text, 0.5f, Variant.MAIN);
   }
 
   /**
@@ -78,11 +94,25 @@ public class Button {
    * @return instancia de com.simsilica.lemur.Button lista para añadirse al GUI node/containers
    */
   public com.simsilica.lemur.Button render(Type type, String text, float scaleFactor) {
+    return render(type, text, scaleFactor, Variant.MAIN);
+  }
+
+  /**
+   * Crea y configura un botón Lemur con sprite y texto usando la variante indicada.
+   *
+   * @param type uno de los cuatro tipos predefinidos
+   * @param text texto a mostrar (centrado). Puede incluir saltos de línea "\n".
+   * @param scaleFactor factor de escala del sprite base (1.0 = tamaño completo de la textura)
+   * @param variant variante de sprite a utilizar (Main o Long)
+   * @return instancia de com.simsilica.lemur.Button lista para añadirse al GUI node/containers
+   */
+  public com.simsilica.lemur.Button render(
+      Type type, String text, float scaleFactor, Variant variant) {
     // Crear control base (Label/Button de Lemur)
     final com.simsilica.lemur.Button b = new com.simsilica.lemur.Button("");
 
     // Cargar la textura del sprite del botón
-    Texture2D tex = loadGuiTexture(type.getPath());
+    Texture2D tex = loadGuiTexture(resolvePath(type, variant));
 
     // Aplicar como fondo del control
     QuadBackgroundComponent bg = new QuadBackgroundComponent(tex);
@@ -171,6 +201,10 @@ public class Button {
     tex.setMagFilter(Texture.MagFilter.Bilinear);
     tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
     return tex;
+  }
+
+  private String resolvePath(Type type, Variant variant) {
+    return type.getBasePath() + variant.getSuffix() + ".png";
   }
 
   private void fitTextToButton(com.simsilica.lemur.Button b, float maxWidth, float maxHeight) {

@@ -134,11 +134,20 @@ public class HUD extends AbstractAppState {
             .setDefaultFontSize(16f)
             .setHoverScale(1.06f);
 
-    buyBtn = renderer.render(com.NullPtr.Pontiland.view.Button.Type.POSITIVE, "Comprar -$0", 0.55f);
+    buyBtn =
+        renderer.render(
+            com.NullPtr.Pontiland.view.Button.Type.POSITIVE,
+            "Comprar -$0",
+            0.55f,
+            com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     buyBtn.addClickCommands(ignored -> hudController.comprarPropiedad());
 
     auctionBtn =
-        renderer.render(com.NullPtr.Pontiland.view.Button.Type.NEGATIVE, "Subastar", 0.55f);
+        renderer.render(
+            com.NullPtr.Pontiland.view.Button.Type.NEGATIVE,
+            "Subastar",
+            0.55f,
+            com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     auctionBtn.addClickCommands(
         ignored -> {
           String name =

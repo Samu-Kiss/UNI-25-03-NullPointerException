@@ -115,9 +115,9 @@ public class PropiedadRepository implements IPropiedadRepository {
           return new Jugador(
               rs.getInt("Jugador.JugadorID"),
               rs.getString("Jugador.NombreJugador"),
-                  rs.getInt("Jugador.Posicion"),
-                  rs.getBoolean("Jugador.Encarcelado"),
-                  rs.getInt("Jugador.Dinero"),
+              rs.getInt("Jugador.Posicion"),
+              rs.getBoolean("Jugador.Encarcelado"),
+              rs.getInt("Jugador.Dinero"),
               getPropiedadesByJugador(rs.getInt("Jugador.JugadorID")));
         }
       }

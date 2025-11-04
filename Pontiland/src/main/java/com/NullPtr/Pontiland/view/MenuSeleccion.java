@@ -210,8 +210,8 @@ public class MenuSeleccion extends AbstractAppState {
         renderer.render(
             com.NullPtr.Pontiland.view.Button.Type.BASE, // tipo de sprite
             "PLAY",
-            0.5f // factor de escala del sprite
-            );
+            0.5f, // factor de escala del sprite
+            com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     startButton.setEnabled(false);
     startButton.addClickCommands(
         ignored -> {

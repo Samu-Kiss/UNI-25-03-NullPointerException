@@ -67,34 +67,71 @@ public class Auction {
     com.NullPtr.Pontiland.view.Button renderer =
         new com.NullPtr.Pontiland.view.Button(assets).setDefaultFontSize(16f).setHoverScale(1.06f);
 
-    plus20Btn = renderer.render(com.NullPtr.Pontiland.view.Button.Type.ACCENT, "+20", 0.42f);
+    plus20Btn =
+        renderer.render(
+            com.NullPtr.Pontiland.view.Button.Type.ACCENT,
+            "+20",
+            0.42f,
+            com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     row.addChild(plus20Btn);
+    plus20Btn.addClickCommands(
+        src ->
+            System.out.println(
+                "[Auction]: +20 presionado. Precio actual: " + priceValueLbl.getText()));
     Container hspace1 = new Container();
     hspace1.setBackground(null);
     hspace1.setPreferredSize(new Vector3f(10f, 0, 0));
     row.addChild(hspace1);
 
-    plus50Btn = renderer.render(com.NullPtr.Pontiland.view.Button.Type.BASE, "+50", 0.42f);
+    plus50Btn =
+        renderer.render(
+            com.NullPtr.Pontiland.view.Button.Type.BASE,
+            "+50",
+            0.42f,
+            com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     row.addChild(plus50Btn);
+    plus50Btn.addClickCommands(
+        src ->
+            System.out.println(
+                "[Auction]: +50 presionado. Precio actual: " + priceValueLbl.getText()));
     Container hspace2 = new Container();
     hspace2.setBackground(null);
     hspace2.setPreferredSize(new Vector3f(10f, 0, 0));
     row.addChild(hspace2);
 
-    plus100Btn = renderer.render(com.NullPtr.Pontiland.view.Button.Type.POSITIVE, "+100", 0.42f);
+    plus100Btn =
+        renderer.render(
+            com.NullPtr.Pontiland.view.Button.Type.POSITIVE,
+            "+100",
+            0.42f,
+            com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     row.addChild(plus100Btn);
+    plus100Btn.addClickCommands(
+        src ->
+            System.out.println(
+                "[Auction]: +100 presionado. Precio actual: " + priceValueLbl.getText()));
 
     // Separador vertical antes de salir
     Container vspace2 = new Container();
     vspace2.setBackground(null);
-    vspace2.setPreferredSize(new Vector3f(0, 2f, 0));
+    vspace2.setPreferredSize(new Vector3f(0, 1f, 0));
     root.addChild(vspace2);
 
     // Fila del boton de salida, centrado
     Container exitRow = root.addChild(new Container());
     exitRow.setBackground(null);
-    exitBtn = renderer.render(com.NullPtr.Pontiland.view.Button.Type.NEGATIVE, "Salir", 0.55f);
+    exitBtn =
+        renderer.render(
+            com.NullPtr.Pontiland.view.Button.Type.NEGATIVE,
+            "Salir",
+            0.55f,
+            com.NullPtr.Pontiland.view.Button.Variant.LONG);
     exitRow.addChild(exitBtn);
+    exitBtn.addClickCommands(
+        src ->
+            System.out.println(
+                "[Auction]: Botón salir presionado. Precio final mostrado: "
+                    + priceValueLbl.getText()));
 
     applyBackground();
 
