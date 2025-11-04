@@ -11,32 +11,34 @@ import java.sql.SQLException;
 public class AdquisicionService implements IAdquisicionService {
   private final IPropiedadRepository propiedadRepository;
   private IJugadorRepository jugadorRepository;
-  private IHUDcontroller hudControler;
+  private IHUDcontroller hudController;
 
   public AdquisicionService(
       IPropiedadRepository propiedadRepository,
-      IJugadorRepository jugadorRepository, IHUDcontroller hudControler) {
-    this.hudControler = hudControler;
+      IJugadorRepository jugadorRepository, IHUDcontroller hudController) {
+    this.hudController = hudController;
     this.propiedadRepository = propiedadRepository;
     this.jugadorRepository = jugadorRepository;
   }
 
   @Override
-  public boolean comprarPropiedadPorPosicion(int position) throws SQLException {
+  public boolean comprarPropiedadPorPosicion(int position){
 
     Propiedad propiedad = propiedadRepository.getPropiedadByPosition(position);
-    if (propiedad == null) {
-      return false;
-    }
 
     int propiedadId = propiedad.getIdPropiedad();
     int precio = propiedad.getPrecioCompra();
 
-    int jugadorActivoId = jugadorRepository.getActivePlayer();
-    if (jugadorActivoId < 0) return false;
+      int jugadorActivoId = 0;
+      Jugador jugador;
+      try {
+          jugadorActivoId = jugadorRepository.getActivePlayer();
 
-    Jugador jugador = jugadorRepository.getJugadorByID(jugadorActivoId);
-    if (jugador == null) return false;
+          jugador = jugadorRepository.getJugadorByID(jugadorActivoId);
+      } catch (SQLException e) {
+          throw new RuntimeException(e);
+      }
+
 
     if (jugador.getDinero() < precio) {
       return false;
@@ -45,9 +47,14 @@ public class AdquisicionService implements IAdquisicionService {
     propiedadRepository.addAdquisicion(jugador.getJugadorId(), propiedadId, propiedad.getNivelPropiedad());
 
     int nuevoDinero = jugador.getDinero() - precio;
-    jugadorRepository.updateJugadorDineroById(jugador.getJugadorId(), nuevoDinero);
+    
+      try {
+          jugadorRepository.updateJugadorDineroById(jugador.getJugadorId(), nuevoDinero);
+      } catch (SQLException e) {
+          throw new RuntimeException(e);
+      }
 
-    hudControler.updatePlayerCard(jugador.getNombreJugador(), String.valueOf(nuevoDinero), jugador.getEstado(), jugador.getNumJugador());
+      hudController.updatePlayerCard(jugador.getNombreJugador(), String.valueOf(nuevoDinero), jugador.getEstado(), jugador.getNumJugador());
 
     return true;
   }

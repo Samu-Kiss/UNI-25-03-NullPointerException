@@ -5,7 +5,7 @@ import java.sql.SQLException;
 
 public interface IAdquisicionService {
 
-  boolean comprarPropiedadPorPosicion(int position) throws SQLException;
+  boolean comprarPropiedadPorPosicion(int position);
 
 }
 

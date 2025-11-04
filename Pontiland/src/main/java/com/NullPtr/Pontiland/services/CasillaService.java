@@ -9,17 +9,20 @@ import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 public class CasillaService implements ICasillaService {
 
   private boolean irACarcel = false;
-  private final IHUDcontroller hudController;
-  private final DiceService diceService;
-  private final IPropiedadRepository propiedadRepository;
+  private IHUDcontroller hudController;
+  private DiceService diceService;
+  private IPropiedadRepository propiedadRepository;
+  private IAdquisicionService adquisicionService;
 
   public CasillaService(
       IHUDcontroller hudController,
       DiceService diceService,
-      IPropiedadRepository propiedadRepository) {
+      IPropiedadRepository propiedadRepository,
+      IAdquisicionService adquisicionService) {
     this.hudController = hudController;
     this.diceService = diceService;
     this.propiedadRepository = propiedadRepository;
+    this.adquisicionService = adquisicionService;
   }
 
   @Override
@@ -96,11 +99,7 @@ public class CasillaService implements ICasillaService {
     priceText = String.valueOf(prop.getPrecioCompra());
     rentsText = prop.getRentasText();
     groupIndex = prop.getGrupo();
-
-    if (hudController != null) {
-      hudController.setCurrentPropertyPosition(casilla.getPosicionTablero());
-      hudController.showPropertyCard(name, priceText, rentsText, groupIndex);
-    }
+    hudController.showPropertyCard(name, priceText, rentsText, groupIndex);
   }
 
   private void onMovimiento(Jugador j, Casilla c) {

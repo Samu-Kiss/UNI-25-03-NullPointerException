@@ -21,9 +21,10 @@ public class HUDController implements IHUDcontroller {
 
   private ITurnService turnService;
 
+  private boolean puedeComprar = false;
+
   // Nuevo: servicio de adquisiciones y posición de la propiedad mostrada actualmente
   private com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService;
-  private int currentPropertyPosition = -1;
 
   public HUDController(Launcher app) {
     this.app = Objects.requireNonNull(app, "app no puede ser null");
@@ -36,31 +37,25 @@ public class HUDController implements IHUDcontroller {
   }
 
   @Override
-  public void comprarPropiedad(int precio) {
-      if (adquisicionService != null && currentPropertyPosition > 0) {
-        try {
-          if (adquisicionService.comprarPropiedadPorPosicion(currentPropertyPosition)) {
-            if (turnService != null) turnService.setTerminarTurno(true);
-            if (hud != null) hud.hidePropertyCard();
-            return;
-          }
-        } catch (Exception ex) {
-          System.err.println("Error al comprar propiedad: " + ex.getMessage());
-        }
-      }
-      if (turnService != null) {
-        turnService.setTerminarTurno(true);
-      }
+  public void comprarPropiedad() {
+     if (turnService != null) turnService.setTerminarTurno(true);
+     if (hud != null) hud.hidePropertyCard();
+     puedeComprar = true;
+  }
+
+  @Override
+  public boolean getPuedeComprar() {
+      return puedeComprar;
+  }
+
+  @Override
+  public void setPuedeComprar(boolean puedeComprar) {
+    this.puedeComprar = puedeComprar;
   }
 
   @Override
   public void setAdquisicionService(com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService) {
     this.adquisicionService = adquisicionService;
-  }
-
-  @Override
-  public void setCurrentPropertyPosition(int position) {
-    this.currentPropertyPosition = position;
   }
 
   @Override

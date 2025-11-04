@@ -31,13 +31,15 @@ public interface IHUDcontroller {
 
   void showAuction(String propertyName, String currentPriceText);
 
-  void comprarPropiedad(int precio);
+  void comprarPropiedad();
 
   void hideAuction();
 
   void terminarTurno();
 
-  void setCurrentPropertyPosition(int position);
+  boolean getPuedeComprar();
+
+  void setPuedeComprar(boolean puedeComprar);
 
   void setAdquisicionService(com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService);
 }

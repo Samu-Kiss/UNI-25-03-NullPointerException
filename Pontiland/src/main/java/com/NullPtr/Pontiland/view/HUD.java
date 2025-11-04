@@ -1,7 +1,6 @@
 package com.NullPtr.Pontiland.view;
 
 import com.NullPtr.Pontiland.Launcher;
-import com.NullPtr.Pontiland.controllers.HUDController;
 import com.NullPtr.Pontiland.controllers.IHUDcontroller;
 import com.NullPtr.Pontiland.view.HUDComponents.Auction;
 import com.NullPtr.Pontiland.view.HUDComponents.PlayerCard;
@@ -136,7 +135,7 @@ public class HUD extends AbstractAppState {
 
     buyBtn = renderer.render(com.NullPtr.Pontiland.view.Button.Type.POSITIVE, "Comprar -$0", 0.55f);
     buyBtn.addClickCommands(
-        ignored -> hudController.comprarPropiedad(Integer.parseInt(currentPriceDigits)));
+        ignored -> hudController.comprarPropiedad());
 
     auctionBtn =
         renderer.render(com.NullPtr.Pontiland.view.Button.Type.NEGATIVE, "Subastar", 0.55f);
@@ -248,7 +247,6 @@ public class HUD extends AbstractAppState {
   }
 
   public void setPlayerNames(List<String> names) {
-    // Si playersBox aún no está construido, almacenar para luego
     if (playersBox == null) {
       pendingPlayerNames = (names == null) ? null : new ArrayList<>(names);
       return;
