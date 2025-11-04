@@ -6,6 +6,7 @@ import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import com.NullPtr.Pontiland.view.IScene;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 public class TurnService implements ITurnService {
   private IJugadorRepository jugadorRepository;
@@ -202,6 +203,7 @@ public class TurnService implements ITurnService {
               tiradas++;
               System.out.println("Doble! Tira de nuevo");
               lastD1 = lastD2 = null;
+              diceService.enableInteract(true);
               state = TurnState.AWAIT_ROLL;
             }
           } else {
@@ -232,6 +234,7 @@ public class TurnService implements ITurnService {
           break;
       }
     } catch (Exception e) {
+      System.out.println(Arrays.toString(e.getStackTrace()));
       throw new RuntimeException(e);
     }
   }

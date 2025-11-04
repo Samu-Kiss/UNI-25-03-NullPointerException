@@ -115,9 +115,9 @@ public class PropiedadRepository implements IPropiedadRepository {
           return new Jugador(
               rs.getInt("Jugador.JugadorID"),
               rs.getString("Jugador.NombreJugador"),
-              rs.getInt("Jugador.PosicionTablero"),
-              rs.getBoolean("Jugador.Encarcelado"),
-              rs.getInt("Jugador.SaldoDinero"),
+                  rs.getInt("Jugador.Posicion"),
+                  rs.getBoolean("Jugador.Encarcelado"),
+                  rs.getInt("Jugador.Dinero"),
               getPropiedadesByJugador(rs.getInt("Jugador.JugadorID")));
         }
       }
@@ -131,7 +131,7 @@ public class PropiedadRepository implements IPropiedadRepository {
         "SELECT NivelPropiedad "
             + "FROM Adquisiciones "
             + "INNER JOIN Jugador ON Adquisiciones.JugadorID = Jugador.JugadorID "
-            + "WHERE Adquisiciones.PropiedadID = ? AND Jugador.PartidaID = ?";
+            + "WHERE Adquisiciones.PropiedadID = ? AND Jugador.Partida = ?";
 
     try (Connection conex = dataService.createConnection();
         PreparedStatement ps = conex.prepareStatement(query)) {
