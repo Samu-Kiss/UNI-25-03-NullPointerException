@@ -95,7 +95,6 @@ public class Launcher extends SimpleApplication {
     lanzamientoDadosController = new LanzamientoDadosController(diceService);
     lanzamientoDadosController.registerInputs(getInputManager());
 
-    hudController.setDiceService(diceService);
     hudController.setTurnService(turnService);
     hudController.setAdquisicionService(adquisicionService);
 

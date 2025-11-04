@@ -1,7 +1,6 @@
 package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.Launcher;
-import com.NullPtr.Pontiland.services.DiceService;
 import com.NullPtr.Pontiland.services.ITurnService;
 import com.NullPtr.Pontiland.view.HUD;
 import com.jme3.app.state.AppStateManager;
@@ -16,8 +15,6 @@ public class HUDController implements IHUDcontroller {
 
   private final Launcher app;
   private HUD hud;
-
-  private DiceService diceService;
 
   private ITurnService turnService;
 
@@ -37,7 +34,6 @@ public class HUDController implements IHUDcontroller {
 
   @Override
   public void comprarPropiedad() {
-    if (turnService != null) turnService.setTerminarTurno(true);
     if (hud != null) hud.hidePropertyCard();
     puedeComprar = true;
   }
@@ -56,11 +52,6 @@ public class HUDController implements IHUDcontroller {
   public void setAdquisicionService(
       com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService) {
     this.adquisicionService = adquisicionService;
-  }
-
-  @Override
-  public void setDiceService(DiceService diceService) {
-    this.diceService = diceService;
   }
 
   @Override
@@ -132,9 +123,6 @@ public class HUDController implements IHUDcontroller {
   public void hidePropertyCard() {
     if (hud != null) {
       hud.hidePropertyCard();
-    }
-    if (diceService != null) {
-      diceService.enableInteract(true);
     }
   }
 

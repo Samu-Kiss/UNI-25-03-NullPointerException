@@ -53,44 +53,50 @@ public class CasillaService implements ICasillaService {
     switch (casilla.getTipoCasilla()) {
       case PARADALIBRE:
         if (diceService != null) diceService.enableInteract(true);
+        hudController.terminarTurno();
         break;
       case EVENTO:
         if (diceService != null) diceService.enableInteract(true);
+        hudController.terminarTurno();
         break;
       case PROPIEDAD:
         if (hudController != null) {
-          if (hudController.getPuedeComprar() && adquisicionService != null) {
+          if (hudController.getPuedeComprar()) {
+
             try {
               adquisicionService.comprarPropiedadPorPosicion(casilla.getPosicionTablero());
+              if (diceService != null)  diceService.enableInteract(true);
+              hudController.hidePropertyCard();
+              hudController.terminarTurno();
             } catch (Exception ex) {
               System.err.println("Warning: failed to purchase property: " + ex.getMessage());
             }
-            hudController.setPuedeComprar(false);
-          }
 
-          hudController.hidePropertyCard();
+          }
         }
+
         break;
       case MOVIMIENTO:
         if (diceService != null) diceService.enableInteract(true);
+        hudController.terminarTurno();
         break;
       case IRALACARCEL:
         if (diceService != null) diceService.enableInteract(true);
+        hudController.terminarTurno();
         break;
     }
   }
 
   private void onParadaLibre(Jugador j, Casilla c) {
     if (diceService != null) diceService.enableInteract(false);
-    hudController.terminarTurno();
   }
 
   private void onEvento(Jugador j, Casilla c) {
     if (diceService != null) diceService.enableInteract(false);
-    hudController.terminarTurno();
   }
 
   private void onPropiedad(Casilla casilla) {
+
     Propiedad prop = null;
     if (propiedadRepository != null) {
       try {
@@ -99,7 +105,6 @@ public class CasillaService implements ICasillaService {
         System.err.println("Warning: failed to read Propiedad from repository: " + ex.getMessage());
       }
     }
-    if (diceService != null) diceService.enableInteract(false);
 
     String name;
     String priceText;
@@ -110,11 +115,13 @@ public class CasillaService implements ICasillaService {
     rentsText = prop.getRentasText();
     groupIndex = prop.getGrupo();
     hudController.showPropertyCard(name, priceText, rentsText, groupIndex);
+
+    if (diceService != null) diceService.enableInteract(false);
+    hudController.setPuedeComprar(false);
   }
 
   private void onMovimiento(Jugador j, Casilla c) {
     if (diceService != null) diceService.enableInteract(false);
-    hudController.terminarTurno();
   }
 
   private void onCarcel() {
