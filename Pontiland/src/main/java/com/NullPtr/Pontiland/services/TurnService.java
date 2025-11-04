@@ -108,7 +108,7 @@ public class TurnService implements ITurnService {
 
   @Override
   public void setTerminarTurno(boolean terminarTurno) {
-      this.terminarTurno = terminarTurno;
+    this.terminarTurno = terminarTurno;
   }
 
   @Override
@@ -152,8 +152,11 @@ public class TurnService implements ITurnService {
           if (!interactionStarted) {
             if (diceService.getCanInteract()) {
               try {
-                Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-                casillaService.interaccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+                Jugador jugadorActual =
+                    jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+                casillaService.interaccion(
+                    jugadorActual,
+                    casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
                 jugadorRepository.updateJugador(jugadorActual);
                 interactionStarted = true;
               } catch (SQLException e) {
@@ -170,15 +173,16 @@ public class TurnService implements ITurnService {
           }
 
         case POST_MOVE_CHECK:
-
-        try {
-            Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-            casillaService.interaccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+          try {
+            Jugador jugadorActual =
+                jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+            casillaService.interaccion(
+                jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
             jugadorRepository.updateJugador(jugadorActual);
             interactionStarted = true;
-        } catch (SQLException e) {
+          } catch (SQLException e) {
             throw new RuntimeException(e);
-            }
+          }
 
           if (casillaService.getIrACarcel()) {
             System.out.println("La casilla pedido enviar a la cárcel después del movimiento");
@@ -209,11 +213,12 @@ public class TurnService implements ITurnService {
           break;
 
         case END_TURN:
-
-          if(!terminarTurno) return;
+          if (!terminarTurno) return;
           try {
-            Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-            casillaService.terminarInteraccion(jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+            Jugador jugadorActual =
+                jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+            casillaService.terminarInteraccion(
+                jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
             jugadorRepository.updateJugador(jugadorActual);
           } catch (SQLException e) {
             throw new RuntimeException(e);

@@ -31,21 +31,20 @@ public class HUDController implements IHUDcontroller {
   }
 
   @Override
-  public void setHud(HUD hud)
-  {
-      this.hud = hud;
+  public void setHud(HUD hud) {
+    this.hud = hud;
   }
 
   @Override
   public void comprarPropiedad() {
-     if (turnService != null) turnService.setTerminarTurno(true);
-     if (hud != null) hud.hidePropertyCard();
-     puedeComprar = true;
+    if (turnService != null) turnService.setTerminarTurno(true);
+    if (hud != null) hud.hidePropertyCard();
+    puedeComprar = true;
   }
 
   @Override
   public boolean getPuedeComprar() {
-      return puedeComprar;
+    return puedeComprar;
   }
 
   @Override
@@ -54,25 +53,24 @@ public class HUDController implements IHUDcontroller {
   }
 
   @Override
-  public void setAdquisicionService(com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService) {
+  public void setAdquisicionService(
+      com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService) {
     this.adquisicionService = adquisicionService;
   }
 
   @Override
   public void setDiceService(DiceService diceService) {
-        this.diceService = diceService;
-    }
+    this.diceService = diceService;
+  }
 
   @Override
   public void setTurnService(ITurnService turnService) {
-        this.turnService = turnService;
-    }
-
-
-    private AppStateManager stateManager() {
-    return app.getStateManager();
+    this.turnService = turnService;
   }
 
+  private AppStateManager stateManager() {
+    return app.getStateManager();
+  }
 
   @Override
   public void showHUD() {
@@ -108,10 +106,11 @@ public class HUDController implements IHUDcontroller {
   // ==== Wrappers de actualización ====
 
   @Override
-  public void updatePlayerCard(String playerName, String moneyText, boolean inJail, int playerIndex) {
+  public void updatePlayerCard(
+      String playerName, String moneyText, boolean inJail, int playerIndex) {
     String money = "$" + moneyText;
-      if (hud != null) {
-      hud.updatePlayerCard(playerName,money , inJail, playerIndex);
+    if (hud != null) {
+      hud.updatePlayerCard(playerName, money, inJail, playerIndex);
     }
   }
 
@@ -161,8 +160,7 @@ public class HUDController implements IHUDcontroller {
   }
 
   @Override
-  public void terminarTurno()
-  {
-      turnService.setTerminarTurno(true);
+  public void terminarTurno() {
+    turnService.setTerminarTurno(true);
   }
 }

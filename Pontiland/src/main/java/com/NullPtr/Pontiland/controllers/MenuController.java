@@ -161,7 +161,6 @@ public class MenuController implements IMenuActions {
     for (Jugador j : jugadores) names.add(j.getNombreJugador());
     if (hudController != null) hudController.setPlayerNames(names);
 
-
     System.out.println("Juego iniciado con " + playerCount + " jugadores");
   }
 

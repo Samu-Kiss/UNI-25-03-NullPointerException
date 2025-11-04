@@ -52,10 +52,10 @@ public class CasillaService implements ICasillaService {
   public void terminarInteraccion(Jugador jugador, Casilla casilla) {
     switch (casilla.getTipoCasilla()) {
       case PARADALIBRE:
-          if (diceService != null) diceService.enableInteract(true);
+        if (diceService != null) diceService.enableInteract(true);
         break;
       case EVENTO:
-          if (diceService != null) diceService.enableInteract(true);
+        if (diceService != null) diceService.enableInteract(true);
         break;
       case PROPIEDAD:
         if (hudController != null) {
@@ -72,21 +72,23 @@ public class CasillaService implements ICasillaService {
         }
         break;
       case MOVIMIENTO:
-          if (diceService != null) diceService.enableInteract(true);
+        if (diceService != null) diceService.enableInteract(true);
         break;
       case IRALACARCEL:
-          if (diceService != null) diceService.enableInteract(true);
+        if (diceService != null) diceService.enableInteract(true);
         break;
     }
   }
 
   private void onParadaLibre(Jugador j, Casilla c) {
-      if (diceService != null) diceService.enableInteract(false);
-      hudController.terminarTurno();}
+    if (diceService != null) diceService.enableInteract(false);
+    hudController.terminarTurno();
+  }
 
   private void onEvento(Jugador j, Casilla c) {
-      if (diceService != null) diceService.enableInteract(false);
-      hudController.terminarTurno();}
+    if (diceService != null) diceService.enableInteract(false);
+    hudController.terminarTurno();
+  }
 
   private void onPropiedad(Casilla casilla) {
     Propiedad prop = null;
@@ -98,7 +100,6 @@ public class CasillaService implements ICasillaService {
       }
     }
     if (diceService != null) diceService.enableInteract(false);
-
 
     String name;
     String priceText;
@@ -112,8 +113,8 @@ public class CasillaService implements ICasillaService {
   }
 
   private void onMovimiento(Jugador j, Casilla c) {
-      if (diceService != null) diceService.enableInteract(false);
-      hudController.terminarTurno();
+    if (diceService != null) diceService.enableInteract(false);
+    hudController.terminarTurno();
   }
 
   private void onCarcel() {

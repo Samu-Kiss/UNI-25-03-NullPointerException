@@ -206,8 +206,7 @@ public class PropiedadRepository implements IPropiedadRepository {
 
   @Override
   public Integer getOwnerIdByPropiedadId(int propiedadId) {
-    String query =
-        "SELECT JugadorID FROM Adquisiciones WHERE PropiedadID = ?";
+    String query = "SELECT JugadorID FROM Adquisiciones WHERE PropiedadID = ?";
     try (Connection conex = dataService.createConnection();
         PreparedStatement ps = conex.prepareStatement(query)) {
       ps.setInt(1, propiedadId);
@@ -224,7 +223,8 @@ public class PropiedadRepository implements IPropiedadRepository {
 
   @Override
   public void addAdquisicion(int jugadorId, int propiedadId, int nivel) {
-    String insert = "INSERT INTO Adquisiciones(JugadorID, PropiedadID, NivelPropiedad) VALUES(?, ?, ?)";
+    String insert =
+        "INSERT INTO Adquisiciones(JugadorID, PropiedadID, NivelPropiedad) VALUES(?, ?, ?)";
     try (Connection conex = dataService.createConnection();
         PreparedStatement ps = conex.prepareStatement(insert)) {
       ps.setInt(1, jugadorId);

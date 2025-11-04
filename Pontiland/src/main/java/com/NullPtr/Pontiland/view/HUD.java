@@ -57,6 +57,7 @@ public class HUD extends AbstractAppState {
   private com.simsilica.lemur.Button buyBtn;
   private com.simsilica.lemur.Button auctionBtn;
   private String currentPriceDigits = "0";
+  private String currentPropertyName = null;
 
   public HUD() {}
 
@@ -78,11 +79,11 @@ public class HUD extends AbstractAppState {
     setVisible(true);
   }
 
-    public void setHudController(IHUDcontroller hudController) {
-        this.hudController = hudController;
-    }
+  public void setHudController(IHUDcontroller hudController) {
+    this.hudController = hudController;
+  }
 
-    private void buildPanes() {
+  private void buildPanes() {
     // Crear subcomponentes con AssetManager para cargar sprites
     this.propertyCard = new PropertyCard(app.getAssetManager());
     this.propertyToken = new PropertyToken(app.getAssetManager());
@@ -134,12 +135,19 @@ public class HUD extends AbstractAppState {
             .setHoverScale(1.06f);
 
     buyBtn = renderer.render(com.NullPtr.Pontiland.view.Button.Type.POSITIVE, "Comprar -$0", 0.55f);
-    buyBtn.addClickCommands(
-        ignored -> hudController.comprarPropiedad());
+    buyBtn.addClickCommands(ignored -> hudController.comprarPropiedad());
 
     auctionBtn =
         renderer.render(com.NullPtr.Pontiland.view.Button.Type.NEGATIVE, "Subastar", 0.55f);
-    auctionBtn.addClickCommands(ignored -> System.out.println("HUD Acción: Subastar"));
+    auctionBtn.addClickCommands(
+        ignored -> {
+          String name =
+              (currentPropertyName != null && !currentPropertyName.isBlank())
+                  ? currentPropertyName
+                  : "Subasta";
+          String priceText = "$" + (currentPriceDigits == null ? "0" : currentPriceDigits);
+          showAuction(name, priceText);
+        });
 
     actionRow.addChild(buyBtn);
     Container spacer = new Container();
@@ -275,6 +283,10 @@ public class HUD extends AbstractAppState {
   public void updatePropertyCard(String name, String priceText, String[] rentsText) {
     propertyCard.setInfo(name, priceText, rentsText);
 
+    if (name != null && !name.isBlank()) {
+      currentPropertyName = name;
+    }
+
     // Actualizar el texto del botón de compra con el precio recibido (si viene)
     if (priceText != null && !priceText.isBlank()) {
       String digits = priceText.replaceAll("[^0-9]", "");
@@ -292,6 +304,10 @@ public class HUD extends AbstractAppState {
   public void showPropertyCard(String name, String priceText, String[] rentsText, int groupIndex) {
     propertyCard.setGroup(groupIndex);
     propertyCard.setInfo(name, priceText, rentsText);
+
+    if (name != null && !name.isBlank()) {
+      currentPropertyName = name;
+    }
 
     // Precio inicial solo si se recibió
     if (priceText != null && !priceText.isBlank()) {
