@@ -16,5 +16,7 @@ public interface ITurnService {
 
   void setEnabled(boolean enabled);
 
+  boolean isEnabled();
+
   void setTerminarTurno(boolean terminarTurno);
 }

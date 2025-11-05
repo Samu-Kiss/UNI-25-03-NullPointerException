@@ -109,6 +109,11 @@ public class TurnService implements ITurnService {
   }
 
   @Override
+  public boolean isEnabled() {
+    return enabled;
+  }
+
+  @Override
   public void setTerminarTurno(boolean terminarTurno) {
     this.terminarTurno = terminarTurno;
   }

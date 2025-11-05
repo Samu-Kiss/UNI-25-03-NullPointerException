@@ -77,4 +77,9 @@ public class PartidaRepository implements IPartidaRepository {
   public IDataService getDataService() {
     return dataService;
   }
+
+  @Override
+  public long getPartidaID() {
+    return partidaID;
+  }
 }

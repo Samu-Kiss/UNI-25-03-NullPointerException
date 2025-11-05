@@ -30,6 +30,7 @@ public class Launcher extends SimpleApplication {
   private DiceService diceService;
   private ITurnService turnService;
   private LanzamientoDadosController lanzamientoDadosController;
+  private MenuPausaController menuPausaController;
   private Byte[] resultados = new Byte[2];
   private IScene scene;
 
@@ -103,9 +104,22 @@ public class Launcher extends SimpleApplication {
         new StartGameService(
             jugadorRepository, partidaRepository, dataService, scene, propiedadRepository);
     turnService.setScene(scene);
-    IMenuActions actions =
+    MenuController menuController =
         new MenuController(this, startGameService, dataService, hudController, turnService);
-    stateManager.attach(new MenuPrincipal(actions));
+
+    menuPausaController =
+        new MenuPausaController(
+            this,
+            getInputManager(),
+            turnService,
+            lanzamientoDadosController,
+            diceService,
+            hudController,
+            dataService,
+            partidaRepository,
+            menuController);
+
+    stateManager.attach(new MenuPrincipal(menuController));
   }
 
   @Override
