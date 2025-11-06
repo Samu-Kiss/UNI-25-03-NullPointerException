@@ -270,34 +270,6 @@ public class JugadorRepository implements IJugadorRepository {
     }
   }
 
-  @Override
-  public void updateJugadorDineroById(int jugadorID, int nuevoDinero) throws SQLException {
-    String consulta = "UPDATE Jugador SET Dinero = ? WHERE JugadorID = ? AND Partida = ?";
-    try (Connection conn = dataService.createConnection();
-        PreparedStatement stmt = conn.prepareStatement(consulta)) {
-      stmt.setInt(1, nuevoDinero);
-      stmt.setInt(2, jugadorID);
-      stmt.setLong(3, partidaID);
-      stmt.executeUpdate();
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Override
-  public void updateJugadorDineroByNumJugador(int numJugador, int nuevoDinero) throws SQLException {
-    String consulta = "UPDATE Jugador SET Dinero = ? WHERE NumJugador = ? AND Partida = ?";
-    try (Connection conn = dataService.createConnection();
-        PreparedStatement stmt = conn.prepareStatement(consulta)) {
-      stmt.setInt(1, nuevoDinero);
-      stmt.setInt(2, numJugador);
-      stmt.setLong(3, partidaID);
-      stmt.executeUpdate();
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public void rentPaymentTransaction(Jugador j1, Jugador j2) throws SQLException {
     Connection conn = dataService.createConnection();
     String updateSql = "UPDATE Jugador SET Dinero = ? WHERE NumJugador = ? AND Partida = ?";

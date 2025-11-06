@@ -164,7 +164,6 @@ public class TurnService implements ITurnService {
                 casillaService.interaccion(
                     jugadorActual,
                     casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
-                jugadorRepository.updateJugador(jugadorActual);
                 interactionStarted = true;
               } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -185,7 +184,6 @@ public class TurnService implements ITurnService {
                 jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
             casillaService.interaccion(
                 jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
-            jugadorRepository.updateJugador(jugadorActual);
             interactionStarted = true;
           } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -230,7 +228,6 @@ public class TurnService implements ITurnService {
               casillaService.terminarInteraccion(
                   jugadorActual,
                   casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
-              jugadorRepository.updateJugador(jugadorActual);
             } catch (SQLException e) {
               throw new RuntimeException(e);
             }

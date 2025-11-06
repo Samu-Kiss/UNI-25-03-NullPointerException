@@ -49,7 +49,7 @@ public class AdquisicionService implements IAdquisicionService {
     int nuevoDinero = jugador.getDinero() - precio;
 
     try {
-      jugadorRepository.updateJugadorDineroById(jugador.getJugadorId(), nuevoDinero);
+      jugadorRepository.updateJugador(jugador);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
