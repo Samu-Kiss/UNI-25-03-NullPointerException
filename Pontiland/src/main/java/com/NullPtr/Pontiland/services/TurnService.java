@@ -237,7 +237,7 @@ public class TurnService implements ITurnService {
 
         case NEXT_TURN:
           terminarTurno = false;
-          if(!lanzamientoDoble) nextTurn();
+          if (!lanzamientoDoble) nextTurn();
           state = TurnState.AWAIT_ROLL;
           break;
       }
