@@ -141,7 +141,7 @@ public class Scene implements IScene {
     try {
       Spatial conito = assetManager.loadModel("graphics/models/Conito.glb");
       conito.scale(10f);
-      conito.setLocalTranslation(0, 0, 0);
+      conito.setLocalTranslation(0, -0.5f, 0);
       conito.setName("Conito");
       rootNode.attachChild(conito);
       RigidBodyControl conitoPhysics = new RigidBodyControl(0f);

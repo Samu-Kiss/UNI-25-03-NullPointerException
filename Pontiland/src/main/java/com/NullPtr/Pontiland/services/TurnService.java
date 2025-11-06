@@ -32,6 +32,7 @@ public class TurnService implements ITurnService {
   private Byte lastD1 = null;
   private Byte lastD2 = null;
   private int pendingMovement = 0;
+  private boolean lanzamientoDoble = false;
 
   private boolean enabled = false;
 
@@ -126,6 +127,7 @@ public class TurnService implements ITurnService {
       switch (state) {
         case AWAIT_ROLL:
           terminarTurno = false;
+          lanzamientoDoble = false;
           if (scene != null) scene.resetCamera();
           Byte[] dados = diceService.getResultados();
           if (dados == null) return;
@@ -207,8 +209,7 @@ public class TurnService implements ITurnService {
               tiradas++;
               System.out.println("Doble! Tira de nuevo");
               lastD1 = lastD2 = null;
-              diceService.enableInteract(true);
-              state = TurnState.AWAIT_ROLL;
+              lanzamientoDoble = true;
             }
           } else {
             tiradas = 1;
@@ -236,7 +237,7 @@ public class TurnService implements ITurnService {
 
         case NEXT_TURN:
           terminarTurno = false;
-          nextTurn();
+          if(!lanzamientoDoble) nextTurn();
           state = TurnState.AWAIT_ROLL;
           break;
       }

@@ -147,7 +147,7 @@ public class FichaController {
 
         // Right side: top -> bottom
       case 3:
-        cellSize = 1.5385f;
+        cellSize = 1.357500558970818f;
         if ((pos + 1) == 0) cellSize *= 2f;
         z = (-boardFirstPosition.getZ() * 2f) + ((pos + 1) * cellSize) + (pos + 1) * 0.24f;
         break;

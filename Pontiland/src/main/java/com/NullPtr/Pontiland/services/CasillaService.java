@@ -109,10 +109,11 @@ public class CasillaService implements ICasillaService {
     String priceText;
     String[] rentsText;
     int groupIndex;
-    name = prop.getNombreCasilla();
+    name = casilla.getNombreCasilla();
     priceText = String.valueOf(prop.getPrecioCompra());
     rentsText = prop.getRentasText();
     groupIndex = prop.getGrupo();
+    System.out.println("Nombre Propiedad: " + name);
     hudController.showPropertyCard(name, priceText, rentsText, groupIndex);
 
     if (diceService != null) diceService.enableInteract(false);

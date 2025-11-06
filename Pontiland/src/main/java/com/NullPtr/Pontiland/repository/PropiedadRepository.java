@@ -79,7 +79,6 @@ public class PropiedadRepository implements IPropiedadRepository {
 
         return new Propiedad(
             rs.getInt("Casilla.PosicionTablero"),
-            rs.getString("Casilla.NombreCasilla"),
             rs.getInt("PropiedadID"),
             rs.getInt("GrupoPropiedades"),
             nivel, // Nivel depende si tiene o no dueño
@@ -164,7 +163,6 @@ public class PropiedadRepository implements IPropiedadRepository {
           propiedades.add(
               new Propiedad(
                   rs.getInt("Propiedad.PosicionTablero"),
-                  getPropiedadNombreById(rs.getInt("Propiedad.PropiedadID")),
                   rs.getInt("Propiedad.PropiedadID"),
                   rs.getInt("Propiedad.GrupoPropiedades"),
                   rs.getInt("Adquisiciones.NivelPropiedad"),
