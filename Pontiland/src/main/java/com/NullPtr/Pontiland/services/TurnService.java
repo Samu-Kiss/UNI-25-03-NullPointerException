@@ -135,7 +135,15 @@ public class TurnService implements ITurnService {
           if (dados[0] != null && dados[1] != null) {
             lastD1 = dados[0];
             lastD2 = dados[1];
-            pendingMovement = dados[0] + dados[1];
+            // pendingMovement = dados[0] + dados[1];
+            pendingMovement = 6; // Para pruebas siempre mover 6
+            System.out.println(
+                "Dados lanzados: "
+                    + dados[0].intValue()
+                    + " + "
+                    + dados[1].intValue()
+                    + " = "
+                    + (dados[0].intValue() + dados[1].intValue()));
             dados[0] = dados[1] = null;
 
             state = TurnState.MOVING;
@@ -194,7 +202,6 @@ public class TurnService implements ITurnService {
           if (casillaService.getIrACarcel()) {
             System.out.println("La casilla pedido enviar a la cárcel después del movimiento");
             moveToJail();
-            tiradas = 1;
             state = TurnState.END_TURN;
             break;
           }
@@ -202,7 +209,6 @@ public class TurnService implements ITurnService {
           if (lastD1 != null && lastD1.equals(lastD2)) {
             if (tiradas >= 3) {
               System.out.println("3 dobles seguidos, vas a la cárcel!");
-              tiradas = 1;
               moveToJail();
               state = TurnState.END_TURN;
             } else {
@@ -212,7 +218,6 @@ public class TurnService implements ITurnService {
               lanzamientoDoble = true;
             }
           } else {
-            tiradas = 1;
             System.out.println("No doble: finalizar turno y cambiar jugador");
             lastD1 = lastD2 = null;
             state = TurnState.END_TURN;
@@ -237,7 +242,10 @@ public class TurnService implements ITurnService {
 
         case NEXT_TURN:
           terminarTurno = false;
-          if (!lanzamientoDoble) nextTurn();
+          if (!lanzamientoDoble) {
+            tiradas = 1;
+            nextTurn();
+          }
           state = TurnState.AWAIT_ROLL;
           break;
       }

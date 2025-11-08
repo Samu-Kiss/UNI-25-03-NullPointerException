@@ -62,9 +62,8 @@ public class CasillaService implements ICasillaService {
       case PROPIEDAD:
         if (hudController != null) {
           if (hudController.getPuedeComprar()) {
-
             try {
-              adquisicionService.comprarPropiedadPorPosicion(casilla.getPosicionTablero());
+              adquisicionService.comprarPropiedadPorPosicion(casilla.getPosicionTablero(), jugador);
               if (diceService != null) diceService.enableInteract(true);
               hudController.hidePropertyCard();
               hudController.terminarTurno();

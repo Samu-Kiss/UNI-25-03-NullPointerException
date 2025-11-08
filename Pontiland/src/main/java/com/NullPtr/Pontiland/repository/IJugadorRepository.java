@@ -27,5 +27,5 @@ public interface IJugadorRepository {
 
   void updateJugador(Jugador jugador) throws SQLException;
 
-  void rentPaymentTransaction(Jugador j1, Jugador j2) throws SQLException;
+  void rentPaymentTransaction(Jugador j1, Jugador j2, int pago) throws SQLException;
 }

@@ -96,7 +96,8 @@ public class PropiedadRepository implements IPropiedadRepository {
     }
   }
 
-  Jugador propiedadHasOwner(int propiedadID) {
+  @Override
+  public Jugador propiedadHasOwner(int propiedadID) {
     String query =
         "SELECT * "
             + "FROM Jugador "
@@ -125,7 +126,8 @@ public class PropiedadRepository implements IPropiedadRepository {
     }
   }
 
-  int getNivelPropiedad(int propiedadID) {
+  @Override
+  public int getNivelPropiedad(int propiedadID) {
     String query =
         "SELECT NivelPropiedad "
             + "FROM Adquisiciones "
@@ -142,6 +144,22 @@ public class PropiedadRepository implements IPropiedadRepository {
         }
         return rs.getInt("NivelPropiedad");
       }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void incrementarNivelPropiedad(int propiedadID) {
+    String update =
+        "UPDATE Adquisiciones "
+            + "SET NivelPropiedad = NivelPropiedad + 1 "
+            + "WHERE PropiedadID = ?";
+
+    try (Connection conex = dataService.createConnection();
+        PreparedStatement ps = conex.prepareStatement(update)) {
+      ps.setInt(1, propiedadID);
+      ps.executeUpdate();
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
