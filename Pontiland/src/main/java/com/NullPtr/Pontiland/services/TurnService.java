@@ -1,5 +1,6 @@
 package com.NullPtr.Pontiland.services;
 
+import com.NullPtr.Pontiland.controllers.IHUDcontroller;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.ICasillaRepository;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
@@ -14,8 +15,8 @@ public class TurnService implements ITurnService {
   private ICasillaService casillaService;
   private DiceService diceService;
   private ICasillaRepository casillaRepository;
+  private IHUDcontroller hudController;
   private IScene scene;
-  private boolean interactionStarted = false;
   private boolean terminarTurno = false;
   private int tiradas = 1;
 
@@ -23,7 +24,6 @@ public class TurnService implements ITurnService {
     AWAIT_ROLL,
     MOVING,
     INTERACT,
-    POST_MOVE_CHECK,
     END_TURN,
     NEXT_TURN
   }
@@ -41,12 +41,14 @@ public class TurnService implements ITurnService {
       IPartidaRepository partidaRepository,
       DiceService diceService,
       ICasillaRepository casillaRepository,
-      ICasillaService casillaService) {
+      ICasillaService casillaService,
+      IHUDcontroller hudController) {
     this.casillaService = casillaService;
     this.casillaRepository = casillaRepository;
     this.diceService = diceService;
     this.jugadorRepository = jugadorRepository;
     this.partidaRepository = partidaRepository;
+    this.hudController = hudController;
   }
 
   @Override
@@ -96,7 +98,7 @@ public class TurnService implements ITurnService {
     }
 
     try {
-      jugadorRepository.updateJugador(jugadorActual);
+      jugadorRepository.updatePosition(jugadorActual.getJugadorId(), jugadorActual.getPosicion());
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -136,7 +138,7 @@ public class TurnService implements ITurnService {
             lastD1 = dados[0];
             lastD2 = dados[1];
             // pendingMovement = dados[0] + dados[1];
-            pendingMovement = 6; // Para pruebas siempre mover 6
+            pendingMovement = 3; // Para pruebas siempre mover 6
             System.out.println(
                 "Dados lanzados: "
                     + dados[0].intValue()
@@ -154,7 +156,6 @@ public class TurnService implements ITurnService {
           if (pendingMovement > 0) {
             movePlayer(pendingMovement);
             pendingMovement = 0;
-            interactionStarted = false;
           }
 
           if (!diceService.getCanInteract()) {
@@ -166,43 +167,10 @@ public class TurnService implements ITurnService {
           break;
 
         case INTERACT:
-          if (!interactionStarted) {
-            if (diceService.getCanInteract()) {
-              try {
-                Jugador jugadorActual =
-                    jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-                casillaService.interaccion(
-                    jugadorActual,
-                    casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
-                interactionStarted = true;
-              } catch (SQLException e) {
-                throw new RuntimeException(e);
-              }
-            }
-
-          } else {
-            if (diceService.getCanInteract()) {
-              interactionStarted = false;
-              state = TurnState.POST_MOVE_CHECK;
-              break;
-            }
-          }
-
-        case POST_MOVE_CHECK:
-          try {
-            Jugador jugadorActual =
-                jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-            casillaService.interaccion(
-                jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
-            interactionStarted = true;
-          } catch (SQLException e) {
-            throw new RuntimeException(e);
-          }
-
           if (casillaService.getIrACarcel()) {
             System.out.println("La casilla pedido enviar a la cárcel después del movimiento");
             moveToJail();
-            state = TurnState.END_TURN;
+            state = TurnState.NEXT_TURN;
             break;
           }
 
@@ -222,6 +190,18 @@ public class TurnService implements ITurnService {
             lastD1 = lastD2 = null;
             state = TurnState.END_TURN;
           }
+          if (diceService.getCanInteract()) {
+            try {
+              Jugador jugadorActual =
+                  jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+              casillaService.interaccion(
+                  jugadorActual,
+                  casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+            } catch (SQLException e) {
+              throw new RuntimeException(e);
+            }
+          }
+
           break;
 
         case END_TURN:
@@ -247,6 +227,17 @@ public class TurnService implements ITurnService {
             nextTurn();
           }
           state = TurnState.AWAIT_ROLL;
+
+          for (int i = jugadorRepository.getPlayerCount(); i > 0; i--) {
+            Jugador jugador =
+                jugadorRepository.getJugadorByID(jugadorRepository.getPlayerIdByNumJugador(i));
+            hudController.updatePlayerCard(
+                jugador.getNombreJugador(),
+                String.valueOf(jugador.getDinero()),
+                jugador.getEstado(),
+                i);
+          }
+
           break;
       }
     } catch (Exception e) {

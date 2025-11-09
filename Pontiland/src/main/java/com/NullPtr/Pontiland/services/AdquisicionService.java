@@ -1,6 +1,5 @@
 package com.NullPtr.Pontiland.services;
 
-import com.NullPtr.Pontiland.controllers.IHUDcontroller;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
@@ -10,13 +9,9 @@ import java.sql.SQLException;
 public class AdquisicionService implements IAdquisicionService {
   private final IPropiedadRepository propiedadRepository;
   private IJugadorRepository jugadorRepository;
-  private IHUDcontroller hudController;
 
   public AdquisicionService(
-      IPropiedadRepository propiedadRepository,
-      IJugadorRepository jugadorRepository,
-      IHUDcontroller hudController) {
-    this.hudController = hudController;
+      IPropiedadRepository propiedadRepository, IJugadorRepository jugadorRepository) {
     this.propiedadRepository = propiedadRepository;
     this.jugadorRepository = jugadorRepository;
   }
@@ -42,39 +37,47 @@ public class AdquisicionService implements IAdquisicionService {
       jugador.setDinero(nuevoDinero);
 
       try {
-        jugadorRepository.updateJugador(jugador);
+        jugadorRepository.updateDinero(jugador.getJugadorId(), nuevoDinero);
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
 
-      hudController.updatePlayerCard(
-          jugador.getNombreJugador(),
-          String.valueOf(nuevoDinero),
-          jugador.getEstado(),
-          jugador.getNumJugador());
-
     } else {
+
+      System.out.println("Jugador pago: " + jugadorPago.getDinero());
       int precioNivel =
           propiedad.getRentaPorNivel()[propiedadRepository.getNivelPropiedad(propiedadId) - 1];
 
       System.out.println("Precio nivel: " + precioNivel);
       try {
-        jugadorRepository.rentPaymentTransaction(jugador, jugadorPago, precioNivel);
+        System.out.println(
+            "Dinero actual jugador a pagar: "
+                + jugadorRepository.getJugadorByID(jugador.getJugadorId()).getDinero());
+        System.out.println(
+            "Dinero actual jugador pagado: "
+                + jugadorRepository.getJugadorByID(jugadorPago.getJugadorId()).getDinero());
       } catch (SQLException e) {
         throw new RuntimeException(e);
       }
 
-      hudController.updatePlayerCard(
-          jugadorPago.getNombreJugador(),
-          String.valueOf(jugadorPago.getDinero() + precioNivel),
-          jugadorPago.getEstado(),
-          jugadorPago.getNumJugador());
+      try {
+        jugadorRepository.updateDinero(jugador.getJugadorId(), jugador.getDinero() - precioNivel);
+        jugadorRepository.updateDinero(
+            jugadorPago.getJugadorId(), jugadorPago.getDinero() + precioNivel);
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
 
-      hudController.updatePlayerCard(
-          jugador.getNombreJugador(),
-          String.valueOf(jugadorPago.getDinero() - precioNivel),
-          jugador.getEstado(),
-          jugador.getNumJugador());
+      try {
+        System.out.println(
+            "Dinero jugador a pagar: "
+                + jugadorRepository.getJugadorByID(jugador.getJugadorId()).getDinero());
+        System.out.println(
+            "Dinero jugador pagado: "
+                + jugadorRepository.getJugadorByID(jugadorPago.getJugadorId()).getDinero());
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
 
       propiedadRepository.incrementarNivelPropiedad(propiedadId);
     }

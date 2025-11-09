@@ -224,6 +224,24 @@ public class JugadorRepository implements IJugadorRepository {
   }
 
   @Override
+  public int getPlayerCount() throws SQLException {
+    String consulta = "SELECT COUNT(*) AS TotalJugadores FROM Jugador WHERE Partida = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
+      stmt.setLong(1, partidaID);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("TotalJugadores");
+        } else {
+          throw new RuntimeException("No se pudo obtener el conteo de jugadores.");
+        }
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
   public void setPartidaID(long partidaID) {
     this.partidaID = partidaID;
   }
@@ -254,16 +272,13 @@ public class JugadorRepository implements IJugadorRepository {
   }
 
   @Override
-  public void updateJugador(Jugador jugador) throws SQLException {
-    String consulta =
-        "UPDATE Jugador SET Posicion = ?, Encarcelado = ?, Dinero = ? WHERE JugadorID = ? AND Partida = ?";
+  public void updatePosition(int jugadorID, int nuevaPosicion) throws SQLException {
+    String consulta = "UPDATE Jugador SET Posicion = ? WHERE JugadorID = ? AND Partida = ?";
     try (Connection conn = dataService.createConnection();
         PreparedStatement stmt = conn.prepareStatement(consulta)) {
-      stmt.setInt(1, jugador.getPosicion());
-      stmt.setBoolean(2, jugador.getEstado());
-      stmt.setInt(3, jugador.getDinero());
-      stmt.setInt(4, jugador.getJugadorId());
-      stmt.setLong(5, partidaID);
+      stmt.setInt(1, nuevaPosicion);
+      stmt.setInt(2, jugadorID);
+      stmt.setLong(3, partidaID);
       stmt.executeUpdate();
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -271,38 +286,31 @@ public class JugadorRepository implements IJugadorRepository {
   }
 
   @Override
-  public void rentPaymentTransaction(Jugador j1, Jugador j2, int pago) throws SQLException {
-    Connection conn = dataService.createConnection();
-    String updateSql = "UPDATE Jugador SET Dinero = ? WHERE NumJugador = ? AND Partida = ?";
-    boolean originalAutoCommit = conn.getAutoCommit();
-    try {
-      conn.setAutoCommit(false);
+  public void updateDinero(int jugadorID, int nuevoDinero) throws SQLException {
+    String consulta = "UPDATE Jugador SET Dinero = ? WHERE JugadorID = ? AND Partida = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
+      stmt.setInt(1, nuevoDinero);
+      stmt.setInt(2, jugadorID);
+      stmt.setLong(3, partidaID);
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
 
-      try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
-        // Actualizar primer jugador
-        ps.setInt(1, j1.getDinero() - pago);
-        ps.setInt(2, j1.getNumJugador());
-        ps.setLong(3, j1.getPartida());
-        ps.executeUpdate();
-
-        // Actualizar segundo jugador
-        ps.setInt(1, j2.getDinero() + pago);
-        ps.setInt(2, j2.getNumJugador());
-        ps.setLong(3, j2.getPartida());
-        ps.executeUpdate();
-      }
-
-      conn.commit();
-    } catch (SQLException ex) {
-      try {
-        conn.rollback();
-      } catch (SQLException rbEx) {
-        // ignorar o registrar según necesidad
-      }
-      throw ex;
-    } finally {
-      conn.setAutoCommit(originalAutoCommit);
-      conn.close();
+  @Override
+  public void updateEstado(int jugadorID, String nuevoEstado) throws SQLException {
+    String consulta = "UPDATE Jugador SET Encarcelado = ? WHERE JugadorID = ? AND Partida = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
+      boolean estado = Boolean.parseBoolean(nuevoEstado);
+      stmt.setBoolean(1, estado);
+      stmt.setInt(2, jugadorID);
+      stmt.setLong(3, partidaID);
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
     }
   }
 }

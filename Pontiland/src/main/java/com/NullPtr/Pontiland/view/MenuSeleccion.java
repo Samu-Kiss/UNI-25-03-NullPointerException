@@ -49,8 +49,6 @@ import java.util.Set;
  * placeholder.
  */
 public class MenuSeleccion extends AbstractAppState {
-  /** Dinero inicial de cada jugador. */
-  private static final int STARTING_MONEY = 0;
 
   /** Nombres de los personajes disponibles. */
   private static final String[] CHARACTER_NAMES = {
@@ -534,7 +532,7 @@ public class MenuSeleccion extends AbstractAppState {
       int charIdx = characterIndex.get(i);
       personajeIds.add(charIdx + 1);
       try {
-        jugadores.add(new Jugador(STARTING_MONEY, nombre, (byte) (i + 1)));
+        jugadores.add(new Jugador(nombre, (byte) (i + 1)));
       } catch (IllegalArgumentException ex) {
         errorLabel.setText(ex.getMessage());
         return;

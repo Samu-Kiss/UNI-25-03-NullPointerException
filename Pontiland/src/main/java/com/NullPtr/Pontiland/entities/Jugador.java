@@ -46,16 +46,13 @@ public class Jugador {
   /**
    * Constructor de la clase Jugador por defecto, con posicion inicial 1 y sin propiedades
    *
-   * @param dinero Cantidad inicial de dinero del jugador
    * @param nombreJugador Nombre del jugador
    * @param jugadorId Identificador único del jugador
    * @throws IllegalArgumentException si el dinero es negativo, los IDs son negativos o el nombre
    *     está vacío
    */
-  public Jugador(int dinero, String nombreJugador, int jugadorId) {
-    if (dinero < 0) {
-      throw new IllegalArgumentException("El dinero no puede ser negativo");
-    }
+  public Jugador(String nombreJugador, int jugadorId) {
+
     if (jugadorId > 4 || jugadorId < 1) {
       throw new IllegalArgumentException("Identificador del jugador es inválido");
     }
@@ -63,7 +60,7 @@ public class Jugador {
       throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
     }
 
-    this.dinero = dinero;
+    this.dinero = 1500;
     this.nombreJugador = nombreJugador;
     this.jugadorId = jugadorId;
 
