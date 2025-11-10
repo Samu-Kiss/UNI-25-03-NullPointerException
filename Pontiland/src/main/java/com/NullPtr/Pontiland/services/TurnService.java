@@ -19,6 +19,7 @@ public class TurnService implements ITurnService {
   private IScene scene;
   private boolean terminarTurno = false;
   private int tiradas = 1;
+  private ISubastaService subastaService;
 
   private enum TurnState {
     AWAIT_ROLL,
@@ -42,13 +43,15 @@ public class TurnService implements ITurnService {
       DiceService diceService,
       ICasillaRepository casillaRepository,
       ICasillaService casillaService,
-      IHUDcontroller hudController) {
+      IHUDcontroller hudController,
+      ISubastaService subastaService) {
     this.casillaService = casillaService;
     this.casillaRepository = casillaRepository;
     this.diceService = diceService;
     this.jugadorRepository = jugadorRepository;
     this.partidaRepository = partidaRepository;
     this.hudController = hudController;
+    this.subastaService = subastaService;
   }
 
   @Override
@@ -72,10 +75,25 @@ public class TurnService implements ITurnService {
   public void movePlayer(int numCasillas) {
     int nuevaPosicion;
     Jugador jugadorActual;
+    int posicionAnterior;
     try {
       jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-      nuevaPosicion = (jugadorActual.getPosicion() - 1 + numCasillas) % 40 + 1;
+      posicionAnterior = jugadorActual.getPosicion();
+      nuevaPosicion = (posicionAnterior - 1 + numCasillas) % 40 + 1;
+
+      boolean pasaPorSalida = (posicionAnterior + numCasillas) > 40 || nuevaPosicion == 1;
       jugadorActual.setPosicion(nuevaPosicion);
+
+      if (pasaPorSalida) {
+        int nuevoDinero = jugadorActual.getDinero() + 200;
+        jugadorActual.setDinero(nuevoDinero);
+        jugadorRepository.updateDinero(jugadorActual.getJugadorId(), nuevoDinero);
+        System.out.println(
+            "El jugador "
+                + jugadorActual.getJugadorId()
+                + " pasa por la salida y cobra 200. Dinero actual: "
+                + nuevoDinero);
+      }
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -102,8 +120,7 @@ public class TurnService implements ITurnService {
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
-
-    markLastMove(jugadorActual.getJugadorId(), nuevaPosicion - 1);
+    scene.replicateFichaPosition(jugadorActual.getJugadorId(), nuevaPosicion - 1);
   }
 
   @Override
@@ -117,8 +134,9 @@ public class TurnService implements ITurnService {
   }
 
   @Override
-  public void setTerminarTurno(boolean terminarTurno) {
-    this.terminarTurno = terminarTurno;
+  public void terminarTurno() {
+    this.terminarTurno = true;
+    if (diceService != null) diceService.enableInteract(true);
   }
 
   @Override
@@ -137,8 +155,8 @@ public class TurnService implements ITurnService {
           if (dados[0] != null && dados[1] != null) {
             lastD1 = dados[0];
             lastD2 = dados[1];
-            // pendingMovement = dados[0] + dados[1];
-            pendingMovement = 3; // Para pruebas siempre mover 6
+            pendingMovement = dados[0] + dados[1];
+            //pendingMovement = 3; // Para pruebas siempre mover 6
             System.out.println(
                 "Dados lanzados: "
                     + dados[0].intValue()
@@ -167,12 +185,6 @@ public class TurnService implements ITurnService {
           break;
 
         case INTERACT:
-          if (casillaService.getIrACarcel()) {
-            System.out.println("La casilla pedido enviar a la cárcel después del movimiento");
-            moveToJail();
-            state = TurnState.NEXT_TURN;
-            break;
-          }
 
           if (lastD1 != null && lastD1.equals(lastD2)) {
             if (tiradas >= 3) {
@@ -205,6 +217,12 @@ public class TurnService implements ITurnService {
           break;
 
         case END_TURN:
+          if (casillaService.getIrACarcel()) {
+              System.out.println("La casilla envia a la cárcel después del movimiento");
+              moveToJail();
+              state = TurnState.END_TURN;
+          }
+
           if (terminarTurno) {
             state = TurnState.NEXT_TURN;
           } else {
@@ -252,10 +270,6 @@ public class TurnService implements ITurnService {
   @Override
   public void payRent() {}
 
-  private void markLastMove(int jugadorId, int nuevaPos) {
-
-    scene.replicateFichaPosition(jugadorId, nuevaPos);
-  }
 
   public void moveToJail() {
     int jailPosition = 11;
@@ -270,9 +284,29 @@ public class TurnService implements ITurnService {
               + jugadorActual.getJugadorId()
               + " ha sido enviado a la cárcel en la posición "
               + jailPosition);
-      markLastMove(jugadorActual.getJugadorId(), jailPosition - 1);
+
+      scene.replicateFichaPosition(jugadorActual.getJugadorId(), jailPosition - 1);
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
   }
+
+  @Override
+  public boolean iniciarSubasta() {
+    return subastaService != null && subastaService.iniciarSubasta();
+  }
+
+  @Override
+  public boolean increaseAuction(int delta) {
+    if (delta <= 0) return false;
+    return subastaService != null && subastaService.aumentarPrecio(delta);
+  }
+
+  @Override
+  public boolean exitAuction() {
+    return subastaService != null && subastaService.comprarActual();
+
+  }
+
+
 }

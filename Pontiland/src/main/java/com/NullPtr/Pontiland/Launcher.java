@@ -88,6 +88,8 @@ public class Launcher extends SimpleApplication {
     PropiedadRepository propiedadRepository = new PropiedadRepository(dataService);
     AdquisicionService adquisicionService =
         new AdquisicionService(propiedadRepository, jugadorRepository);
+    SubastaService subastaService =
+        new SubastaService(adquisicionService, jugadorRepository, hudController, propiedadRepository);
     casillaService =
         new CasillaService(hudController, diceService, propiedadRepository, adquisicionService);
     turnService =
@@ -97,7 +99,8 @@ public class Launcher extends SimpleApplication {
             diceService,
             casillaRepository,
             casillaService,
-            hudController);
+            hudController,
+            subastaService);
     lanzamientoDadosController = new LanzamientoDadosController(diceService);
     lanzamientoDadosController.registerInputs(getInputManager());
 

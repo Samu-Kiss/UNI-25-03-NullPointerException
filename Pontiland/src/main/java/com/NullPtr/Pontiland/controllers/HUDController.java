@@ -137,6 +137,8 @@ public class HUDController implements IHUDcontroller {
   public void showAuction(String propertyName, String currentPriceText) {
     if (hud != null) {
       hud.showAuction(propertyName, currentPriceText);
+
+      hud.hidePropertyCard();
     }
   }
 
@@ -149,6 +151,33 @@ public class HUDController implements IHUDcontroller {
 
   @Override
   public void terminarTurno() {
-    turnService.setTerminarTurno(true);
+    turnService.terminarTurno();
+  }
+
+  @Override
+  public void iniciarSubasta() {
+    if (turnService != null) {
+      turnService.iniciarSubasta();
+    }
+  }
+
+  @Override
+  public void increaseAuction(int delta) {
+    if (turnService != null) {
+      turnService.increaseAuction(delta);
+    }
+  }
+
+  @Override
+  public void exitAuction() {
+    if (turnService != null) {
+      turnService.exitAuction();
+      terminarTurno();
+    }
+  }
+
+  @Override
+  public void setAuctionPlayerName(String playerName) {
+    if (hud != null) hud.setAuctionPlayerName(playerName);
   }
 }

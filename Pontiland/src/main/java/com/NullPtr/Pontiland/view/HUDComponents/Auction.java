@@ -1,5 +1,6 @@
 package com.NullPtr.Pontiland.view.HUDComponents;
 
+import com.NullPtr.Pontiland.controllers.IHUDcontroller;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.math.ColorRGBA;
@@ -20,6 +21,7 @@ public class Auction {
   private static final float SPRITE_SCALE = 0.62f;
 
   private final Container root;
+  private final Label playerNameLbl;
   private final Label priceTitleLbl;
   private final Label priceValueLbl;
   private final Button plus20Btn;
@@ -27,6 +29,11 @@ public class Auction {
   private final Button plus100Btn;
   private final Button exitBtn;
   private final AssetManager assets;
+  private IHUDcontroller hudController;
+
+  public void setHudController(IHUDcontroller hudController) {
+    this.hudController = hudController;
+  }
 
   public Auction(AssetManager assets) {
     this.assets = assets;
@@ -35,7 +42,13 @@ public class Auction {
     // Bloque superior para labels con padding extra que los baja visualmente
     Container priceBlock = root.addChild(new Container());
     priceBlock.setBackground(null);
-    priceBlock.setInsets(new Insets3f(96f, 12f, 12f, 12f));
+    priceBlock.setInsets(new Insets3f(72f, 12f, 12f, 12f));
+
+    // Linea 0: "Turno de: <jugador>" centrado y negro
+    playerNameLbl = priceBlock.addChild(new Label("Turno de: -"));
+    playerNameLbl.setColor(ColorRGBA.Black);
+    playerNameLbl.setTextHAlignment(HAlignment.Center);
+    playerNameLbl.setInsets(new Insets3f(0f, 0f, 4f, 0f));
 
     // Linea 1: "Precio Actual:" centrado y negro
     priceTitleLbl = priceBlock.addChild(new Label("Precio Actual:"));
@@ -74,10 +87,7 @@ public class Auction {
             0.42f,
             com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     row.addChild(plus20Btn);
-    plus20Btn.addClickCommands(
-        src ->
-            System.out.println(
-                "[Auction]: +20 presionado. Precio actual: " + priceValueLbl.getText()));
+    plus20Btn.addClickCommands(src -> { if (hudController != null) hudController.increaseAuction(20); });
     Container hspace1 = new Container();
     hspace1.setBackground(null);
     hspace1.setPreferredSize(new Vector3f(10f, 0, 0));
@@ -90,10 +100,7 @@ public class Auction {
             0.42f,
             com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     row.addChild(plus50Btn);
-    plus50Btn.addClickCommands(
-        src ->
-            System.out.println(
-                "[Auction]: +50 presionado. Precio actual: " + priceValueLbl.getText()));
+    plus50Btn.addClickCommands(src -> { if (hudController != null) hudController.increaseAuction(50); });
     Container hspace2 = new Container();
     hspace2.setBackground(null);
     hspace2.setPreferredSize(new Vector3f(10f, 0, 0));
@@ -106,10 +113,7 @@ public class Auction {
             0.42f,
             com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     row.addChild(plus100Btn);
-    plus100Btn.addClickCommands(
-        src ->
-            System.out.println(
-                "[Auction]: +100 presionado. Precio actual: " + priceValueLbl.getText()));
+    plus100Btn.addClickCommands(src -> { if (hudController != null) hudController.increaseAuction(100); });
 
     // Separador vertical antes de salir
     Container vspace2 = new Container();
@@ -127,17 +131,14 @@ public class Auction {
             0.55f,
             com.NullPtr.Pontiland.view.Button.Variant.LONG);
     exitRow.addChild(exitBtn);
-    exitBtn.addClickCommands(
-        src ->
-            System.out.println(
-                "[Auction]: Botón salir presionado. Precio final mostrado: "
-                    + priceValueLbl.getText()));
+    exitBtn.addClickCommands(src -> { if (hudController != null) hudController.exitAuction(); });
 
     applyBackground();
 
     // Ajustar anchos para que los labels se centren visualmente
     Vector3f pref = root.getPreferredSize();
     if (pref != null) {
+      playerNameLbl.setPreferredSize(new Vector3f(pref.x, playerNameLbl.getPreferredSize().y, 0));
       priceTitleLbl.setPreferredSize(new Vector3f(pref.x, priceTitleLbl.getPreferredSize().y, 0));
       priceValueLbl.setPreferredSize(new Vector3f(pref.x, priceValueLbl.getPreferredSize().y, 0));
       // Ajustar a ancho completo y reducir ligeramente la altura visual
@@ -157,13 +158,18 @@ public class Auction {
   }
 
   public void setInfo(String propertyName, String currentPriceText) {
-    // Solo mostramos el precio como segunda linea
+    // Actualizar precio como segunda linea
     String value =
-        (currentPriceText != null && !currentPriceText.isEmpty()) ? currentPriceText : "$0";
+        (currentPriceText != null && !currentPriceText.isEmpty()) ? currentPriceText : priceValueLbl.getText();
     if (!value.startsWith("$")) {
       value = "$" + value;
     }
     priceValueLbl.setText(value);
+  }
+
+  public void setPlayerName(String playerName) {
+    String name = (playerName == null || playerName.isBlank()) ? "-" : playerName;
+    playerNameLbl.setText("Turno de: " + name);
   }
 
   private void applyBackground() {
@@ -185,19 +191,8 @@ public class Auction {
   }
 
   // Getters para enganchar acciones desde fuera si se necesita
-  public Button getPlus20Btn() {
-    return plus20Btn;
-  }
-
-  public Button getPlus50Btn() {
-    return plus50Btn;
-  }
-
-  public Button getPlus100Btn() {
-    return plus100Btn;
-  }
-
-  public Button getExitBtn() {
-    return exitBtn;
-  }
+  public Button getPlus20Btn() { return plus20Btn; }
+  public Button getPlus50Btn() { return plus50Btn; }
+  public Button getPlus100Btn() { return plus100Btn; }
+  public Button getExitBtn() { return exitBtn; }
 }

@@ -88,6 +88,7 @@ public class HUD extends AbstractAppState {
     this.propertyCard = new PropertyCard(app.getAssetManager());
     this.propertyToken = new PropertyToken(app.getAssetManager());
     this.auction = new Auction(app.getAssetManager());
+    this.auction.setHudController(hudController);
 
     // Left (PlayerCards stacked)
     leftPane = new Container();
@@ -150,12 +151,7 @@ public class HUD extends AbstractAppState {
             com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     auctionBtn.addClickCommands(
         ignored -> {
-          String name =
-              (currentPropertyName != null && !currentPropertyName.isBlank())
-                  ? currentPropertyName
-                  : "Subasta";
-          String priceText = "$" + (currentPriceDigits == null ? "0" : currentPriceDigits);
-          showAuction(name, priceText);
+          hudController.iniciarSubasta();
         });
 
     actionRow.addChild(buyBtn);
@@ -248,6 +244,10 @@ public class HUD extends AbstractAppState {
   public void showAuction(String propertyName, String currentPriceText) {
     auction.setInfo(propertyName, currentPriceText);
     if (overlayPane != null) overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
+  }
+
+  public void setAuctionPlayerName(String playerName) {
+    auction.setPlayerName(playerName);
   }
 
   public void hideAuction() {

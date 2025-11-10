@@ -84,4 +84,34 @@ public class AdquisicionService implements IAdquisicionService {
 
     return true;
   }
+
+  @Override
+  public Propiedad prepararSubasta(int position) {
+    Propiedad propiedad = propiedadRepository.getPropiedadByPosition(position);
+    if (propiedad == null) return null;
+    Integer ownerId = propiedadRepository.getOwnerIdByPropiedadId(propiedad.getIdPropiedad());
+    if (ownerId != null) return null;
+    return propiedad;
+  }
+
+  @Override
+  public boolean comprarPropiedadEnSubasta(int position, Jugador jugador, int precioFinal) {
+    if (precioFinal < 0) return false;
+    Propiedad propiedad = propiedadRepository.getPropiedadByPosition(position);
+    if (propiedad == null) return false;
+    Integer ownerId = propiedadRepository.getOwnerIdByPropiedadId(propiedad.getIdPropiedad());
+    if (ownerId != null) return false;
+    try {
+      int saldoDb = jugadorRepository.getJugadorByID(jugador.getJugadorId()).getDinero();
+      if (saldoDb < precioFinal) return false;
+      int nuevo = saldoDb - precioFinal;
+      jugadorRepository.updateDinero(jugador.getJugadorId(), nuevo);
+      jugador.setDinero(nuevo);
+      propiedadRepository.addAdquisicion(
+          jugador.getJugadorId(), propiedad.getIdPropiedad(), propiedad.getNivelPropiedad());
+      return true;
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

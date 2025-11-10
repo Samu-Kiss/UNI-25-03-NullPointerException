@@ -43,7 +43,7 @@ public class CasillaService implements ICasillaService {
         onMovimiento(jugador, casilla);
         break;
       case IRALACARCEL:
-        onCarcel();
+        onCarcel(true);
         break;
     }
   }
@@ -52,11 +52,10 @@ public class CasillaService implements ICasillaService {
   public void terminarInteraccion(Jugador jugador, Casilla casilla) {
     switch (casilla.getTipoCasilla()) {
       case PARADALIBRE:
-        if (diceService != null) diceService.enableInteract(true);
         hudController.terminarTurno();
         break;
       case EVENTO:
-        if (diceService != null) diceService.enableInteract(true);
+        
         hudController.terminarTurno();
         break;
       case PROPIEDAD:
@@ -64,7 +63,7 @@ public class CasillaService implements ICasillaService {
           if (hudController.getPuedeComprar()) {
             try {
               adquisicionService.comprarPropiedadPorPosicion(casilla.getPosicionTablero(), jugador);
-              if (diceService != null) diceService.enableInteract(true);
+              
               hudController.hidePropertyCard();
               hudController.terminarTurno();
             } catch (Exception ex) {
@@ -75,12 +74,13 @@ public class CasillaService implements ICasillaService {
 
         break;
       case MOVIMIENTO:
-        if (diceService != null) diceService.enableInteract(true);
+        
         hudController.terminarTurno();
         break;
       case IRALACARCEL:
-        if (diceService != null) diceService.enableInteract(true);
+        
         hudController.terminarTurno();
+        onCarcel(false);
         break;
     }
   }
@@ -123,8 +123,8 @@ public class CasillaService implements ICasillaService {
     if (diceService != null) diceService.enableInteract(false);
   }
 
-  private void onCarcel() {
-    irACarcel = true;
+  private void onCarcel(boolean irACarcel) {
+    this.irACarcel = irACarcel;
   }
 
   @Override

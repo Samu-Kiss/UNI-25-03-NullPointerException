@@ -18,5 +18,10 @@ public interface ITurnService {
 
   boolean isEnabled();
 
-  void setTerminarTurno(boolean terminarTurno);
+  void terminarTurno();
+
+  boolean iniciarSubasta();
+  boolean increaseAuction(int delta);
+  boolean exitAuction();
+
 }
