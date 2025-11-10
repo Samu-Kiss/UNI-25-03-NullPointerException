@@ -7,7 +7,6 @@ import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import java.sql.SQLException;
 
-
 public class SubastaService implements ISubastaService {
   private final IAdquisicionService adquisicionService;
   private final IJugadorRepository jugadorRepository;
@@ -68,7 +67,6 @@ public class SubastaService implements ISubastaService {
     }
   }
 
-
   @Override
   public boolean aumentarPrecio(int delta) {
     if (!subastaActiva || delta <= 0) return false;
@@ -92,7 +90,8 @@ public class SubastaService implements ISubastaService {
     try {
       int compradorId = jugadorRepository.getPlayerIdByNumJugador(indiceActual);
       Jugador comprador = jugadorRepository.getJugadorByID(compradorId);
-      boolean comprar = adquisicionService.comprarPropiedadEnSubasta(posicion, comprador, precioActual);
+      boolean comprar =
+          adquisicionService.comprarPropiedadEnSubasta(posicion, comprador, precioActual);
       if (comprar && hudController != null) hudController.hideAuction();
       reset();
       return comprar;

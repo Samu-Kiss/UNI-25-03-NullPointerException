@@ -156,7 +156,7 @@ public class TurnService implements ITurnService {
             lastD1 = dados[0];
             lastD2 = dados[1];
             pendingMovement = dados[0] + dados[1];
-            //pendingMovement = 3; // Para pruebas siempre mover 6
+            // pendingMovement = 3; // Para pruebas siempre mover 6
             System.out.println(
                 "Dados lanzados: "
                     + dados[0].intValue()
@@ -185,7 +185,6 @@ public class TurnService implements ITurnService {
           break;
 
         case INTERACT:
-
           if (lastD1 != null && lastD1.equals(lastD2)) {
             if (tiradas >= 3) {
               System.out.println("3 dobles seguidos, vas a la cárcel!");
@@ -218,9 +217,9 @@ public class TurnService implements ITurnService {
 
         case END_TURN:
           if (casillaService.getIrACarcel()) {
-              System.out.println("La casilla envia a la cárcel después del movimiento");
-              moveToJail();
-              state = TurnState.END_TURN;
+            System.out.println("La casilla envia a la cárcel después del movimiento");
+            moveToJail();
+            state = TurnState.END_TURN;
           }
 
           if (terminarTurno) {
@@ -270,7 +269,6 @@ public class TurnService implements ITurnService {
   @Override
   public void payRent() {}
 
-
   public void moveToJail() {
     int jailPosition = 11;
     Jugador jugadorActual;
@@ -305,8 +303,5 @@ public class TurnService implements ITurnService {
   @Override
   public boolean exitAuction() {
     return subastaService != null && subastaService.comprarActual();
-
   }
-
-
 }

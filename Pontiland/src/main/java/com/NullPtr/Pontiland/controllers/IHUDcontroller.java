@@ -43,9 +43,9 @@ public interface IHUDcontroller {
 
   void setAdquisicionService(com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService);
 
-    void increaseAuction(int delta);
+  void increaseAuction(int delta);
 
-    void exitAuction();
+  void exitAuction();
 
-    void setAuctionPlayerName(String playerName);
+  void setAuctionPlayerName(String playerName);
 }

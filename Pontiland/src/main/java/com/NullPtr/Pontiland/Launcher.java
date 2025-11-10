@@ -89,7 +89,8 @@ public class Launcher extends SimpleApplication {
     AdquisicionService adquisicionService =
         new AdquisicionService(propiedadRepository, jugadorRepository);
     SubastaService subastaService =
-        new SubastaService(adquisicionService, jugadorRepository, hudController, propiedadRepository);
+        new SubastaService(
+            adquisicionService, jugadorRepository, hudController, propiedadRepository);
     casillaService =
         new CasillaService(hudController, diceService, propiedadRepository, adquisicionService);
     turnService =

@@ -55,7 +55,6 @@ public class CasillaService implements ICasillaService {
         hudController.terminarTurno();
         break;
       case EVENTO:
-        
         hudController.terminarTurno();
         break;
       case PROPIEDAD:
@@ -63,7 +62,7 @@ public class CasillaService implements ICasillaService {
           if (hudController.getPuedeComprar()) {
             try {
               adquisicionService.comprarPropiedadPorPosicion(casilla.getPosicionTablero(), jugador);
-              
+
               hudController.hidePropertyCard();
               hudController.terminarTurno();
             } catch (Exception ex) {
@@ -74,11 +73,9 @@ public class CasillaService implements ICasillaService {
 
         break;
       case MOVIMIENTO:
-        
         hudController.terminarTurno();
         break;
       case IRALACARCEL:
-        
         hudController.terminarTurno();
         onCarcel(false);
         break;

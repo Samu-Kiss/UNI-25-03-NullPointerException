@@ -21,7 +21,8 @@ public interface ITurnService {
   void terminarTurno();
 
   boolean iniciarSubasta();
-  boolean increaseAuction(int delta);
-  boolean exitAuction();
 
+  boolean increaseAuction(int delta);
+
+  boolean exitAuction();
 }

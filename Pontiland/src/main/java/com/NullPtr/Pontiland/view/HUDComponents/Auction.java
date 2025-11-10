@@ -87,7 +87,10 @@ public class Auction {
             0.42f,
             com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     row.addChild(plus20Btn);
-    plus20Btn.addClickCommands(src -> { if (hudController != null) hudController.increaseAuction(20); });
+    plus20Btn.addClickCommands(
+        src -> {
+          if (hudController != null) hudController.increaseAuction(20);
+        });
     Container hspace1 = new Container();
     hspace1.setBackground(null);
     hspace1.setPreferredSize(new Vector3f(10f, 0, 0));
@@ -100,7 +103,10 @@ public class Auction {
             0.42f,
             com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     row.addChild(plus50Btn);
-    plus50Btn.addClickCommands(src -> { if (hudController != null) hudController.increaseAuction(50); });
+    plus50Btn.addClickCommands(
+        src -> {
+          if (hudController != null) hudController.increaseAuction(50);
+        });
     Container hspace2 = new Container();
     hspace2.setBackground(null);
     hspace2.setPreferredSize(new Vector3f(10f, 0, 0));
@@ -113,7 +119,10 @@ public class Auction {
             0.42f,
             com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     row.addChild(plus100Btn);
-    plus100Btn.addClickCommands(src -> { if (hudController != null) hudController.increaseAuction(100); });
+    plus100Btn.addClickCommands(
+        src -> {
+          if (hudController != null) hudController.increaseAuction(100);
+        });
 
     // Separador vertical antes de salir
     Container vspace2 = new Container();
@@ -131,7 +140,10 @@ public class Auction {
             0.55f,
             com.NullPtr.Pontiland.view.Button.Variant.LONG);
     exitRow.addChild(exitBtn);
-    exitBtn.addClickCommands(src -> { if (hudController != null) hudController.exitAuction(); });
+    exitBtn.addClickCommands(
+        src -> {
+          if (hudController != null) hudController.exitAuction();
+        });
 
     applyBackground();
 
@@ -160,7 +172,9 @@ public class Auction {
   public void setInfo(String propertyName, String currentPriceText) {
     // Actualizar precio como segunda linea
     String value =
-        (currentPriceText != null && !currentPriceText.isEmpty()) ? currentPriceText : priceValueLbl.getText();
+        (currentPriceText != null && !currentPriceText.isEmpty())
+            ? currentPriceText
+            : priceValueLbl.getText();
     if (!value.startsWith("$")) {
       value = "$" + value;
     }
@@ -191,8 +205,19 @@ public class Auction {
   }
 
   // Getters para enganchar acciones desde fuera si se necesita
-  public Button getPlus20Btn() { return plus20Btn; }
-  public Button getPlus50Btn() { return plus50Btn; }
-  public Button getPlus100Btn() { return plus100Btn; }
-  public Button getExitBtn() { return exitBtn; }
+  public Button getPlus20Btn() {
+    return plus20Btn;
+  }
+
+  public Button getPlus50Btn() {
+    return plus50Btn;
+  }
+
+  public Button getPlus100Btn() {
+    return plus100Btn;
+  }
+
+  public Button getExitBtn() {
+    return exitBtn;
+  }
 }
