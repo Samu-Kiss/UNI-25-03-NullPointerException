@@ -172,7 +172,6 @@ public class HUDController implements IHUDcontroller {
   public void exitAuction() {
     if (turnService != null) {
       turnService.exitAuction();
-      terminarTurno();
     }
   }
 

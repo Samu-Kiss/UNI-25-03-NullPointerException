@@ -6,6 +6,8 @@ import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SubastaService implements ISubastaService {
   private final IAdquisicionService adquisicionService;
@@ -17,6 +19,7 @@ public class SubastaService implements ISubastaService {
   private int precioActual = 0;
   private int posicion = -1;
   private int indiceActual = 1;
+  private final Set<Integer> excluidos = new HashSet<>();
 
   public SubastaService(
       IAdquisicionService adquisicionService,
@@ -42,9 +45,15 @@ public class SubastaService implements ISubastaService {
       posicion = position;
       precioActual = Math.max(1, propiedad.getPrecioCompra() / 2);
       indiceActual = jugadorRepository.getNumJugadorByPlayerId(jugadorActivoId);
+      excluidos.clear();
+      excluidos.add(indiceActual);
+      avanzarAlSiguienteJugador();
       if (hudController != null) {
         hudController.showAuction("Subasta", String.valueOf(precioActual));
-        hudController.setAuctionPlayerName(jugadorActivo.getNombreJugador());
+        Jugador turno =
+            jugadorRepository.getJugadorByID(
+                jugadorRepository.getPlayerIdByNumJugador(indiceActual));
+        hudController.setAuctionPlayerName(turno.getNombreJugador());
       }
       return true;
     } catch (SQLException e) {
@@ -52,19 +61,22 @@ public class SubastaService implements ISubastaService {
     }
   }
 
-  @Override
-  public boolean pujar() {
-    if (!subastaActiva) return false;
-    try {
-      int total = jugadorRepository.getPlayerCount();
-      indiceActual = (indiceActual % total) + 1;
-      int jugadorId = jugadorRepository.getPlayerIdByNumJugador(indiceActual);
-      Jugador jugador = jugadorRepository.getJugadorByID(jugadorId);
-      if (hudController != null) hudController.setAuctionPlayerName(jugador.getNombreJugador());
-      return true;
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
+  public void avanzarAlSiguienteJugador() throws SQLException {
+    int total = jugadorRepository.getPlayerCount();
+    if (excluidos.size() >= total - 1) {
+      comprarActual();
+      return;
     }
+    int intentos = 0;
+    do {
+      indiceActual = (indiceActual % total) + 1;
+      intentos++;
+      if (intentos > total) break;
+    } while (excluidos.contains(indiceActual));
+
+    int jugadorId = jugadorRepository.getPlayerIdByNumJugador(indiceActual);
+    Jugador jugador = jugadorRepository.getJugadorByID(jugadorId);
+    if (hudController != null) hudController.setAuctionPlayerName(jugador.getNombreJugador());
   }
 
   @Override
@@ -77,7 +89,7 @@ public class SubastaService implements ISubastaService {
       if (j.getDinero() < nuevoPrecio) return false;
       precioActual = nuevoPrecio;
       if (hudController != null) hudController.showAuction("Subasta", String.valueOf(precioActual));
-      pujar();
+      avanzarAlSiguienteJugador();
       return true;
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -94,7 +106,35 @@ public class SubastaService implements ISubastaService {
           adquisicionService.comprarPropiedadEnSubasta(posicion, comprador, precioActual);
       if (comprar && hudController != null) hudController.hideAuction();
       reset();
+      hudController.terminarTurno();
       return comprar;
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void salirSubasta() {
+    if (!subastaActiva) return;
+    try {
+      excluidos.add(indiceActual);
+      int total = jugadorRepository.getPlayerCount();
+      if (excluidos.size() >= total - 1) {
+        for (int i = 1; i <= total; i++) {
+          if (!excluidos.contains(i)) {
+            indiceActual = i;
+            break;
+          }
+        }
+        comprarActual();
+        return;
+      }
+      avanzarAlSiguienteJugador();
+      if (subastaActiva) {
+        int jugadorId = jugadorRepository.getPlayerIdByNumJugador(indiceActual);
+        Jugador jugador = jugadorRepository.getJugadorByID(jugadorId);
+        if (hudController != null) hudController.setAuctionPlayerName(jugador.getNombreJugador());
+      }
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
@@ -105,5 +145,6 @@ public class SubastaService implements ISubastaService {
     precioActual = 0;
     posicion = -1;
     indiceActual = 1;
+    excluidos.clear();
   }
 }

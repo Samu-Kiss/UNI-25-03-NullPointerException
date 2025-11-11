@@ -301,7 +301,7 @@ public class TurnService implements ITurnService {
   }
 
   @Override
-  public boolean exitAuction() {
-    return subastaService != null && subastaService.comprarActual();
+  public void exitAuction() {
+    subastaService.salirSubasta();
   }
 }
