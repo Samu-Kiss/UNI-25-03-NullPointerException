@@ -7,6 +7,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 import com.simsilica.lemur.Container;
+import com.simsilica.lemur.HAlignment;
 import com.simsilica.lemur.Insets3f;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
@@ -17,18 +18,19 @@ public class PropertyToken {
   private static final float SPRITE_SCALE = 0.55f;
 
   private final Container root;
-  private final Label tokensLbl;
   private final AssetManager assets;
-  private int groupIndex = 1;
 
   public PropertyToken(AssetManager assets) {
     this.assets = assets;
     root = new Container();
     root.setInsets(new Insets3f(10, 14, 10, 14));
 
-    tokensLbl = root.addChild(new Label("Tokens: -"));
+    // default placeholder
+    Label placeholder = root.addChild(new Label("Tokens: -"));
+    placeholder.setName("__propertytoken_placeholder");
 
-    applyBackground();
+    // initial background
+    root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
   }
 
   public Container getRoot() {
@@ -39,27 +41,92 @@ public class PropertyToken {
     return root.getPreferredSize();
   }
 
+  /**
+   * Tokens expected encoded as "propId|nivel|grupo" for each element. If group is missing uses 1.
+   * The label will show first line = propId and second line = nivel.
+   */
   public void setTokens(String[] tokens) {
+    // clear existing children but preserve insets
+    root.detachAllChildren();
+    root.setInsets(new Insets3f(10, 14, 10, 14));
+
     if (tokens == null || tokens.length == 0) {
-      tokensLbl.setText("Tokens: -");
+      Label placeholder = root.addChild(new Label("Tokens: -"));
+      placeholder.setName("__propertytoken_placeholder");
+      root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
       return;
     }
-    StringBuilder sb = new StringBuilder("Tokens: ");
+
+    boolean anyAdded = false;
     for (int i = 0; i < tokens.length; i++) {
-      if (i > 0) sb.append(" | ");
-      sb.append(tokens[i]);
+      String tok = tokens[i];
+      if (tok == null || tok.isBlank()) continue;
+
+      String[] parts = tok.split("\\|");
+      String propNum = parts.length > 0 ? parts[0] : "?";
+      String nivel = parts.length > 1 ? parts[1] : "?";
+      int groupIdx = 1;
+      try {
+        if (parts.length > 2) groupIdx = Integer.parseInt(parts[2]);
+      } catch (NumberFormatException e) {
+        groupIdx = 1;
+      }
+
+      Container tokenBox = new Container();
+      tokenBox.setInsets(new Insets3f(6, 10, 6, 10));
+
+      // Try to apply group background (image). If fails, use colored background.
+      String path =
+          "graphics/sprites/HUD/Propery_Tokens/Group_"
+              + Math.max(1, Math.min(8, groupIdx))
+              + ".png";
+      try {
+        TextureKey key = new TextureKey(path, true);
+        key.setGenerateMips(false);
+        Texture2D tex = (Texture2D) assets.loadTexture(key);
+        tex.setWrap(Texture.WrapMode.EdgeClamp);
+        tex.setMagFilter(Texture.MagFilter.Bilinear);
+        tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+
+        tokenBox.setBackground(new QuadBackgroundComponent(tex));
+
+        int w = tex.getImage().getWidth();
+        int h = tex.getImage().getHeight();
+        tokenBox.setPreferredSize(new Vector3f(w * SPRITE_SCALE, h * SPRITE_SCALE, 0));
+      } catch (Exception e) {
+        // fallback color background
+        tokenBox.setBackground(
+            new QuadBackgroundComponent(new ColorRGBA(0.12f, 0.14f, 0.18f, 0.95f)));
+      }
+
+      // Label with two lines: property number and level
+      Label lbl = tokenBox.addChild(new Label("\n#" + propNum + "\n" + "Nv. " + nivel));
+      lbl.setTextHAlignment(HAlignment.Center);
+
+      root.addChild(tokenBox);
+
+      // add spacer between tokens except after last
+      if (i < tokens.length - 1) {
+        Container spacer = new Container();
+        spacer.setBackground(null);
+        spacer.setPreferredSize(new Vector3f(8f, 0f, 0f));
+        root.addChild(spacer);
+      }
+
+      anyAdded = true;
     }
-    tokensLbl.setText(sb.toString());
+
+    if (!anyAdded) {
+      Label placeholder = root.addChild(new Label("Tokens: -"));
+      placeholder.setName("__propertytoken_placeholder");
+      root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
+    }
   }
 
+  /** Backwards-compatible method: set a single background group for the whole tokens container. */
   public void setGroup(int groupIndex) {
-    this.groupIndex = Math.max(1, Math.min(8, groupIndex));
-    applyBackground();
-  }
-
-  private void applyBackground() {
-    // Nota: carpeta con tipo ortográfico "Propery_Tokens"
-    String path = "graphics/sprites/HUD/Propery_Tokens/Group_" + this.groupIndex + ".png";
+    int g = Math.max(1, Math.min(8, groupIndex));
+    String path = "graphics/sprites/HUD/Propery_Tokens/Group_" + g + ".png";
     try {
       TextureKey key = new TextureKey(path, true);
       key.setGenerateMips(false);

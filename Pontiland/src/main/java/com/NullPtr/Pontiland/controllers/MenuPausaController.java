@@ -43,7 +43,7 @@ public class MenuPausaController implements IMenuPausaActions {
           if (!evt.isPressed()) {
             return;
           }
-          if (evt.getKeyCode() == KeyInput.KEY_1) {
+          if (evt.getKeyCode() == KeyInput.KEY_TAB) {
             togglePauseMenu();
           }
         }

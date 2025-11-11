@@ -126,6 +126,15 @@ public class TurnService implements ITurnService {
   @Override
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
+    if (enabled) {
+      try {
+        casillaService.updateActivePlayerPropertyTokens(
+            jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer()));
+      } catch (SQLException e) {
+        System.out.println(
+            "Error actualizando property tokens al habilitar TurnService: " + e.getMessage());
+      }
+    }
   }
 
   @Override
@@ -155,15 +164,15 @@ public class TurnService implements ITurnService {
           if (dados[0] != null && dados[1] != null) {
             lastD1 = dados[0];
             lastD2 = dados[1];
-            pendingMovement = dados[0] + dados[1];
+            pendingMovement = datosToInt(dados[0]) + datosToInt(dados[1]);
             // pendingMovement = 3; // Para pruebas siempre mover 6
             System.out.println(
                 "Dados lanzados: "
-                    + dados[0].intValue()
+                    + datosToInt(dados[0])
                     + " + "
-                    + dados[1].intValue()
+                    + datosToInt(dados[1])
                     + " = "
-                    + (dados[0].intValue() + dados[1].intValue()));
+                    + (datosToInt(dados[0]) + datosToInt(dados[1])));
             dados[0] = dados[1] = null;
 
             state = TurnState.MOVING;
@@ -255,12 +264,24 @@ public class TurnService implements ITurnService {
                 i);
           }
 
+          // También actualizar tokens de propiedades del jugador activo
+          try {
+            casillaService.updateActivePlayerPropertyTokens(
+                jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer()));
+          } catch (SQLException e) {
+            System.out.println("Error actualizando property tokens: " + e.getMessage());
+          }
+
           break;
       }
     } catch (Exception e) {
       System.out.println(Arrays.toString(e.getStackTrace()));
       throw new RuntimeException(e);
     }
+  }
+
+  private int datosToInt(Byte b) {
+    return (b == null) ? 0 : b.intValue();
   }
 
   @Override

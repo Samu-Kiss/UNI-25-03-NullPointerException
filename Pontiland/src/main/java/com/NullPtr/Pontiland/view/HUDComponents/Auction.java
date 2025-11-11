@@ -136,7 +136,7 @@ public class Auction {
     exitBtn =
         renderer.render(
             com.NullPtr.Pontiland.view.Button.Type.NEGATIVE,
-            "Salir",
+            "Retirarse",
             0.55f,
             com.NullPtr.Pontiland.view.Button.Variant.LONG);
     exitRow.addChild(exitBtn);

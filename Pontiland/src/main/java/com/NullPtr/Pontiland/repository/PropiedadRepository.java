@@ -165,7 +165,8 @@ public class PropiedadRepository implements IPropiedadRepository {
     }
   }
 
-  List<Propiedad> getPropiedadesByJugador(int jugadorID) {
+  @Override
+  public List<Propiedad> getPropiedadesByJugador(int jugadorID) {
     String query =
         "SELECT * "
             + "FROM Propiedad "

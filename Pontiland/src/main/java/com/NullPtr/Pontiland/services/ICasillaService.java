@@ -10,4 +10,6 @@ public interface ICasillaService {
   void interaccion(Jugador jugador, Casilla casilla);
 
   void terminarInteraccion(Jugador jugador, Casilla casilla);
+
+  void updateActivePlayerPropertyTokens(Jugador jugador);
 }

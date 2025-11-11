@@ -5,6 +5,7 @@ import com.NullPtr.Pontiland.entities.Casilla;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
+import java.util.List;
 
 public class CasillaService implements ICasillaService {
 
@@ -127,5 +128,35 @@ public class CasillaService implements ICasillaService {
   @Override
   public boolean getIrACarcel() {
     return irACarcel;
+  }
+
+  public void updateActivePlayerPropertyTokens(Jugador jugador) {
+    if (hudController == null) return;
+    if (jugador == null) {
+      System.out.println("[DEBUG] Jugador activo no encontrado");
+      hudController.updatePropertyTokens(new String[0]);
+      return;
+    }
+
+    List<Propiedad> propiedades =
+        propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId());
+    if (propiedades == null || propiedades.isEmpty()) {
+      System.out.println("[DEBUG] El jugador " + jugador.getJugadorId() + " no tiene propiedades");
+      hudController.updatePropertyTokens(new String[0]);
+      return;
+    }
+
+    String[] tokens = new String[propiedades.size()];
+    for (int i = 0; i < propiedades.size(); i++) {
+      Propiedad p = propiedades.get(i);
+      String propNum = String.valueOf(p.getIdPropiedad());
+      String nivel = String.valueOf(p.getNivelPropiedad());
+      int grupo = p.getGrupo();
+      tokens[i] = propNum + "|" + nivel + "|" + grupo;
+      System.out.println(
+          "[DEBUG] Token creado -> propiedad=" + propNum + " nivel=" + nivel + " grupo=" + grupo);
+    }
+
+    hudController.updatePropertyTokens(tokens);
   }
 }

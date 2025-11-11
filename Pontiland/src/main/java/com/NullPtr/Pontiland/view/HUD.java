@@ -19,6 +19,7 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class HUD extends AbstractAppState {
@@ -44,6 +45,12 @@ public class HUD extends AbstractAppState {
 
   // Nombres pendientes si se llaman antes de construir playersBox
   private List<String> pendingPlayerNames;
+
+  // Tokens pendientes si se reciben antes de construir la vista
+  private String[] pendingTokens;
+
+  // Grupo de tokens pendiente (si se setea antes de crear el PropertyToken)
+  private Integer pendingTokensGroup = null;
 
   // Visibilidad de tokens según si hay propiedades
   private boolean hasTokens = false;
@@ -89,6 +96,26 @@ public class HUD extends AbstractAppState {
     this.propertyToken = new PropertyToken(app.getAssetManager());
     this.auction = new Auction(app.getAssetManager());
     this.auction.setHudController(hudController);
+
+    // Aplicar grupo o tokens pendientes si existieron llamadas tempranas
+    if (pendingTokensGroup != null) {
+      try {
+        propertyToken.setGroup(pendingTokensGroup);
+      } catch (Exception ex) {
+        System.out.println("[DEBUG] No se pudo aplicar pendingTokensGroup: " + ex.getMessage());
+      }
+      pendingTokensGroup = null;
+    }
+    if (pendingTokens != null) {
+      try {
+        propertyToken.setTokens(pendingTokens);
+        // marcar tokens como presentes
+        hasTokens = pendingTokens.length > 0;
+      } catch (Exception ex) {
+        System.out.println("[DEBUG] No se pudo aplicar pendingTokens: " + ex.getMessage());
+      }
+      pendingTokens = null;
+    }
 
     // Left (PlayerCards stacked)
     leftPane = new Container();
@@ -179,6 +206,14 @@ public class HUD extends AbstractAppState {
     leftPane.setPreferredSize(leftPref);
 
     Vector3f rightSize = propertyCard.getPreferredSize();
+    // clamp right size to avoid negative values
+    if (rightSize == null) rightSize = new Vector3f(0f, 0f, 0f);
+    if (rightSize.x < 0f || rightSize.y < 0f) {
+      System.out.println("[DEBUG] rightSize had negative values, clamping: " + rightSize);
+      rightSize.x = Math.max(0f, rightSize.x);
+      rightSize.y = Math.max(0f, rightSize.y);
+      rightSize.z = Math.max(0f, rightSize.z);
+    }
     float rightX = w - rightSize.x - 16f;
     float rightY = h - 16f;
     rightPane.setLocalTranslation(rightX, rightY, 0);
@@ -186,18 +221,39 @@ public class HUD extends AbstractAppState {
 
     // Action bar justo debajo de la tarjeta
     Vector3f actionSize = actionBar.getPreferredSize();
+    if (actionSize == null) actionSize = new Vector3f(0f, 0f, 0f);
+    if (actionSize.x < 0f || actionSize.y < 0f) {
+      System.out.println("[DEBUG] actionSize had negative values, clamping: " + actionSize);
+      actionSize.x = Math.max(0f, actionSize.x);
+      actionSize.y = Math.max(0f, actionSize.y);
+      actionSize.z = Math.max(0f, actionSize.z);
+    }
     float actionX = rightX + (rightSize.x - actionSize.x) / 2f;
     float actionY = rightY - rightSize.y - 8f; // 8px debajo
     actionBar.setLocalTranslation(actionX, actionY, 0);
     actionBar.setPreferredSize(actionSize);
 
     Vector3f bottomSize = propertyToken.getPreferredSize();
+    if (bottomSize == null) bottomSize = new Vector3f(0f, 0f, 0f);
+    if (bottomSize.x < 0f || bottomSize.y < 0f) {
+      System.out.println("[DEBUG] bottomSize had negative values, clamping: " + bottomSize);
+      bottomSize.x = Math.max(0f, bottomSize.x);
+      bottomSize.y = Math.max(0f, bottomSize.y);
+      bottomSize.z = Math.max(0f, bottomSize.z);
+    }
     float bottomX = (w - bottomSize.x) / 2f;
     float bottomY = bottomSize.y + 16f;
     bottomPane.setLocalTranslation(bottomX, bottomY, 0);
     bottomPane.setPreferredSize(bottomSize);
 
     Vector3f overlaySize = auction.getPreferredSize();
+    if (overlaySize == null) overlaySize = new Vector3f(0f, 0f, 0f);
+    if (overlaySize.x < 0f || overlaySize.y < 0f) {
+      System.out.println("[DEBUG] overlaySize had negative values, clamping: " + overlaySize);
+      overlaySize.x = Math.max(0f, overlaySize.x);
+      overlaySize.y = Math.max(0f, overlaySize.y);
+      overlaySize.z = Math.max(0f, overlaySize.z);
+    }
     float ovX = (w - overlaySize.x) / 2f;
     float ovY = (h + overlaySize.y) / 2f;
     overlayPane.setLocalTranslation(ovX, ovY, 10f);
@@ -346,6 +402,21 @@ public class HUD extends AbstractAppState {
   }
 
   public void updatePropertyTokens(String[] tokens) {
+    // Si el componente no está aún inicializado, guardar para aplicar luego
+    if (propertyToken == null) {
+      System.out.println(
+          "[DEBUG] updatePropertyTokens llamado antes de inicializar HUD: almacenando tokens pendientes");
+      pendingTokens = (tokens == null) ? null : Arrays.copyOf(tokens, tokens.length);
+      hasTokens = pendingTokens != null && pendingTokens.length > 0;
+      if (bottomPane != null) {
+        bottomPane.setCullHint(
+            hasTokens
+                ? com.jme3.scene.Spatial.CullHint.Inherit
+                : com.jme3.scene.Spatial.CullHint.Always);
+      }
+      return;
+    }
+
     propertyToken.setTokens(tokens);
     // Alternar visibilidad según si hay tokens
     hasTokens = tokens != null && tokens.length > 0;
@@ -358,6 +429,14 @@ public class HUD extends AbstractAppState {
   }
 
   public void setPropertyTokensGroup(int groupIndex) {
+    if (propertyToken == null) {
+      // almacenar el grupo y aplicarlo cuando se cree propertyToken
+      pendingTokensGroup = groupIndex;
+      System.out.println(
+          "[DEBUG] setPropertyTokensGroup llamado antes de inicializar HUD: guardando grupo pendiente="
+              + groupIndex);
+      return;
+    }
     propertyToken.setGroup(groupIndex);
   }
 }
