@@ -82,20 +82,17 @@ jobs:
     - name: Cache SonarQube packages
       uses: actions/cache@v4
       with:
-        path: ~/.sonar/cache
-        key: ${{ runner.os }}-sonar
-        restore-keys: ${{ runner.os }}-sonar
+       path: ~/.m2
+       key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+       restore-keys: ${{ runner.os }}-m2
 
     # ------------------------------------
     # Build and analyze with Sonar (runs only if SONAR_TOKEN secret is set)
     # Uses the JDK already configured in the workflow (step 02)
     - name: Build and analyze (SonarQube / SonarCloud)
-      if: ${{ secrets.SONAR_TOKEN }}
-      run: |
-        mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=Samu-Kiss_UNI-25-03-NullPointerException \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-          -Dsonar.qualitygate.wait=true
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Samu-Kiss_UNI-25-03-NullPointerException
 
     ##################################################
     #                    REPORTES                    #
