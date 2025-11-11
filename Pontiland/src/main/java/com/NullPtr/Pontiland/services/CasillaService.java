@@ -5,6 +5,7 @@ import com.NullPtr.Pontiland.entities.Casilla;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
+import com.NullPtr.Pontiland.repository.TarjetaEventoRepository;
 
 public class CasillaService implements ICasillaService {
 
@@ -13,16 +14,19 @@ public class CasillaService implements ICasillaService {
   private DiceService diceService;
   private IPropiedadRepository propiedadRepository;
   private IAdquisicionService adquisicionService;
+  private TarjetaEventoRepository tarjetaEventoRepository;
 
   public CasillaService(
       IHUDcontroller hudController,
       DiceService diceService,
       IPropiedadRepository propiedadRepository,
-      IAdquisicionService adquisicionService) {
+      IAdquisicionService adquisicionService,
+      TarjetaEventoRepository tarjetaEventoRepository) {
     this.hudController = hudController;
     this.diceService = diceService;
     this.propiedadRepository = propiedadRepository;
     this.adquisicionService = adquisicionService;
+    this.tarjetaEventoRepository = tarjetaEventoRepository;
   }
 
   @Override
@@ -88,6 +92,7 @@ public class CasillaService implements ICasillaService {
 
   private void onEvento(Jugador j, Casilla c) {
     if (diceService != null) diceService.enableInteract(false);
+
   }
 
   private void onPropiedad(Casilla casilla) {
