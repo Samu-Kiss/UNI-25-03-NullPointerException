@@ -240,6 +240,12 @@ jobs:
           minimum_coverage: 0
           fail_below_threshold: false
 
+      - name: Descargar informe de Checkstyle
+        uses: actions/download-artifact@v6
+        if: always()
+        with:
+          name: checkstyle-result
+          path: Pontiland/target/checkstyle-result.xml
 
       - name: Reporte de Checkstyle (anotaciones)
         uses: jwgmeligmeyling/checkstyle-github-action@v1
