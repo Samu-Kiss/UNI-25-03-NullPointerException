@@ -94,7 +94,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: jacoco-report
-          path: Pontiland/target/site/jacoco/**
+          path: Pontiland/target/site/jacoco/jacoco.xml
 
   # -------------
   # Job: formatting
@@ -161,7 +161,7 @@ jobs:
           distribution: 'jetbrains'
 
       - name: Ejecutar SpotBugs
-        run: mvn --batch-mode spotbugs:check verify -DskipTests --no-transfer-progress
+        run: mvn --batch-mode verify -DskipTests --no-transfer-progress
 
       - name: Subir XML de SpotBugs
         if: always()
@@ -225,7 +225,7 @@ jobs:
         if: always()
         with:
           name: jacoco-report
-          path: Pontiland/target/site/jacoco/
+          path: Pontiland/target/site/jacoco/jacoco.xml
 
       - name: Informe de cobertura JaCoCo
         uses: PavanMudigonda/jacoco-reporter@v4.8
