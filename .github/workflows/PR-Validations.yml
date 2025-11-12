@@ -195,6 +195,9 @@ jobs:
           java-version: '21'
           distribution: 'jetbrains'
 
+      - name: Compilar y empaquetar (sin tests)
+        run: mvn --batch-mode -DskipTests clean package --no-transfer-progress
+
       - name: Ejecutar SonarQube/SonarCloud
         run: mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Samu-Kiss_UNI-25-03-NullPointerException
 
