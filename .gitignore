@@ -9,3 +9,5 @@ Pontiland/.idea/
 .vscode/
 
 Pontiland/target/
+
+Pontiland/.env
