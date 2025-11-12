@@ -5,15 +5,16 @@ package com.NullPtr.Pontiland.entities;
  * descripción y una acción asociada
  */
 public class TarjetaEvento {
-  private String nombre = null;
-  private String descripcion = null;
-  private Accion accion = null;
+  private String nombre;
+  private String descripcion;
+  private Accion accion;
 
   /**
    * Constructor de la clase TarjetaEvento
    *
    * @param nombre Nombre de la tarjeta
    * @param descripcion Descripción de la tarjeta
+   * @param accion Acción asociada a la tarjeta
    * @throws IllegalArgumentException si algún parámetro es nulo o si el nombre o la descripción
    *     están vacíos
    */

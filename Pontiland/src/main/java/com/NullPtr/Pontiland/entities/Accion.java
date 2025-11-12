@@ -43,8 +43,11 @@ public enum Accion {
 
   /**
    * Convierte una cadena a Accion. Acepta tanto el nombre del enum (ej. PROPIEDAD_A_NIVEL_1) como
-   * la etiqueta (ej. PropiedadANivel1), sin distinguir mayúsculas/minúsculas. Lanza
-   * IllegalArgumentException si no hay coincidencia.
+   * la etiqueta (ej. PropiedadANivel1), sin distinguir mayúsculas/minúsculas.
+   *
+   * @param s la cadena a convertir (puede ser nombre del enum o la etiqueta)
+   * @return la constante de {@link Accion} correspondiente a la cadena proporcionada
+   * @throws IllegalArgumentException si {@code s} es {@code null} o no hay coincidencia
    */
   public static Accion fromString(String s) {
     if (s == null) {

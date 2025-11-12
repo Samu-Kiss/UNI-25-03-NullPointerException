@@ -18,6 +18,9 @@ import com.simsilica.lemur.component.SpringGridLayout;
 public class PropertyToken {
 
   private static final float SPRITE_SCALE = 0.55f;
+  // extracted constants to avoid duplicated-literal warnings
+  private static final String PLACEHOLDER_TEXT = "Tokens: -";
+  private static final String PLACEHOLDER_NAME = "__propertytoken_placeholder";
 
   private final Container root;
   private final AssetManager assets;
@@ -29,8 +32,8 @@ public class PropertyToken {
     root.setInsets(new Insets3f(10, 14, 10, 14));
 
     // default placeholder
-    Label placeholder = root.addChild(new Label("Tokens: -"));
-    placeholder.setName("__propertytoken_placeholder");
+    Label placeholder = root.addChild(new Label(PLACEHOLDER_TEXT));
+    placeholder.setName(PLACEHOLDER_NAME);
 
     // initial background
     root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
@@ -47,6 +50,9 @@ public class PropertyToken {
   /**
    * Tokens expected encoded as "propId|nivel|grupo" for each element. If group is missing uses 1.
    * The label will show first line = propId and second line = nivel.
+   *
+   * @param tokens array de tokens en formato "propId|nivel|grupo"; si es {@code null} o vacío se
+   *     mostrará un placeholder
    */
   public void setTokens(String[] tokens) {
     // clear existing children but preserve insets
@@ -54,8 +60,8 @@ public class PropertyToken {
     root.setInsets(new Insets3f(10, 14, 10, 14));
 
     if (tokens == null || tokens.length == 0) {
-      Label placeholder = root.addChild(new Label("Tokens: -"));
-      placeholder.setName("__propertytoken_placeholder");
+      Label placeholder = root.addChild(new Label(PLACEHOLDER_TEXT));
+      placeholder.setName(PLACEHOLDER_NAME);
       root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
       return;
     }
@@ -72,7 +78,7 @@ public class PropertyToken {
       try {
         if (parts.length > 2) groupIdx = Integer.parseInt(parts[2]);
       } catch (NumberFormatException e) {
-        groupIdx = 1;
+        // keep default groupIdx = 1; no need to reassign
       }
 
       Container tokenBox = new Container();
@@ -118,13 +124,17 @@ public class PropertyToken {
     }
 
     if (!anyAdded) {
-      Label placeholder = root.addChild(new Label("Tokens: -"));
-      placeholder.setName("__propertytoken_placeholder");
+      Label placeholder = root.addChild(new Label(PLACEHOLDER_TEXT));
+      placeholder.setName(PLACEHOLDER_NAME);
       root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
     }
   }
 
-  /** Backwards-compatible method: set a single background group for the whole tokens container. */
+  /**
+   * Establece el grupo de fondo que se usará para el contenedor de tokens.
+   *
+   * @param groupIndex índice del grupo (1-8), valores fuera de rango son normalizados.
+   */
   public void setGroup(int groupIndex) {
     int g = Math.max(1, Math.min(8, groupIndex));
     String path = "graphics/sprites/HUD/Propery_Tokens/Group_" + g + ".png";

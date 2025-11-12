@@ -7,10 +7,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Random;
 
 public class TarjetaEventoRepository {
 
   IDataService dataService;
+  private final Random rng = new Random();
 
   public TarjetaEventoRepository(IDataService dataService) {
     this.dataService = dataService;
@@ -33,18 +35,18 @@ public class TarjetaEventoRepository {
             rs.getString("Descripcion"),
             Accion.fromString(rs.getString("TipoEvento")));
       } else {
-        throw new IllegalStateException("No se pudo obtener el ID máximo de TarjetaEvento.");
+        throw new IllegalStateException("No se pudo obtener la tarjeta con ID: " + id);
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 
   public TarjetaEvento getRandomTarjetaEvento() {
 
-    int MaxTarjetaEventoId = getMaxEventoId();
-
-    int randomId = (int) (Math.random() * MaxTarjetaEventoId) + 1;
+    int maxTarjetaEventoId = getMaxEventoId();
+    // use Random.nextInt to generate 1..maxTarjetaEventoId inclusive
+    int randomId = rng.nextInt(maxTarjetaEventoId) + 1;
 
     return getTarjetaEventoById(randomId);
   }
@@ -62,7 +64,7 @@ public class TarjetaEventoRepository {
         throw new IllegalStateException("No se pudo obtener el ID máximo de TarjetaEvento.");
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 }
