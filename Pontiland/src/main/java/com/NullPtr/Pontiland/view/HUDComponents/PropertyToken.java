@@ -67,7 +67,8 @@ public class PropertyToken {
       Label placeholder = root.addChild(new Label(PLACEHOLDER_TEXT));
       placeholder.setName(PLACEHOLDER_NAME);
       // use currentGroup to choose placeholder color for proper contrast
-      placeholder.setColor(com.NullPtr.Pontiland.view.HUD.getContrastingColorForGroup(currentGroup));
+      placeholder.setColor(
+          com.NullPtr.Pontiland.view.HUD.getContrastingColorForGroup(currentGroup));
       root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
       return;
     }
@@ -134,7 +135,8 @@ public class PropertyToken {
     if (!anyAdded) {
       Label placeholder = root.addChild(new Label(PLACEHOLDER_TEXT));
       placeholder.setName(PLACEHOLDER_NAME);
-      placeholder.setColor(com.NullPtr.Pontiland.view.HUD.getContrastingColorForGroup(currentGroup));
+      placeholder.setColor(
+          com.NullPtr.Pontiland.view.HUD.getContrastingColorForGroup(currentGroup));
       root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
     }
   }
