@@ -206,12 +206,34 @@ jobs:
     if: always()
     steps:
       # JUNIT
+      - name: Comprobar si existe el artefacto 'surefire-reports' en esta ejecución
+        id: check_surefire
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifactName = 'surefire-reports';
+            const per_page = 100;
+            const runId = Number(process.env.GITHUB_RUN_ID);
+            const resp = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+              per_page
+            });
+            const artifacts = resp.data.artifacts || [];
+            const found = artifacts.some(a => a.name === artifactName);
+            core.setOutput('exists', found ? 'true' : 'false');
+
       - name: Descargar informes de tests
+        if: steps.check_surefire.outputs.exists == 'true'
         uses: actions/download-artifact@v6
-        if: always()
         with:
           name: surefire-reports
           path: Pontiland/target/surefire-reports/
+
+      - name: No hay artefacto 'surefire-reports' (se omite descarga)
+        if: steps.check_surefire.outputs.exists != 'true'
+        run: echo "No se encontró el artefacto 'surefire-reports' para esta ejecución. Se omite la descarga."
 
       - name: Publicar informe de JUnit
         uses: mikepenz/action-junit-report@v6
@@ -220,12 +242,38 @@ jobs:
           report_paths: 'Pontiland/target/surefire-reports/TEST-*.xml'
 
       # JACOCO
+      - name: Comprobar si existe el artefacto 'jacoco-report' en esta ejecución
+        id: check_jacoco
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifactName = 'jacoco-report';
+            const per_page = 100;
+            const runId = Number(process.env.GITHUB_RUN_ID);
+            const resp = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+              per_page
+            });
+            const artifacts = resp.data.artifacts || [];
+            const found = artifacts.some(a => a.name === artifactName);
+            core.setOutput('exists', found ? 'true' : 'false');
+
       - name: Descargar informe JaCoCo
+        if: steps.check_jacoco.outputs.exists == 'true'
         uses: actions/download-artifact@v6
-        if: always()
         with:
           name: jacoco-report
           path: Pontiland/target/site/jacoco/jacoco.xml
+
+      - name: No hay artefacto 'jacoco-report' (se omite descarga)
+        if: steps.check_jacoco.outputs.exists != 'true'
+        run: echo "No se encontró el artefacto 'jacoco-report' para esta ejecución. Se omite la descarga."
+
+      
+      -name: Permisos de lectura para el informe JaCoCo
+        run: chmod 644 Pontiland/target/site/jacoco/jacoco.xml
 
       - name: Informe de cobertura JaCoCo
         uses: PavanMudigonda/jacoco-reporter@v4.8
@@ -251,12 +299,34 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       # SPOTBUGS
+      - name: Comprobar si existe el artefacto 'spotbugs-xml' en esta ejecución
+        id: check_spotbugs
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const artifactName = 'spotbugs-xml';
+            const per_page = 100;
+            const runId = Number(process.env.GITHUB_RUN_ID);
+            const resp = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+              per_page
+            });
+            const artifacts = resp.data.artifacts || [];
+            const found = artifacts.some(a => a.name === artifactName);
+            core.setOutput('exists', found ? 'true' : 'false');
+
       - name: Descargar SpotBugs XML
+        if: steps.check_spotbugs.outputs.exists == 'true'
         uses: actions/download-artifact@v6
-        if: always()
         with:
           name: spotbugs-xml
           path: Pontiland/target/spotbugsXml.xml
+
+      - name: No hay artefacto 'spotbugs-xml' (se omite descarga)
+        if: steps.check_spotbugs.outputs.exists != 'true'
+        run: echo "No se encontró el artefacto 'spotbugs-xml' para esta ejecución. Se omite la descarga."
 
       - name: Reporte de SpotBugs (anotaciones)
         uses: jwgmeligmeyling/spotbugs-github-action@v1
