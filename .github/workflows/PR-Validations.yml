@@ -227,6 +227,14 @@ jobs:
           name: jacoco-report
           path: Pontiland/target/site/jacoco/jacoco.xml
 
+      - name: Verificar existencia de informe JaCoCo
+        if: always()
+        run: |
+          if [ ! -f Pontiland/target/site/jacoco/jacoco.xml ]; then
+            echo "Informe JaCoCo no encontrado!"
+            exit 1
+          fi
+
       - name: Permisos de lectura para el informe JaCoCo
         run: chmod 644 Pontiland/target/site/jacoco/jacoco.xml
 
