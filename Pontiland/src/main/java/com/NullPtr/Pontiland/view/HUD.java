@@ -441,4 +441,30 @@ public class HUD extends AbstractAppState {
     }
     propertyToken.setGroup(groupIndex);
   }
+
+  // Método compartido para obtener el color de texto contrastado por grupo.
+  // Se hace público y estático para que los componentes HUDComponent lo reutilicen.
+  public static ColorRGBA getContrastingColorForGroup(int group) {
+    int g = Math.max(1, Math.min(8, group));
+    switch (g) {
+      case 1:
+        return ColorRGBA.White;
+      case 2:
+        return ColorRGBA.Black;
+      case 3:
+        return ColorRGBA.White;
+      case 4:
+        return ColorRGBA.White;
+      case 5:
+        return ColorRGBA.White;
+      case 6:
+        return ColorRGBA.Black;
+      case 7:
+        return ColorRGBA.White;
+      case 8:
+        return ColorRGBA.White;
+      default:
+        return ColorRGBA.White;
+    }
+  }
 }

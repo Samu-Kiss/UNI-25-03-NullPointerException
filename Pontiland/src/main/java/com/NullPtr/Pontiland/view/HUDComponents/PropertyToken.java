@@ -24,6 +24,8 @@ public class PropertyToken {
 
   private final Container root;
   private final AssetManager assets;
+  // current global group used for the container background / placeholder contrast
+  private int currentGroup = 1;
 
   public PropertyToken(AssetManager assets) {
     this.assets = assets;
@@ -34,6 +36,8 @@ public class PropertyToken {
     // default placeholder
     Label placeholder = root.addChild(new Label(PLACEHOLDER_TEXT));
     placeholder.setName(PLACEHOLDER_NAME);
+    // placeholder contrast color based on initial group
+    placeholder.setColor(com.NullPtr.Pontiland.view.HUD.getContrastingColorForGroup(currentGroup));
 
     // initial background
     root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
@@ -62,6 +66,8 @@ public class PropertyToken {
     if (tokens == null || tokens.length == 0) {
       Label placeholder = root.addChild(new Label(PLACEHOLDER_TEXT));
       placeholder.setName(PLACEHOLDER_NAME);
+      // use currentGroup to choose placeholder color for proper contrast
+      placeholder.setColor(com.NullPtr.Pontiland.view.HUD.getContrastingColorForGroup(currentGroup));
       root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
       return;
     }
@@ -108,8 +114,10 @@ public class PropertyToken {
             new QuadBackgroundComponent(new ColorRGBA(0.12f, 0.14f, 0.18f, 0.95f)));
       }
 
-      Label lbl = tokenBox.addChild(new Label("#" + propNum + "\nNv. " + nivel));
+      // Create label and set contrast color based on the token's group
+      Label lbl = tokenBox.addChild(new Label("\n#" + propNum + "\nNv. " + nivel));
       lbl.setTextHAlignment(HAlignment.Center);
+      lbl.setColor(com.NullPtr.Pontiland.view.HUD.getContrastingColorForGroup(groupIdx));
 
       root.addChild(tokenBox);
 
@@ -126,6 +134,7 @@ public class PropertyToken {
     if (!anyAdded) {
       Label placeholder = root.addChild(new Label(PLACEHOLDER_TEXT));
       placeholder.setName(PLACEHOLDER_NAME);
+      placeholder.setColor(com.NullPtr.Pontiland.view.HUD.getContrastingColorForGroup(currentGroup));
       root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
     }
   }
@@ -137,6 +146,7 @@ public class PropertyToken {
    */
   public void setGroup(int groupIndex) {
     int g = Math.max(1, Math.min(8, groupIndex));
+    this.currentGroup = g;
     String path = "graphics/sprites/HUD/Propery_Tokens/Group_" + g + ".png";
     try {
       TextureKey key = new TextureKey(path, true);
@@ -151,6 +161,13 @@ public class PropertyToken {
       int w = tex.getImage().getWidth();
       int h = tex.getImage().getHeight();
       root.setPreferredSize(new Vector3f(w * SPRITE_SCALE, h * SPRITE_SCALE, 0));
+      // update placeholder color (if present) to match new group contrast
+      if (root.getChild(0) != null && root.getChild(0) instanceof Label) {
+        Label l = (Label) root.getChild(0);
+        if (PLACEHOLDER_NAME.equals(l.getName())) {
+          l.setColor(com.NullPtr.Pontiland.view.HUD.getContrastingColorForGroup(g));
+        }
+      }
     } catch (Exception e) {
       root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.10f, 0.13f, 0.85f)));
     }

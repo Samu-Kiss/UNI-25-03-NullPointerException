@@ -51,7 +51,8 @@ public class PropertyCard {
     nameLbl = new Label("Propiedad");
     nameLbl.setFontSize(18);
     nameLbl.setTextHAlignment(HAlignment.Center);
-    nameLbl.setColor(ColorRGBA.Black);
+    // use contrast color based on current group (default 1)
+    nameLbl.setColor(com.NullPtr.Pontiland.view.HUD.getContrastingColorForGroup(this.groupIndex));
 
     header = new Container();
     header.setInsets(new Insets3f(12, 0, 6, 0));
@@ -138,6 +139,8 @@ public class PropertyCard {
   public void setGroup(int groupIndex) {
     this.groupIndex = Math.max(1, Math.min(8, groupIndex));
     applyBackground();
+    // update title color to maintain readable contrast with the new group background
+    nameLbl.setColor(com.NullPtr.Pontiland.view.HUD.getContrastingColorForGroup(this.groupIndex));
   }
 
   private void applyBackground() {
