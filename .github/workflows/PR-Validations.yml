@@ -227,6 +227,7 @@ jobs:
         uses: actions/download-artifact@v6
         with:
           name: jacoco-report
+          path: Pontiland/target/site/jacoco/**
 
       - name: Informe de cobertura JaCoCo
         uses: PavanMudigonda/jacoco-reporter@v5.0
@@ -245,6 +246,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: checkstyle-result
+          path: Pontiland/target/checkstyle-result.xml
 
       - name: Reporte de Checkstyle (anotaciones)
         uses: jwgmeligmeyling/checkstyle-github-action@v1
@@ -259,6 +261,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: spotbugs-xml
+          path: Pontiland/target/spotbugsXml.xml
 
       - name: Reporte de SpotBugs (anotaciones)
         uses: jwgmeligmeyling/spotbugs-github-action@v1
