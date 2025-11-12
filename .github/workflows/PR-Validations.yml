@@ -68,7 +68,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: pontiland-artifact
-          path: Pontiland/target/*.jar
+          path: Pontiland/target/**
 
   # -------------
   # Job: test
@@ -167,7 +167,7 @@ jobs:
           distribution: 'jetbrains'
 
       - name: Ejecutar SpotBugs
-        run: mvn --batch-mode verify -DskipTests --no-transfer-progress
+        run: mvn --batch-mode spotbugs:check -DskipTests --no-transfer-progress
 
       - name: Subir XML de SpotBugs
         if: always()
@@ -186,17 +186,11 @@ jobs:
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
-      - name: Checkout del repositorio
-        uses: actions/checkout@v5
-
-      - name: Configurar JDK 21
-        uses: actions/setup-java@v5
+      - name: Descargar artefacto de build
+        uses: actions/download-artifact@v6
         with:
-          java-version: '21'
-          distribution: 'jetbrains'
-
-      - name: Compilar y empaquetar
-        run: mvn verify --batch-mode -DskipTests clean package --no-transfer-progress
+          name: pontiland-artifact
+          path: Pontiland/target/**
 
       - name: Ejecutar SonarQube/SonarCloud
         run: mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Samu-Kiss_UNI-25-03-NullPointerException
@@ -217,7 +211,7 @@ jobs:
         if: always()
         with:
           name: surefire-reports
-          path: 'Pontiland/target/surefire-reports/'
+          path: Pontiland/target/surefire-reports/**
 
       - name: Publicar informe de JUnit
         uses: mikepenz/action-junit-report@v6
@@ -234,7 +228,7 @@ jobs:
           path: Pontiland/target/site/jacoco/**
 
       - name: Informe de cobertura JaCoCo
-        uses: PavanMudigonda/jacoco-reporter@v5.0
+        uses: PavanMudigonda/jacoco-reporter@v4.8
         if: always()
         with:
           coverage_results_path: Pontiland/target/site/jacoco/jacoco.xml
