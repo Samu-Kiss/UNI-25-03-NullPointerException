@@ -153,130 +153,142 @@ public class TurnService implements ITurnService {
     if (!enabled) return;
 
     try {
-      switch (state) {
-        case AWAIT_ROLL:
-          terminarTurno = false;
-          lanzamientoDoble = false;
-          if (scene != null) scene.resetCamera();
-          Byte[] dados = diceService.getResultados();
-          if (dados == null) return;
-
-          if (dados[0] != null && dados[1] != null) {
-            lastD1 = dados[0];
-            lastD2 = dados[1];
-            pendingMovement = datosToInt(dados[0]) + datosToInt(dados[1]);
-            // pendingMovement = 3; // Para pruebas siempre mover 6
-            System.out.println(
-                "Dados lanzados: "
-                    + datosToInt(dados[0])
-                    + " + "
-                    + datosToInt(dados[1])
-                    + " = "
-                    + (datosToInt(dados[0]) + datosToInt(dados[1])));
-            dados[0] = dados[1] = null;
-
-            state = TurnState.MOVING;
-          }
-          break;
-
-        case MOVING:
-          if (pendingMovement > 0) {
-            movePlayer(pendingMovement);
-            pendingMovement = 0;
-          }
-
-          if (!diceService.getCanInteract()) {
-            return;
-          }
-
-          state = TurnState.INTERACT;
-
-          break;
-
-        case INTERACT:
-          if (lastD1 != null && lastD1.equals(lastD2)) {
-            if (tiradas >= 3) {
-              System.out.println("3 dobles seguidos, vas a la cárcel!");
-              moveToJail();
-              state = TurnState.END_TURN;
-            } else {
-              tiradas++;
-              System.out.println("Doble! Tira de nuevo");
-              lastD1 = lastD2 = null;
-              lanzamientoDoble = true;
-            }
-          } else {
-            System.out.println("No doble: finalizar turno y cambiar jugador");
-            lastD1 = lastD2 = null;
-            state = TurnState.END_TURN;
-          }
-          if (diceService.getCanInteract()) {
-            try {
-              Jugador jugadorActual =
-                  jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-              casillaService.interaccion(
-                  jugadorActual,
-                  casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
-            } catch (SQLException e) {
-              throw new RuntimeException(e);
-            }
-          }
-
-          break;
-
-        case END_TURN:
-          if (casillaService.getIrACarcel()) {
-            System.out.println("La casilla envia a la cárcel después del movimiento");
-            moveToJail();
-            state = TurnState.END_TURN;
-          }
-
-          if (terminarTurno) {
-            state = TurnState.NEXT_TURN;
-          } else {
-            try {
-              Jugador jugadorActual =
-                  jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-              casillaService.terminarInteraccion(
-                  jugadorActual,
-                  casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
-            } catch (SQLException e) {
-              throw new RuntimeException(e);
-            }
-          }
-          break;
-
-        case NEXT_TURN:
-          terminarTurno = false;
-          if (!lanzamientoDoble) {
-            tiradas = 1;
-            nextTurn();
-          }
-          state = TurnState.AWAIT_ROLL;
-
-          for (int i = jugadorRepository.getPlayerCount(); i > 0; i--) {
-            Jugador jugador =
-                jugadorRepository.getJugadorByID(jugadorRepository.getPlayerIdByNumJugador(i));
-            hudController.updatePlayerCard(
-                jugador.getNombreJugador(),
-                String.valueOf(jugador.getDinero()),
-                jugador.getEstado(),
-                i);
-          }
-
-          // También actualizar tokens de propiedades del jugador activo
-          try {
-            casillaService.updateActivePlayerPropertyTokens(
-                jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer()));
-          } catch (SQLException e) {
-            System.out.println("Error actualizando property tokens: " + e.getMessage());
-          }
-
-          break;
-      }
+      gameFSM();
     } catch (Exception e) {
       System.out.println(Arrays.toString(e.getStackTrace()));
       throw new RuntimeException(e);
+    }
+  }
+
+  private void gameFSM() throws SQLException {
+    switch (state) {
+      case AWAIT_ROLL:
+        terminarTurno = false;
+        lanzamientoDoble = false;
+        if (scene != null) scene.resetCamera();
+
+        Byte[] dados = diceService.getResultados();
+        if (dados == null) return;
+
+        if (dados[0] != null && dados[1] != null) {
+          lastD1 = dados[0];
+          lastD2 = dados[1];
+          pendingMovement = datosToInt(dados[0]) + datosToInt(dados[1]);
+          System.out.println(
+              "Dados lanzados: "
+                  + datosToInt(dados[0])
+                  + " + "
+                  + datosToInt(dados[1])
+                  + " = "
+                  + (datosToInt(dados[0]) + datosToInt(dados[1])));
+          dados[0] = null;
+          dados[1] = null;
+          state = TurnState.MOVING;
+        }
+        break;
+
+      case MOVING:
+        updateHUDAndTokens();
+        if (pendingMovement > 0) {
+          movePlayer(pendingMovement);
+          pendingMovement = 0;
+        }
+
+        if (!diceService.getCanInteract()) {
+          return;
+        }
+
+        state = TurnState.INTERACT;
+        break;
+
+      case INTERACT:
+        boolean esDoble = lastD1 != null && lastD1.equals(lastD2);
+        if (esDoble) {
+          if (tiradas >= 3) {
+            System.out.println("3 dobles seguidos, vas a la cárcel!");
+            lastD1 = null;
+            lastD2 = null;
+            moveToJail();
+            state = TurnState.END_TURN;
+          } else {
+            tiradas++;
+            System.out.println("Doble! Tira de nuevo");
+            lastD1 = null;
+            lastD2 = null;
+            lanzamientoDoble = true;
+            state = TurnState.END_TURN;
+          }
+        } else {
+          System.out.println("No doble: finalizar turno y cambiar jugador");
+          lastD1 = null;
+          lastD2 = null;
+          state = TurnState.END_TURN;
+        }
+
+        if (diceService.getCanInteract()) {
+          performCasillaInteraccion();
+        }
+        break;
+
+      case END_TURN:
+        if (casillaService.getIrACarcel()) {
+          System.out.println("La casilla envia a la cárcel después del movimiento");
+          moveToJail();
+        }
+
+        if (terminarTurno) {
+          state = TurnState.NEXT_TURN;
+        } else {
+          terminarInteraccionActual();
+        }
+
+        break;
+
+      case NEXT_TURN:
+        updateHUDAndTokens();
+        terminarTurno = false;
+        if (!lanzamientoDoble) {
+          tiradas = 1;
+          nextTurn();
+        }
+        state = TurnState.AWAIT_ROLL;
+        break;
+    }
+  }
+
+  private void performCasillaInteraccion() {
+    try {
+      Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+      casillaService.interaccion(
+          jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void terminarInteraccionActual() {
+    try {
+      Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+      casillaService.terminarInteraccion(
+          jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void updateHUDAndTokens() throws SQLException {
+    for (int i = jugadorRepository.getPlayerCount(); i > 0; i--) {
+      Jugador jugador =
+          jugadorRepository.getJugadorByID(jugadorRepository.getPlayerIdByNumJugador(i));
+      hudController.updatePlayerCard(
+          jugador.getNombreJugador(), String.valueOf(jugador.getDinero()), jugador.getEstado(), i);
+    }
+
+    try {
+      casillaService.updateActivePlayerPropertyTokens(
+          jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer()));
+    } catch (SQLException e) {
+      System.out.println("Error actualizando property tokens: " + e.getMessage());
     }
   }
 
