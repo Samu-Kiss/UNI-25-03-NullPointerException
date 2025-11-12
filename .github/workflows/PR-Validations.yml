@@ -244,7 +244,7 @@ jobs:
         uses: PavanMudigonda/jacoco-reporter@v5.0
         if: always()
         with:
-          coverage_results_path: 'target/site/jacoco/jacoco.xml'
+          coverage_results_path: 'Pontiland/target/site/jacoco/jacoco.xml'
           coverage_report_name: JaCoCo Coverage
           coverage_report_title: JaCoCo Coverage
           github_token: ${{ secrets.GITHUB_TOKEN }}
