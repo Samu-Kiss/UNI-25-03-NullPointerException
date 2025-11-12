@@ -11,6 +11,8 @@ import com.simsilica.lemur.HAlignment;
 import com.simsilica.lemur.Insets3f;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
+import com.simsilica.lemur.component.SpringGridLayout;
+import com.simsilica.lemur.Axis;
 
 /** Zona inferior de tokens de propiedades del jugador activo con sprite de fondo. */
 public class PropertyToken {
@@ -22,7 +24,8 @@ public class PropertyToken {
 
   public PropertyToken(AssetManager assets) {
     this.assets = assets;
-    root = new Container();
+    // Layout horizontal: recorre columnas primero (Axis.X) y luego filas (Axis.Y)
+    root = new Container(new SpringGridLayout(Axis.X, Axis.Y));
     root.setInsets(new Insets3f(10, 14, 10, 14));
 
     // default placeholder
@@ -99,17 +102,15 @@ public class PropertyToken {
             new QuadBackgroundComponent(new ColorRGBA(0.12f, 0.14f, 0.18f, 0.95f)));
       }
 
-      // Label with two lines: property number and level
-      Label lbl = tokenBox.addChild(new Label("\n#" + propNum + "\n" + "Nv. " + nivel));
+      Label lbl = tokenBox.addChild(new Label("#" + propNum + "\nNv. " + nivel));
       lbl.setTextHAlignment(HAlignment.Center);
 
       root.addChild(tokenBox);
 
-      // add spacer between tokens except after last
       if (i < tokens.length - 1) {
         Container spacer = new Container();
         spacer.setBackground(null);
-        spacer.setPreferredSize(new Vector3f(8f, 0f, 0f));
+        spacer.setPreferredSize(new Vector3f(8f, tokenBox.getPreferredSize().y, 0f));
         root.addChild(spacer);
       }
 

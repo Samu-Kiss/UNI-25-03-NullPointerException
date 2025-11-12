@@ -203,7 +203,8 @@ public class HUD extends AbstractAppState {
     float leftX = 16f;
     float leftY = h - 16f;
     leftPane.setLocalTranslation(leftX, leftY, 0);
-    leftPane.setPreferredSize(leftPref);
+    // Let Lemur compute preferred size automatically; do not force sizes here
+    // leftPane.setPreferredSize(leftPref);
 
     Vector3f rightSize = propertyCard.getPreferredSize();
     // clamp right size to avoid negative values
@@ -217,7 +218,7 @@ public class HUD extends AbstractAppState {
     float rightX = w - rightSize.x - 16f;
     float rightY = h - 16f;
     rightPane.setLocalTranslation(rightX, rightY, 0);
-    rightPane.setPreferredSize(rightSize);
+    // rightPane.setPreferredSize(rightSize);
 
     // Action bar justo debajo de la tarjeta
     Vector3f actionSize = actionBar.getPreferredSize();
@@ -231,7 +232,8 @@ public class HUD extends AbstractAppState {
     float actionX = rightX + (rightSize.x - actionSize.x) / 2f;
     float actionY = rightY - rightSize.y - 8f; // 8px debajo
     actionBar.setLocalTranslation(actionX, actionY, 0);
-    actionBar.setPreferredSize(actionSize);
+    // Do not force the action bar size; avoids negative inner sizes from insets
+    // actionBar.setPreferredSize(actionSize);
 
     Vector3f bottomSize = propertyToken.getPreferredSize();
     if (bottomSize == null) bottomSize = new Vector3f(0f, 0f, 0f);
@@ -244,7 +246,7 @@ public class HUD extends AbstractAppState {
     float bottomX = (w - bottomSize.x) / 2f;
     float bottomY = bottomSize.y + 16f;
     bottomPane.setLocalTranslation(bottomX, bottomY, 0);
-    bottomPane.setPreferredSize(bottomSize);
+    // bottomPane.setPreferredSize(bottomSize);
 
     Vector3f overlaySize = auction.getPreferredSize();
     if (overlaySize == null) overlaySize = new Vector3f(0f, 0f, 0f);
@@ -257,7 +259,7 @@ public class HUD extends AbstractAppState {
     float ovX = (w - overlaySize.x) / 2f;
     float ovY = (h + overlaySize.y) / 2f;
     overlayPane.setLocalTranslation(ovX, ovY, 10f);
-    overlayPane.setPreferredSize(overlaySize);
+    // overlayPane.setPreferredSize(overlaySize);
   }
 
   @Override
