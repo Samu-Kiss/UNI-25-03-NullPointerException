@@ -211,11 +211,12 @@ jobs:
     needs: [test, checkstyle, spotbugs]
     if: always()
     steps:
+      # JUNIT
       - name: Descargar informes de tests
         uses: actions/download-artifact@v6
         with:
           name: surefire-reports
-          path: '**/target/surefire-reports/'
+          path: 'Pontiland/target/surefire-reports/'
 
       - name: Publicar informe de JUnit
         uses: mikepenz/action-junit-report@v6
@@ -223,6 +224,7 @@ jobs:
         with:
           report_paths: 'Pontiland/target/surefire-reports/TEST-*.xml'
 
+      # JACOCO
       - name: Descargar informe JaCoCo
         uses: actions/download-artifact@v6
         with:
@@ -242,6 +244,7 @@ jobs:
           minimum_coverage: 0
           fail_below_threshold: false
 
+      # CHECKSTYLE
       - name: Descargar resultado Checkstyle
         uses: actions/download-artifact@v4
         with:
@@ -257,6 +260,7 @@ jobs:
           title: Checkstyle Annotations
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # SPOTBUGS
       - name: Descargar SpotBugs XML
         uses: actions/download-artifact@v4
         with:
