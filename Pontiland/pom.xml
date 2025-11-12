@@ -19,12 +19,7 @@
     <spotbugs.plugin.version>4.9.8.1</spotbugs.plugin.version>
     <junit.jupiter.version>5.10.2</junit.jupiter.version>
     <sonar.organization>samu-kiss</sonar.organization>
-    <!-- SonarQube properties: adjust values in CI or in command line (avoid committing tokens) -->
-    <sonar.host.url>http://localhost:9000</sonar.host.url>
-    <sonar.projectKey>Pontiland</sonar.projectKey>
-    <sonar.projectName>Pontiland</sonar.projectName>
-    <!-- Set this via CI variables or mvn -Dsonar.login=...; leave empty here to avoid committing secrets -->
-    <sonar.login></sonar.login>
+    <sonar.projectKey>Samu-Kiss_UNI-25-03-NullPointerException</sonar.projectKey>
   </properties>
 
   <dependencies>
@@ -230,6 +225,11 @@
             <phase>verify</phase>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+        <version>5.1.0.4751</version>
       </plugin>
     </plugins>
   </build>
