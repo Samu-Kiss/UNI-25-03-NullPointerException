@@ -161,7 +161,7 @@ jobs:
           distribution: 'jetbrains'
 
       - name: Ejecutar SpotBugs
-        run: mvn --batch-mode spotbugs:spotbugs -DskipTests --no-transfer-progress
+        run: mvn --batch-mode spotbugs:check verify -DskipTests --no-transfer-progress
 
       - name: Subir XML de SpotBugs
         if: always()
@@ -211,7 +211,7 @@ jobs:
         if: always()
         with:
           name: surefire-reports
-          path: Pontiland/target/surefire-reports/**
+          path: Pontiland/target/surefire-reports/
 
       - name: Publicar informe de JUnit
         uses: mikepenz/action-junit-report@v6
@@ -225,7 +225,7 @@ jobs:
         if: always()
         with:
           name: jacoco-report
-          path: Pontiland/target/site/jacoco/**
+          path: Pontiland/target/site/jacoco/
 
       - name: Informe de cobertura JaCoCo
         uses: PavanMudigonda/jacoco-reporter@v4.8

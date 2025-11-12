@@ -169,7 +169,7 @@
             </goals>
             <phase>verify</phase>
             <configuration>
-              <failOnError>false</failOnError>
+              <failOnError>true</failOnError>
               <effort>Max</effort>
               <threshold>Low</threshold>
               <xmlOutput>true</xmlOutput>
