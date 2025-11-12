@@ -220,12 +220,24 @@ jobs:
           report_paths: 'Pontiland/target/surefire-reports/TEST-*.xml'
 
       # JACOCO
-      - name: Descargar informe JaCoCo
-        uses: actions/download-artifact@v6
-        if: always()
+      #- name: Descargar informe JaCoCo
+      #  uses: actions/download-artifact@v6
+      #  if: always()
+      #  with:
+      #    name: jacoco-report
+      #    path: Pontiland/target/site/jacoco/
+
+      - name: Checkout del repositorio
+        uses: actions/checkout@v5
+
+      - name: Configurar JDK 21
+        uses: actions/setup-java@v5
         with:
-          name: jacoco-report
-          path: Pontiland/target/site/jacoco/
+          java-version: '21'
+          distribution: 'jetbrains'
+
+      - name: Ejecutar tests y generar JaCoCo
+        run: mvn --batch-mode test jacoco:report --no-transfer-progress
 
       - name: Informe de cobertura JaCoCo
         uses: PavanMudigonda/jacoco-reporter@v5.0
