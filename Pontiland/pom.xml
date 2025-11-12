@@ -20,6 +20,7 @@
     <junit.jupiter.version>5.10.2</junit.jupiter.version>
     <sonar.organization>samu-kiss</sonar.organization>
     <sonar.projectKey>Samu-Kiss_UNI-25-03-NullPointerException</sonar.projectKey>
+    <sonar.java.binaries>target/classes</sonar.java.binaries>
   </properties>
 
   <dependencies>
