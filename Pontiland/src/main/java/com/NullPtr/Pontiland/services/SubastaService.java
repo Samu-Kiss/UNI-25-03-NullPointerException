@@ -61,6 +61,7 @@ public class SubastaService implements ISubastaService {
     }
   }
 
+  @Override
   public void avanzarAlSiguienteJugador() throws SQLException {
     int total = jugadorRepository.getPlayerCount();
     if (excluidos.size() >= total - 1) {
