@@ -81,7 +81,9 @@ public class CasillaService implements ICasillaService {
         hudController.terminarTurno();
         break;
       case IRALACARCEL:
-        hudController.terminarTurno();
+        if (hudController != null) {
+          hudController.terminarTurno();
+        }
         onCarcel(false);
         break;
     }
