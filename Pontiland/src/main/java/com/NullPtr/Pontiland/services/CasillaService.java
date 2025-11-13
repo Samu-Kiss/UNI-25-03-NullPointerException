@@ -134,6 +134,7 @@ public class CasillaService implements ICasillaService {
     return irACarcel;
   }
 
+  @Override
   public void updateActivePlayerPropertyTokens(Jugador jugador) {
     if (hudController == null) return;
     if (jugador == null) {
