@@ -2,9 +2,9 @@ name: PR Validation
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
 
 # Ejecutar comandos por defecto dentro de la carpeta del módulo Pontiland
 defaults:
