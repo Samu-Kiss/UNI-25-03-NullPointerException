@@ -55,6 +55,7 @@ public class CasillaService implements ICasillaService {
 
   @Override
   public void terminarInteraccion(Jugador jugador, Casilla casilla) {
+    if (hudController == null) return;
     switch (casilla.getTipoCasilla()) {
       case PARADALIBRE:
         hudController.terminarTurno();
@@ -110,6 +111,12 @@ public class CasillaService implements ICasillaService {
     String priceText;
     String[] rentsText;
     int groupIndex;
+
+    if (prop == null) {
+      System.err.println("Warning: propiedad is null for casilla at position " + casilla.getPosicionTablero());
+      return;
+    }
+
     name = casilla.getNombreCasilla();
     priceText = String.valueOf(prop.getPrecioCompra());
     rentsText = prop.getRentasText();
