@@ -82,7 +82,9 @@ public class CasillaService implements ICasillaService {
         hudController.terminarTurno();
         break;
       case IRALACARCEL:
-        hudController.terminarTurno();
+        if (hudController != null) {
+          hudController.terminarTurno();
+        }
         onCarcel(false);
         break;
     }
@@ -141,6 +143,7 @@ public class CasillaService implements ICasillaService {
     return irACarcel;
   }
 
+  @Override
   public void updateActivePlayerPropertyTokens(Jugador jugador) {
     if (hudController == null) return;
     if (jugador == null) {

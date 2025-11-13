@@ -61,6 +61,7 @@ public class SubastaService implements ISubastaService {
     }
   }
 
+  @Override
   public void avanzarAlSiguienteJugador() throws SQLException {
     int total = jugadorRepository.getPlayerCount();
     if (excluidos.size() >= total - 1) {
@@ -106,7 +107,9 @@ public class SubastaService implements ISubastaService {
           adquisicionService.comprarPropiedadEnSubasta(posicion, comprador, precioActual);
       if (comprar && hudController != null) hudController.hideAuction();
       reset();
-      hudController.terminarTurno();
+      if (hudController != null) {
+        hudController.terminarTurno();
+      }
       return comprar;
     } catch (SQLException e) {
       throw new RuntimeException(e);
