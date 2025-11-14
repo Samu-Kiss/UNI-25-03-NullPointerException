@@ -7,6 +7,8 @@ import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import com.NullPtr.Pontiland.repository.TarjetaEventoRepository;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CasillaService implements ICasillaService {
 
@@ -16,6 +18,9 @@ public class CasillaService implements ICasillaService {
   private IPropiedadRepository propiedadRepository;
   private IAdquisicionService adquisicionService;
   private TarjetaEventoRepository tarjetaEventoRepository;
+
+  // Logger
+  private static Logger logger = LogManager.getLogger(CasillaService.class);
 
   public CasillaService(
       IHUDcontroller hudController,
@@ -32,8 +37,9 @@ public class CasillaService implements ICasillaService {
 
   @Override
   public void interaccion(Jugador jugador, Casilla casilla) {
-    System.out.println(
-        "\n" + jugador.getNombreJugador() + " ha caido en la casilla " + casilla.getTipoCasilla());
+    logger.info(
+        "%n{} ha caido en la casilla {}", jugador.getNombreJugador(), casilla.getTipoCasilla());
+
     switch (casilla.getTipoCasilla()) {
       case PARADALIBRE:
         onParadaLibre(jugador, casilla);
@@ -64,16 +70,14 @@ public class CasillaService implements ICasillaService {
         hudController.terminarTurno();
         break;
       case PROPIEDAD:
-        if (hudController != null) {
-          if (hudController.getPuedeComprar()) {
-            try {
-              adquisicionService.comprarPropiedadPorPosicion(casilla.getPosicionTablero(), jugador);
+        if (hudController != null && hudController.getPuedeComprar()) {
+          try {
+            adquisicionService.comprarPropiedadPorPosicion(casilla.getPosicionTablero(), jugador);
 
-              hudController.hidePropertyCard();
-              hudController.terminarTurno();
-            } catch (Exception ex) {
-              System.err.println("Warning: failed to purchase property: " + ex.getMessage());
-            }
+            hudController.hidePropertyCard();
+            hudController.terminarTurno();
+          } catch (Exception ex) {
+            logger.error("Failed to purchase property: {}", ex.getMessage(), ex);
           }
         }
 
@@ -105,7 +109,7 @@ public class CasillaService implements ICasillaService {
       try {
         prop = propiedadRepository.getPropiedadByPosition(casilla.getPosicionTablero());
       } catch (Exception ex) {
-        System.err.println("Warning: failed to read Propiedad from repository: " + ex.getMessage());
+        logger.error("Failed to read Propiedad from repository: {}", ex.getMessage(), ex);
       }
     }
 
@@ -115,8 +119,9 @@ public class CasillaService implements ICasillaService {
     int groupIndex;
 
     if (prop == null) {
-      System.err.println(
-          "Warning: propiedad is null for casilla at position " + casilla.getPosicionTablero());
+      logger.warn(
+          "Warning: propiedad is null for casilla at position {}", casilla.getPosicionTablero());
+
       return;
     }
 
@@ -124,7 +129,7 @@ public class CasillaService implements ICasillaService {
     priceText = String.valueOf(prop.getPrecioCompra());
     rentsText = prop.getRentasText();
     groupIndex = prop.getGrupo();
-    System.out.println("Nombre Propiedad: " + name);
+    logger.info("Nombre Propiedad: {}", name);
     hudController.showPropertyCard(name, priceText, rentsText, groupIndex);
 
     if (diceService != null) diceService.enableInteract(false);
@@ -148,7 +153,7 @@ public class CasillaService implements ICasillaService {
   public void updateActivePlayerPropertyTokens(Jugador jugador) {
     if (hudController == null) return;
     if (jugador == null) {
-      System.out.println("[DEBUG] Jugador activo no encontrado");
+      logger.warn("Jugador activo no encontrado");
       hudController.updatePropertyTokens(new String[0]);
       return;
     }
@@ -156,7 +161,7 @@ public class CasillaService implements ICasillaService {
     List<Propiedad> propiedades =
         propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId());
     if (propiedades == null || propiedades.isEmpty()) {
-      System.out.println("[DEBUG] El jugador " + jugador.getJugadorId() + " no tiene propiedades");
+      logger.info("El jugador {} no tiene propiedades", jugador.getJugadorId());
       hudController.updatePropertyTokens(new String[0]);
       return;
     }
@@ -168,8 +173,7 @@ public class CasillaService implements ICasillaService {
       String nivel = String.valueOf(p.getNivelPropiedad());
       int grupo = p.getGrupo();
       tokens[i] = propNum + "|" + nivel + "|" + grupo;
-      System.out.println(
-          "[DEBUG] Token creado -> propiedad=" + propNum + " nivel=" + nivel + " grupo=" + grupo);
+      logger.debug("Token creado -> propiedad={}, nivel= {}, grupo={}", propNum, nivel, grupo);
     }
 
     hudController.updatePropertyTokens(tokens);
