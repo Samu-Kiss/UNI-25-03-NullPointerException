@@ -115,7 +115,8 @@ public class CasillaService implements ICasillaService {
     int groupIndex;
 
     if (prop == null) {
-      System.err.println("Warning: propiedad is null for casilla at position " + casilla.getPosicionTablero());
+      System.err.println(
+          "Warning: propiedad is null for casilla at position " + casilla.getPosicionTablero());
       return;
     }
 
