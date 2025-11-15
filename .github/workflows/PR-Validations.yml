@@ -225,9 +225,7 @@ jobs:
         if: always()
         with:
           name: jacoco-report
-          # Download into the directory so the XML file is placed at
-          # Pontiland/target/site/jacoco/jacoco.xml and not create a file/dir conflict
-          path: Pontiland/target/site/jacoco/
+          path: Pontiland/target/site/jacoco/jacoco.xml
 
       #- name: Checkout del repositorio
       #  uses: actions/checkout@v5
@@ -242,10 +240,10 @@ jobs:
       #  run: mvn --batch-mode test jacoco:report --no-transfer-progress
 
       - name: Informe de cobertura JaCoCo
-        uses: PavanMudigonda/jacoco-reporter@v5.0
+        uses: PavanMudigonda/jacoco-reporter@v5.2-beta
         if: always()
         with:
-          coverage_results_path: 'Pontiland/target/site/jacoco/jacoco.xml'
+          coverage_results_path: Pontiland/target/site/jacoco/jacoco.xml
           coverage_report_name: 'JaCoCo Coverage'
           coverage_report_title: 'JaCoCo Coverage'
           github_token: ${{ secrets.GITHUB_TOKEN }}
