@@ -225,7 +225,9 @@ jobs:
         if: always()
         with:
           name: jacoco-report
-          path: Pontiland/target/site/jacoco/jacoco.xml
+          # Download into the directory so the XML file is placed at
+          # Pontiland/target/site/jacoco/jacoco.xml and not create a file/dir conflict
+          path: Pontiland/target/site/jacoco/
 
       #- name: Checkout del repositorio
       #  uses: actions/checkout@v5
