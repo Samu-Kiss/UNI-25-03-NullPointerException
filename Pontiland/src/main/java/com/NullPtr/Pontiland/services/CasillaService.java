@@ -77,7 +77,7 @@ public class CasillaService implements ICasillaService {
             hudController.hidePropertyCard();
             hudController.terminarTurno();
           } catch (Exception ex) {
-            logger.error("Failed to purchase property: {}", ex.getMessage(), ex);
+            logger.error("Failed to purchase property: {}", casilla.getNombreCasilla(), ex);
           }
         }
 
