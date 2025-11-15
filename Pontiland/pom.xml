@@ -176,7 +176,7 @@
               <htmlOutput>false</htmlOutput>
               <excludeFilterFile>${project.basedir}/config/spotbugs/spotbugs-ignore.xml</excludeFilterFile>
               <includeFilterFile>${project.basedir}/config/spotbugs/spotbugs-enforce.xml</includeFilterFile>
-              <spotbugsXmlOutputFilename>spotbugs-enforce.xml</spotbugsXmlOutputFilename>
+              <spotbugsXmlOutputFilename>spotbugs-report-enforce.xml</spotbugsXmlOutputFilename>
             </configuration>
           </execution>
           <execution>
