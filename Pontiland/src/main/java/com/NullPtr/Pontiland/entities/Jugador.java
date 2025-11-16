@@ -64,7 +64,7 @@ public class Jugador {
     this.nombreJugador = nombreJugador;
     this.jugadorId = jugadorId;
 
-    propiedades = new ArrayList<Propiedad>();
+    propiedades = new ArrayList<>();
   }
 
   /**
@@ -165,10 +165,6 @@ public class Jugador {
     this.enCarcel = enCarcel;
   }
 
-  /*
-   * TODO: los getter y setter de dinero no son realmente necesarios
-   *  Dinero podría ser publico
-   */
   public int getDinero() {
     return dinero;
   }
@@ -190,5 +186,13 @@ public class Jugador {
 
   public long getPartida() {
     return this.partidaId;
+  }
+
+  public int getIconoId() {
+    return iconoId;
+  }
+
+  public void setIconoId(int iconoId) {
+    this.iconoId = iconoId;
   }
 }

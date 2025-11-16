@@ -37,8 +37,8 @@ public class CasillaService implements ICasillaService {
 
   @Override
   public void interaccion(Jugador jugador, Casilla casilla) {
-    logger.info(
-        "%n{} ha caido en la casilla {}", jugador.getNombreJugador(), casilla.getTipoCasilla());
+    logger.debug(
+        "{} ha caido en la casilla {}", jugador.getNombreJugador(), casilla.getTipoCasilla());
 
     switch (casilla.getTipoCasilla()) {
       case PARADALIBRE:
@@ -129,7 +129,7 @@ public class CasillaService implements ICasillaService {
     priceText = String.valueOf(prop.getPrecioCompra());
     rentsText = prop.getRentasText();
     groupIndex = prop.getGrupo();
-    logger.info("Nombre Propiedad: {}", name);
+    logger.debug("Nombre Propiedad: {}", name);
     hudController.showPropertyCard(name, priceText, rentsText, groupIndex);
 
     if (diceService != null) diceService.enableInteract(false);
@@ -161,7 +161,7 @@ public class CasillaService implements ICasillaService {
     List<Propiedad> propiedades =
         propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId());
     if (propiedades == null || propiedades.isEmpty()) {
-      logger.info("El jugador {} no tiene propiedades", jugador.getJugadorId());
+      logger.debug("El jugador {} no tiene propiedades", jugador.getJugadorId());
       hudController.updatePropertyTokens(new String[0]);
       return;
     }

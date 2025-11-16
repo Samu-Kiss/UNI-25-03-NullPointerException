@@ -166,14 +166,22 @@ public class TurnService implements ITurnService {
       case AWAIT_ROLL:
         terminarTurno = false;
         lanzamientoDoble = false;
-        scene.resetCamera();
+        if (scene != null) scene.resetCamera();
 
         Byte[] dados = diceService.getResultados();
+        if (dados == null) return;
 
         if (dados[0] != null && dados[1] != null) {
           lastD1 = dados[0];
           lastD2 = dados[1];
-          pendingMovement = dados[0] + dados[1];
+          pendingMovement = dados[0].intValue() + dados[1].intValue();
+          System.out.println(
+            "Dados lanzados: "
+              + lastD1
+              + " + "
+              + lastD2
+              + " = "
+              + (pendingMovement));
           dados[0] = null;
           dados[1] = null;
           state = TurnState.MOVING;
@@ -182,8 +190,10 @@ public class TurnService implements ITurnService {
 
       case MOVING:
         updateHUDAndTokens();
-        movePlayer(pendingMovement);
-        pendingMovement = 0;
+        if (pendingMovement > 0) {
+          movePlayer(pendingMovement);
+          pendingMovement = 0;
+        }
 
         if (!diceService.getCanInteract()) {
           return;
@@ -193,7 +203,8 @@ public class TurnService implements ITurnService {
         break;
 
       case INTERACT:
-        if (lastD1.equals(lastD2)) {
+        boolean esDoble = lastD1 != null && lastD1.equals(lastD2);
+        if (esDoble) {
           if (tiradas >= 3) {
             System.out.println("3 dobles seguidos, vas a la cárcel!");
             lastD1 = null;
