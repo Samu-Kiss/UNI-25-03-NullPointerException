@@ -2,6 +2,9 @@ package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.utils.PropertiesReader;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +22,8 @@ public class DataService implements IDataService {
   private String savesDir;
   private String ddlResource;
   private String insResource;
+
+  private static Logger logger = LogManager.getLogger(DataService.class);
 
   /**
    * Constructor que inicializa el servicio de datos con una URL de conexión específica.
@@ -60,10 +65,12 @@ public class DataService implements IDataService {
    */
   public Connection createConnection() {
     try {
+      //TODO: cambiar usuario y contrasena (Lo pide sonarqube)
       return DriverManager.getConnection(url, "sa", "");
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.fatal("DataService.createConnection: Error FATAL al crear la conexión a la base de datos", e);
     }
+    return null;
   }
 
   /**
@@ -81,34 +88,28 @@ public class DataService implements IDataService {
         InputStream ddlIn = this.getClass().getResourceAsStream(ddlResource);
         InputStream insIn = this.getClass().getResourceAsStream(insResource)) {
 
-      System.out.println(
-          "DataService.newDataBase: ddlResource='"
-              + ddlResource
-              + "' insResource='"
-              + insResource
-              + "'");
+
+      logger.info("DataService.newDataBase: ddlResource='{}' insResource='{}'", ddlResource, insResource);
 
       if (ddlIn == null || insIn == null) {
-        System.err.println(
-            "DataService.newDataBase: FAILED to load DDL or INSERT resources. ddlIn="
-                + (ddlIn == null)
-                + " insIn="
-                + (insIn == null));
-        throw new RuntimeException("No se pudieron cargar los recursos DDL/INSERTS");
+        logger.error ("DataService.newDataBase: FAILED to load DDL or INSERT resources. ddlIn={} insIn={}", (ddlIn == null), (insIn == null));
+        logger.fatal("DataService.newDataBase: No se pudieron cargar los recursos DDL/INSERTS");
       }
 
+      assert ddlIn != null;
       byte[] ddlBytes = ddlIn.readAllBytes();
       String schemaSql = new String(ddlBytes, StandardCharsets.UTF_8);
-      System.out.println("DataService.newDataBase: loaded DDL size=" + ddlBytes.length);
+      logger.info("DataService.newDataBase: loaded DDL size={}", ddlBytes.length);
       stmt.execute(schemaSql);
 
+      assert insIn != null;
       byte[] insBytes = insIn.readAllBytes();
       String dataSql = new String(insBytes, StandardCharsets.UTF_8);
-      System.out.println("DataService.newDataBase: loaded INSERTS size=" + insBytes.length);
+      logger.info("DataService.newDataBase: loaded INSERTS size={}", insBytes.length);
       stmt.execute(dataSql);
 
     } catch (SQLException | IOException e) {
-      throw new RuntimeException(e);
+      logger.fatal("DataService.newDataBase: Error FATAL al crear la base de datos", e);
     }
   }
 
@@ -133,7 +134,7 @@ public class DataService implements IDataService {
       cargarPartida.setString(1, ubicacionArchivo);
       cargarPartida.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.error("Error al cargar la partida desde el archivo: {}", ubicacionArchivo, e);
     }
   }
 
@@ -152,25 +153,27 @@ public class DataService implements IDataService {
         new File(this.getClass().getResource(PropertiesReader.getProperty("saves")).getFile());
     File[] archivos = scriptsPartidas.listFiles();
 
-    if (archivos != null) {
-      for (File archivo : archivos) {
-        if (archivo.isFile()) {
-          String fileName = archivo.getName();
+    if (archivos == null || archivos.length == 0) {
+      logger.error("No se encontraron archivos de partidas pasadas en la carpeta: {}", scriptsPartidas.getAbsolutePath());
+    }
 
-          // Ejemplo de posible nombre de un archivo de partida pasada 20251003155300.sql
-          if (fileName.endsWith(".sql")) {
-            String fechaRepresentada = fileName.replace(".sql", "");
+    for (File archivo : archivos) {
+      if (archivo.isFile()) {
+        String fileName = archivo.getName();
 
-            try {
-              SimpleDateFormat formatoEntrada = new SimpleDateFormat("yyyyMMddHHmmss");
-              Date date = formatoEntrada.parse(fechaRepresentada);
-              SimpleDateFormat formatoSalida = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-              String formattedDate = formatoSalida.format(date);
-              mapaArchivo.put(formattedDate, fileName);
+        // Ejemplo de posible nombre de un archivo de partida pasada 20251003155300.sql
+        if (fileName.endsWith(".sql")) {
+          String fechaRepresentada = fileName.replace(".sql", "");
 
-            } catch (ParseException e) {
-              System.err.println("Archivo con formato incorrecto: " + fileName);
-            }
+          try {
+            SimpleDateFormat formatoEntrada = new SimpleDateFormat("yyyyMMddHHmmss");
+            Date date = formatoEntrada.parse(fechaRepresentada);
+            SimpleDateFormat formatoSalida = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String formattedDate = formatoSalida.format(date);
+            mapaArchivo.put(formattedDate, fileName);
+
+          } catch (ParseException e) {
+            logger.error("Archivo con formato incorrecto: {}", fileName, e);
           }
         }
       }
@@ -205,7 +208,7 @@ public class DataService implements IDataService {
       guardarPartida.setString(1, ubicacionArchivo);
       guardarPartida.execute();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.fatal("Error al guardar la partida en el archivo: {}", ubicacionArchivo, e);
     }
   }
 
@@ -224,7 +227,7 @@ public class DataService implements IDataService {
         Statement stmt = conn.createStatement()) {
       stmt.execute(query);
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.fatal("Error al eliminar la base de datos", e);
     }
   }
 }

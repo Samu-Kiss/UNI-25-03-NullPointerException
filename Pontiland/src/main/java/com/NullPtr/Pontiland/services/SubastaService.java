@@ -5,6 +5,9 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,6 +23,9 @@ public class SubastaService implements ISubastaService {
   private int posicion = -1;
   private int indiceActual = 1;
   private final Set<Integer> excluidos = new HashSet<>();
+
+  // Logger
+  private static Logger logger = LogManager.getLogger(SubastaService.class);
 
   public SubastaService(
       IAdquisicionService adquisicionService,
@@ -57,8 +63,9 @@ public class SubastaService implements ISubastaService {
       }
       return true;
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.error("Error al iniciar la subasta", e);
     }
+    return false;
   }
 
   @Override
@@ -93,8 +100,9 @@ public class SubastaService implements ISubastaService {
       avanzarAlSiguienteJugador();
       return true;
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.error("Error al aumentar el precio de la subasta", e);
     }
+    return false;
   }
 
   @Override
@@ -112,7 +120,8 @@ public class SubastaService implements ISubastaService {
       }
       return comprar;
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.error("Error al comprar la propiedad en la subasta", e);
+      return false;
     }
   }
 
@@ -139,7 +148,7 @@ public class SubastaService implements ISubastaService {
         if (hudController != null) hudController.setAuctionPlayerName(jugador.getNombreJugador());
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.error("Error al salir de la subasta", e);
     }
   }
 

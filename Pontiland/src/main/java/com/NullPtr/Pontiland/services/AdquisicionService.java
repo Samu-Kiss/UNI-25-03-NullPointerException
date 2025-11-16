@@ -46,10 +46,6 @@ public class AdquisicionService implements IAdquisicionService {
         jugadorRepository.updateDinero(jugador.getJugadorId(), nuevoDinero);
       } catch (SQLException e) {
         logger.error("Error al actualizar el dinero del jugador con Id={}", jugador.getJugadorId(), e);
-        /*
-        TODO: Revisar si quitarlo del todo o dejar solo el loger de arriba
-        throw new RuntimeException(e);
-         */
       }
 
     } else {
@@ -65,10 +61,6 @@ public class AdquisicionService implements IAdquisicionService {
         logger.debug("Dinero actual jugador pagado: {}", jugadorRepository.getJugadorByID(jugadorPago.getJugadorId()).getDinero());
       } catch (SQLException e) {
         logger.error("Error al recuperar los datos de los jugadores con id={} e id={}", jugador.getJugadorId(), jugadorPago.getJugadorId());
-        /*
-        TODO: Revisar si quitarlo del todo o dejar solo el loger de arriba
-        throw new RuntimeException(e);
-         */
       }
 
       try {
@@ -85,10 +77,6 @@ public class AdquisicionService implements IAdquisicionService {
 
       } catch (SQLException e) {
         logger.error("Error al actualizar de alguno de los jugadores con ID= {} - {}", jugador.getJugadorId(), jugadorPago.getNombreJugador(), e);
-        /*
-        TODO: Revisar si quitarlo del todo o dejar solo el loger de arriba
-        throw new RuntimeException(e);
-         */
       }
 
       propiedadRepository.incrementarNivelPropiedad(propiedadId);
@@ -124,10 +112,6 @@ public class AdquisicionService implements IAdquisicionService {
       return true;
     } catch (SQLException e) {
       logger.error("No se pudo obtener el jugador con ID={} o no se pudo actualizar el jugador{}", jugador.getJugadorId(), jugador.getNombreJugador(), e);
-      /*
-        TODO: Revisar si quitarlo del todo o dejar solo el loger de arriba
-        throw new RuntimeException(e);
-      */
     }
     return false;
   }
