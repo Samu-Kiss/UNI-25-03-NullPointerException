@@ -262,18 +262,31 @@ jobs:
       #- name: Ejecutar tests y generar JaCoCo
       #  run: mvn --batch-mode test jacoco:report --no-transfer-progress
 
+      #- name: Informe de cobertura JaCoCo
+      #  uses: PavanMudigonda/jacoco-reporter@v4.8
+      #  if: always()
+      #  with:
+      #    coverage_results_path: Pontiland/target/site/jacoco/
+      #    coverage_report_name: 'JaCoCo Coverage'
+      #    coverage_report_title: 'JaCoCo Coverage'
+      #    github_token: ${{ secrets.GITHUB_TOKEN }}
+      #    publish_only_summary: false
+      #    skip_check_run: false
+      #    minimum_coverage: 0
+      #    fail_below_threshold: false
+
       - name: Informe de cobertura JaCoCo
-        uses: PavanMudigonda/jacoco-reporter@v4.8
+        uses: Madrapps/jacoco-report@v1.7.2
         if: always()
         with:
-          coverage_results_path: Pontiland/target/site/jacoco/
-          coverage_report_name: 'JaCoCo Coverage'
-          coverage_report_title: 'JaCoCo Coverage'
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_only_summary: false
-          skip_check_run: false
-          minimum_coverage: 0
-          fail_below_threshold: false
+          paths: Pontiland/target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 80
+          title: 'JaCoCo Coverage'
+          comment-type: summary
+          pass-emoji: ✅
+          fail-emoji: ❌
+          continue-on-error: false
 
       - name: Descargar informe de Checkstyle
         uses: actions/download-artifact@v6
