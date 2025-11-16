@@ -248,7 +248,7 @@ jobs:
           path: Pontiland/target/site/jacoco/jacoco.xml
 
       - name: Read artifact file
-        run: cat Pontiland/target/site/jacoco/jacoco.xml
+        run: cat /home/runner/work/UNI-25-03-NullPointerException/UNI-25-03-NullPointerException/Pontiland/target/site/jacoco/jacoco.xml
 
       #- name: Checkout del repositorio
       #  uses: actions/checkout@v5
