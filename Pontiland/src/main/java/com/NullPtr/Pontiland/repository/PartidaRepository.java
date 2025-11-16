@@ -65,14 +65,12 @@ public class PartidaRepository implements IPartidaRepository {
         if (rs.next()) {
           return rs.getInt("NumeroJugadores");
         } else {
-          throw new SQLException(
-              "No se encontro la partida con Id=" + partidaID);
+          throw new SQLException("No se encontro la partida con Id=" + partidaID);
         }
       }
     } catch (SQLException e) {
       throw new SQLException(
-        "Error al intentar tomar el numero de jugadores de la partida con Id=" + partidaID,
-        e);
+          "Error al intentar tomar el numero de jugadores de la partida con Id=" + partidaID, e);
     }
   }
 

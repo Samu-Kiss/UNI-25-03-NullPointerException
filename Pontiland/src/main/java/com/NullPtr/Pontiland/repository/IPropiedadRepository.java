@@ -2,7 +2,6 @@ package com.NullPtr.Pontiland.repository;
 
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.Propiedad;
-
 import java.sql.SQLException;
 import java.util.List;
 

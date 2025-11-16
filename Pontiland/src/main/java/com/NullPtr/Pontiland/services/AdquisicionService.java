@@ -43,8 +43,7 @@ public class AdquisicionService implements IAdquisicionService {
     try {
       jugadorPago = propiedadRepository.propiedadHasOwner(propiedadId);
     } catch (SQLException e) {
-      logger.error(
-          "Error al comprobar si la propiedad con Id={} tiene dueño", propiedadId, e);
+      logger.error("Error al comprobar si la propiedad con Id={} tiene dueño", propiedadId, e);
       return false;
     }
 
@@ -71,11 +70,10 @@ public class AdquisicionService implements IAdquisicionService {
 
       int precioNivel = 0;
       try {
-        precioNivel = propiedad.getRentaPorNivel()[propiedadRepository.getNivelPropiedad(propiedadId) - 1];
+        precioNivel =
+            propiedad.getRentaPorNivel()[propiedadRepository.getNivelPropiedad(propiedadId) - 1];
       } catch (SQLException e) {
-        logger.error("Error al obtener el nivel de la propiedad con ID={}",
-          propiedadId,
-          e);
+        logger.error("Error al obtener el nivel de la propiedad con ID={}", propiedadId, e);
       }
 
       logger.info("Precio nivel: {}", precioNivel);
@@ -144,9 +142,8 @@ public class AdquisicionService implements IAdquisicionService {
     try {
       ownerId = propiedadRepository.getOwnerIdByPropiedadId(propiedad.getIdPropiedad());
     } catch (SQLException e) {
-      logger.error("Error al obtener el dueño de la propiedad con Id={}",
-        propiedad.getIdPropiedad(),
-        e);
+      logger.error(
+          "Error al obtener el dueño de la propiedad con Id={}", propiedad.getIdPropiedad(), e);
     }
     if (ownerId != null) return null;
     return propiedad;
@@ -159,9 +156,7 @@ public class AdquisicionService implements IAdquisicionService {
     try {
       propiedad = propiedadRepository.getPropiedadByPosition(position);
     } catch (SQLException e) {
-      logger.error("Error al obtener la propiedad en la posición {}",
-        position,
-        e);
+      logger.error("Error al obtener la propiedad en la posición {}", position, e);
       return false;
     }
 
@@ -170,9 +165,8 @@ public class AdquisicionService implements IAdquisicionService {
     try {
       ownerId = propiedadRepository.getOwnerIdByPropiedadId(propiedad.getIdPropiedad());
     } catch (SQLException e) {
-      logger.error("Error al obtener el dueño de la propiedad con Id={}",
-        propiedad.getIdPropiedad(),
-        e);
+      logger.error(
+          "Error al obtener el dueño de la propiedad con Id={}", propiedad.getIdPropiedad(), e);
       return false;
     }
     if (ownerId != null) return false;

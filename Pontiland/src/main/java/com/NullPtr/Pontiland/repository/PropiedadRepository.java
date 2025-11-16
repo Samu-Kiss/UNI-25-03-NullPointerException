@@ -14,8 +14,8 @@ public class PropiedadRepository implements IPropiedadRepository {
   private long partidaID;
 
   /**
-   * Crea un repositorio de propiedades que usará el servicio de datos proporcionado
-   * para acceder a la base de datos.
+   * Crea un repositorio de propiedades que usará el servicio de datos proporcionado para acceder a
+   * la base de datos.
    *
    * @param dataService fábrica/servicio para obtener conexiones a la base de datos
    */
@@ -24,8 +24,8 @@ public class PropiedadRepository implements IPropiedadRepository {
   }
 
   /**
-   * Establece el identificador de la partida que se usará en las consultas que dependen
-   * del contexto de partida (por ejemplo, para filtrar jugadores y adquisiciones).
+   * Establece el identificador de la partida que se usará en las consultas que dependen del
+   * contexto de partida (por ejemplo, para filtrar jugadores y adquisiciones).
    *
    * @param partidaID id de la partida actual
    */
@@ -55,19 +55,20 @@ public class PropiedadRepository implements IPropiedadRepository {
         return rs.getInt("PropiedadID");
       }
     } catch (SQLException e) {
-      throw new SQLException("Error al intentar obtener el ID de la propiedad en la posición " + position, e);
+      throw new SQLException(
+          "Error al intentar obtener el ID de la propiedad en la posición " + position, e);
     }
   }
 
   /**
    * Recupera la información completa de una propiedad por su posición en el tablero.
    *
-   * <p>El método intenta determinar el nivel (NivelPropiedad) de la propiedad consultando
-   * si tiene dueño en la partida actual; si no tiene dueño se asume nivel = 1.
+   * <p>El método intenta determinar el nivel (NivelPropiedad) de la propiedad consultando si tiene
+   * dueño en la partida actual; si no tiene dueño se asume nivel = 1.
    *
    * @param position posición en el tablero (PosicionTablero)
-   * @return un objeto {@link Propiedad} con los datos de la casilla y la propiedad, o null si
-   *     no existe una propiedad en esa posición
+   * @return un objeto {@link Propiedad} con los datos de la casilla y la propiedad, o null si no
+   *     existe una propiedad en esa posición
    * @throws SQLException si ocurre un error al consultar la base de datos
    */
   @Override
@@ -107,7 +108,8 @@ public class PropiedadRepository implements IPropiedadRepository {
             });
       }
     } catch (SQLException e) {
-      throw new SQLException("Error al intentar obtener la propiedad en la posición " + position, e);
+      throw new SQLException(
+          "Error al intentar obtener la propiedad en la posición " + position, e);
     }
   }
 
@@ -145,7 +147,8 @@ public class PropiedadRepository implements IPropiedadRepository {
         }
       }
     } catch (SQLException e) {
-      throw new SQLException("Error al intentar verificar si la propiedad con id=" + propiedadID + " tiene dueño", e);
+      throw new SQLException(
+          "Error al intentar verificar si la propiedad con id=" + propiedadID + " tiene dueño", e);
     }
   }
 
@@ -175,7 +178,8 @@ public class PropiedadRepository implements IPropiedadRepository {
         return rs.getInt("NivelPropiedad");
       }
     } catch (SQLException e) {
-      throw new SQLException("Error al intentar obtener el nivel de la propiedad con id=" + propiedadID, e);
+      throw new SQLException(
+          "Error al intentar obtener el nivel de la propiedad con id=" + propiedadID, e);
     }
   }
 
@@ -240,7 +244,8 @@ public class PropiedadRepository implements IPropiedadRepository {
         return propiedades;
       }
     } catch (SQLException e) {
-      throw new SQLException("Error al intentar obtener las propiedades del jugador con id=" + jugadorID, e);
+      throw new SQLException(
+          "Error al intentar obtener las propiedades del jugador con id=" + jugadorID, e);
     }
   }
 
@@ -267,7 +272,8 @@ public class PropiedadRepository implements IPropiedadRepository {
         return rs.getString("NombreCasilla");
       }
     } catch (SQLException e) {
-      throw new SQLException("Error al intentar obtener el nombre de la propiedad con id=" + propiedadID, e);
+      throw new SQLException(
+          "Error al intentar obtener el nombre de la propiedad con id=" + propiedadID, e);
     }
   }
 

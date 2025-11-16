@@ -6,7 +6,6 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import com.NullPtr.Pontiland.repository.TarjetaEventoRepository;
-
 import java.sql.SQLException;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
@@ -160,8 +159,7 @@ public class CasillaService implements ICasillaService {
       return;
     }
 
-    List<Propiedad> propiedades =
-      null;
+    List<Propiedad> propiedades = null;
     try {
       propiedades = propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId());
     } catch (SQLException e) {

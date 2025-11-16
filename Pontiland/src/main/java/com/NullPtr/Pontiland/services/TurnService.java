@@ -174,14 +174,14 @@ public class TurnService implements ITurnService {
         if (dados[0] != null && dados[1] != null) {
           lastD1 = dados[0];
           lastD2 = dados[1];
-          pendingMovement = dados[0].intValue() + dados[1].intValue();
+          pendingMovement = datosToInt(dados[0]) + datosToInt(dados[1]);
           System.out.println(
-            "Dados lanzados: "
-              + lastD1
-              + " + "
-              + lastD2
-              + " = "
-              + (pendingMovement));
+              "Dados lanzados: "
+                  + datosToInt(dados[0])
+                  + " + "
+                  + datosToInt(dados[1])
+                  + " = "
+                  + (datosToInt(dados[0]) + datosToInt(dados[1])));
           dados[0] = null;
           dados[1] = null;
           state = TurnState.MOVING;
@@ -255,6 +255,10 @@ public class TurnService implements ITurnService {
         state = TurnState.AWAIT_ROLL;
         break;
     }
+  }
+
+  private int datosToInt(Byte b) {
+    return (b == null) ? 0 : b.intValue();
   }
 
   private void performCasillaInteraccion() {
