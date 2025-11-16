@@ -6,6 +6,8 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import com.NullPtr.Pontiland.repository.TarjetaEventoRepository;
+
+import java.sql.SQLException;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -159,7 +161,15 @@ public class CasillaService implements ICasillaService {
     }
 
     List<Propiedad> propiedades =
-        propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId());
+      null;
+    try {
+      propiedades = propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId());
+    } catch (SQLException e) {
+      logger.error("Error al obtener las propiedades del jugador {}", jugador.getJugadorId(), e);
+      hudController.updatePropertyTokens(new String[0]);
+      return;
+    }
+
     if (propiedades == null || propiedades.isEmpty()) {
       logger.debug("El jugador {} no tiene propiedades", jugador.getJugadorId());
       hudController.updatePropertyTokens(new String[0]);

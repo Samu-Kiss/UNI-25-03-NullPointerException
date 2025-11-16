@@ -37,7 +37,7 @@ public class PartidaRepository implements IPartidaRepository {
    * @return El identificador único de la partida creada.
    * @throws RuntimeException si ocurre un error de SQL durante la inserción.
    */
-  public long newPartida(int numJugadores) {
+  public long newPartida(int numJugadores) throws SQLException {
     LocalDateTime myDateObj = LocalDateTime.now();
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
     String formatted = myDateObj.format(formatter);
@@ -50,13 +50,13 @@ public class PartidaRepository implements IPartidaRepository {
       crearPartida.setInt(2, numJugadores);
       crearPartida.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al intentar crear una nueva partida", e);
     }
     return partidaID;
   }
 
   @Override
-  public int getNumJugadores() {
+  public int getNumJugadores() throws SQLException {
     String consulta = "SELECT NumeroJugadores FROM Partida WHERE PartidaID = ?";
     try (Connection conn = dataService.createConnection();
         PreparedStatement stmt = conn.prepareStatement(consulta)) {
@@ -65,12 +65,14 @@ public class PartidaRepository implements IPartidaRepository {
         if (rs.next()) {
           return rs.getInt("NumeroJugadores");
         } else {
-          throw new RuntimeException(
-              "No se encontró un jugador activo para la partida: " + partidaID);
+          throw new SQLException(
+              "No se encontro la partida con Id=" + partidaID);
         }
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException(
+        "Error al intentar tomar el numero de jugadores de la partida con Id=" + partidaID,
+        e);
     }
   }
 

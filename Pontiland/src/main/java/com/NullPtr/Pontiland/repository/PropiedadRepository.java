@@ -14,26 +14,36 @@ public class PropiedadRepository implements IPropiedadRepository {
   private long partidaID;
 
   /**
-   * Constructor de la clase PropiedadRepository
+   * Crea un repositorio de propiedades que usará el servicio de datos proporcionado
+   * para acceder a la base de datos.
    *
-   * @param dataService
+   * @param dataService fábrica/servicio para obtener conexiones a la base de datos
    */
   public PropiedadRepository(IDataService dataService) {
     this.dataService = dataService;
   }
 
+  /**
+   * Establece el identificador de la partida que se usará en las consultas que dependen
+   * del contexto de partida (por ejemplo, para filtrar jugadores y adquisiciones).
+   *
+   * @param partidaID id de la partida actual
+   */
   @Override
   public void setPartidaID(long partidaID) {
     this.partidaID = partidaID;
   }
 
   /**
-   * Obtiene el ID de la propiedad que esté en la casilla dada
+   * Obtiene el identificador de la propiedad que se encuentra en la posición del tablero indicada.
    *
-   * @param position Posición en el tablero
-   * @return
+   * <p>Si no existe una propiedad en esa posición devuelve -1.
+   *
+   * @param position posición en el tablero (PosicionTablero)
+   * @return el PropiedadID asociado a la posición, o -1 si no existe
+   * @throws SQLException si hay un error al ejecutar la consulta
    */
-  int getPropiedadIdByPosition(int position) {
+  int getPropiedadIdByPosition(int position) throws SQLException {
     String query = "SELECT PropiedadID FROM Propiedad WHERE PosicionTablero = ?";
     try (Connection conex = dataService.createConnection();
         PreparedStatement ps = conex.prepareStatement(query)) {
@@ -45,18 +55,23 @@ public class PropiedadRepository implements IPropiedadRepository {
         return rs.getInt("PropiedadID");
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al intentar obtener el ID de la propiedad en la posición " + position, e);
     }
   }
 
   /**
-   * Obtiene una propiedad por su posición en el tablero
+   * Recupera la información completa de una propiedad por su posición en el tablero.
    *
-   * @param position Posición en el tablero
-   * @return Objeto Propiedad o null si no existe
+   * <p>El método intenta determinar el nivel (NivelPropiedad) de la propiedad consultando
+   * si tiene dueño en la partida actual; si no tiene dueño se asume nivel = 1.
+   *
+   * @param position posición en el tablero (PosicionTablero)
+   * @return un objeto {@link Propiedad} con los datos de la casilla y la propiedad, o null si
+   *     no existe una propiedad en esa posición
+   * @throws SQLException si ocurre un error al consultar la base de datos
    */
   @Override
-  public Propiedad getPropiedadByPosition(int position) {
+  public Propiedad getPropiedadByPosition(int position) throws SQLException {
     int nivel = 1;
     int propiedadID = getPropiedadIdByPosition(position);
 
@@ -92,12 +107,20 @@ public class PropiedadRepository implements IPropiedadRepository {
             });
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al intentar obtener la propiedad en la posición " + position, e);
     }
   }
 
+  /**
+   * Comprueba si una propiedad (por su id) tiene un propietario en la partida actual.
+   *
+   * @param propiedadID id de la propiedad a consultar
+   * @return el {@link Jugador} que posee la propiedad en la partida actual, o null si no tiene
+   *     propietario
+   * @throws SQLException si ocurre un error al ejecutar la consulta
+   */
   @Override
-  public Jugador propiedadHasOwner(int propiedadID) {
+  public Jugador propiedadHasOwner(int propiedadID) throws SQLException {
     String query =
         "SELECT * "
             + "FROM Jugador "
@@ -122,12 +145,19 @@ public class PropiedadRepository implements IPropiedadRepository {
         }
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al intentar verificar si la propiedad con id=" + propiedadID + " tiene dueño", e);
     }
   }
 
+  /**
+   * Obtiene el nivel actual de una propiedad (NivelPropiedad) para la partida actual.
+   *
+   * @param propiedadID id de la propiedad
+   * @return el nivel de la propiedad (entero). Devuelve 0 si no se encuentra registro de nivel
+   * @throws SQLException si ocurre un error al consultar la base de datos
+   */
   @Override
-  public int getNivelPropiedad(int propiedadID) {
+  public int getNivelPropiedad(int propiedadID) throws SQLException {
     String query =
         "SELECT NivelPropiedad "
             + "FROM Adquisiciones "
@@ -145,12 +175,18 @@ public class PropiedadRepository implements IPropiedadRepository {
         return rs.getInt("NivelPropiedad");
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al intentar obtener el nivel de la propiedad con id=" + propiedadID, e);
     }
   }
 
+  /**
+   * Incrementa en 1 el nivel de la propiedad en la tabla Adquisiciones.
+   *
+   * @param propiedadID id de la propiedad cuyo nivel se incrementará
+   * @throws SQLException si ocurre un error al ejecutar la actualización
+   */
   @Override
-  public void incrementarNivelPropiedad(int propiedadID) {
+  public void incrementarNivelPropiedad(int propiedadID) throws SQLException {
     String update =
         "UPDATE Adquisiciones "
             + "SET NivelPropiedad = NivelPropiedad + 1 "
@@ -161,12 +197,19 @@ public class PropiedadRepository implements IPropiedadRepository {
       ps.setInt(1, propiedadID);
       ps.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al intentar incrementar el nivel de la propiedad", e);
     }
   }
 
+  /**
+   * Obtiene todas las propiedades asociadas a un jugador (por jugadorID).
+   *
+   * @param jugadorID id del jugador
+   * @return lista (posiblemente vacía) de {@link Propiedad} que posee el jugador
+   * @throws SQLException si ocurre un error al ejecutar la consulta
+   */
   @Override
-  public List<Propiedad> getPropiedadesByJugador(int jugadorID) {
+  public List<Propiedad> getPropiedadesByJugador(int jugadorID) throws SQLException {
     String query =
         "SELECT * "
             + "FROM Propiedad "
@@ -197,11 +240,18 @@ public class PropiedadRepository implements IPropiedadRepository {
         return propiedades;
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al intentar obtener las propiedades del jugador con id=" + jugadorID, e);
     }
   }
 
-  String getPropiedadNombreById(int propiedadID) {
+  /**
+   * Obtiene el nombre de la casilla asociada a una propiedad indicada por su id.
+   *
+   * @param propiedadID id de la propiedad
+   * @return el nombre de la casilla (NombreCasilla) o null si no existe
+   * @throws SQLException si ocurre un error al ejecutar la consulta
+   */
+  String getPropiedadNombreById(int propiedadID) throws SQLException {
     String query =
         "SELECT Casilla.NombreCasilla FROM Propiedad "
             + "INNER JOIN Casilla ON Propiedad.PosicionTablero = Casilla.PosicionTablero "
@@ -217,12 +267,19 @@ public class PropiedadRepository implements IPropiedadRepository {
         return rs.getString("NombreCasilla");
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al intentar obtener el nombre de la propiedad con id=" + propiedadID, e);
     }
   }
 
+  /**
+   * Devuelve el identificador del jugador que posee la propiedad indicada, si existe.
+   *
+   * @param propiedadId id de la propiedad
+   * @return el JugadorID del propietario, o null si no hay propietario registrado
+   * @throws SQLException si ocurre un error al consultar la base de datos
+   */
   @Override
-  public Integer getOwnerIdByPropiedadId(int propiedadId) {
+  public Integer getOwnerIdByPropiedadId(int propiedadId) throws SQLException {
     String query = "SELECT JugadorID FROM Adquisiciones WHERE PropiedadID = ?";
     try (Connection conex = dataService.createConnection();
         PreparedStatement ps = conex.prepareStatement(query)) {
@@ -234,12 +291,20 @@ public class PropiedadRepository implements IPropiedadRepository {
         return rs.getInt("JugadorID");
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al intentar obtener el dueño de la propiedad", e);
     }
   }
 
+  /**
+   * Inserta una nueva adquisición (vínculo propiedad-jugador con nivel) en la tabla Adquisiciones.
+   *
+   * @param jugadorId id del jugador comprador
+   * @param propiedadId id de la propiedad adquirida
+   * @param nivel nivel inicial de la propiedad en la adquisición
+   * @throws SQLException si ocurre un error al insertar el registro
+   */
   @Override
-  public void addAdquisicion(int jugadorId, int propiedadId, int nivel) {
+  public void addAdquisicion(int jugadorId, int propiedadId, int nivel) throws SQLException {
     String insert =
         "INSERT INTO Adquisiciones(JugadorID, PropiedadID, NivelPropiedad) VALUES(?, ?, ?)";
     try (Connection conex = dataService.createConnection();
@@ -249,7 +314,7 @@ public class PropiedadRepository implements IPropiedadRepository {
       ps.setInt(3, nivel);
       ps.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al intentar agregar la adquisición de la propiedad", e);
     }
   }
 }

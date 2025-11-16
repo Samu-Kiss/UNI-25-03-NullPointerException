@@ -3,6 +3,9 @@ package com.NullPtr.Pontiland.repository;
 import com.NullPtr.Pontiland.entities.Ficha;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.services.IDataService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -48,7 +51,7 @@ public class JugadorRepository implements IJugadorRepository {
       crearJugador.setLong(4, partidaID);
       crearJugador.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al insertar nuevo jugador: " + newPlayer.getNombreJugador(), e);
     }
   }
 
@@ -66,7 +69,9 @@ public class JugadorRepository implements IJugadorRepository {
       cambiarJugador.setLong(2, partidaID);
       cambiarJugador.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException(
+        "Error al cambiar el jugador activo a ID:" + nuevoID,
+        e);
     }
   }
 
@@ -89,6 +94,8 @@ public class JugadorRepository implements IJugadorRepository {
         } else {
           return -1;
         }
+      } catch (SQLException e) {
+        throw new SQLException("Error al obtener el jugador activo para la partida ID:" + partidaID, e);
       }
     }
   }
@@ -105,7 +112,9 @@ public class JugadorRepository implements IJugadorRepository {
       stmt.setLong(4, partidaID);
       stmt.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException(
+        "Error al enviar al jugador con ID {" + jugadorID + "} a la cárcel",
+        e);
     }
   }
 
@@ -129,10 +138,12 @@ public class JugadorRepository implements IJugadorRepository {
         if (rs.next()) {
           return rs.getInt("JugadorID");
         }
-        throw new RuntimeException("No se encontró el jugador con NumJugador: " + numJugador);
+        throw new SQLException("No se encontró el jugador con NumJugador:" + numJugador);
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException(
+        "Error obteniendo playerID por NumJugador:" + numJugador,
+        e);
     }
   }
 
@@ -156,11 +167,12 @@ public class JugadorRepository implements IJugadorRepository {
         if (rs.next()) {
           return rs.getInt("NumJugador");
         } else {
-          throw new RuntimeException("No se encontró el jugador con playerID: " + playerId);
+          throw new SQLException("No se encontró el jugador con playerID:" + playerId);
         }
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error obteniendo NumJugador por playerID:" + playerId,
+        e);
     }
   }
 
@@ -180,7 +192,9 @@ public class JugadorRepository implements IJugadorRepository {
       crearJugadorActivo.setLong(2, partidaID);
       crearJugadorActivo.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException(
+        "Error al insertar nuevo jugador activo con ID:" + jugadorID,
+        e);
     }
   }
 
@@ -206,20 +220,21 @@ public class JugadorRepository implements IJugadorRepository {
           throw new SQLException(
               "Jugador no encontrado (partida=" + partidaID + ", id=" + jugadorID + ")");
         }
-        Jugador jugador =
-            new Jugador(
-                rs.getInt("JugadorID"),
-                rs.getInt("NumJugador"),
-                rs.getString("NombreJugador"),
-                rs.getInt("IconoID"),
-                rs.getInt("Posicion"),
-                rs.getBoolean("Encarcelado"),
-                rs.getInt("Dinero"),
-                rs.getLong("Partida"));
-        return jugador;
+
+        return new Jugador(
+          rs.getInt("JugadorID"),
+          rs.getInt("NumJugador"),
+          rs.getString("NombreJugador"),
+          rs.getInt("IconoID"),
+          rs.getInt("Posicion"),
+          rs.getBoolean("Encarcelado"),
+          rs.getInt("Dinero"),
+          rs.getLong("Partida"));
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException(
+        "Error obteniendo el jugador con ID:" + jugadorID,
+        e);
     }
   }
 
@@ -233,11 +248,12 @@ public class JugadorRepository implements IJugadorRepository {
         if (rs.next()) {
           return rs.getInt("TotalJugadores");
         } else {
-          throw new RuntimeException("No se pudo obtener el conteo de jugadores.");
+          throw new SQLException(
+            "No se pudo obtener el conteo de jugadores para la partida ID:" + partidaID);
         }
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error obteniendo el conteo de jugadores", e);
     }
   }
 
@@ -267,7 +283,7 @@ public class JugadorRepository implements IJugadorRepository {
       }
       return fichas;
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error obteniendo las fichas de los jugadores", e);
     }
   }
 
@@ -281,7 +297,7 @@ public class JugadorRepository implements IJugadorRepository {
       stmt.setLong(3, partidaID);
       stmt.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al actualizar la posición del jugador", e);
     }
   }
 
@@ -295,7 +311,11 @@ public class JugadorRepository implements IJugadorRepository {
       stmt.setLong(3, partidaID);
       stmt.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al actualizar el dinero del jugador con id="
+        + jugadorID
+        + "y dinero="
+        + nuevoDinero,
+        e);
     }
   }
 
@@ -310,7 +330,7 @@ public class JugadorRepository implements IJugadorRepository {
       stmt.setLong(3, partidaID);
       stmt.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error updating player state", e);
     }
   }
 }

@@ -24,7 +24,13 @@ public class AdquisicionService implements IAdquisicionService {
   @Override
   public boolean comprarPropiedadPorPosicion(int position, Jugador jugador) {
 
-    Propiedad propiedad = propiedadRepository.getPropiedadByPosition(position);
+    Propiedad propiedad = null;
+    try {
+      propiedad = propiedadRepository.getPropiedadByPosition(position);
+    } catch (SQLException e) {
+      logger.error("Error al obtener la propiedad en la posición {}", position, e);
+      return false;
+    }
 
     int propiedadId = propiedad.getIdPropiedad();
     int precio = propiedad.getPrecioCompra();
@@ -33,11 +39,23 @@ public class AdquisicionService implements IAdquisicionService {
       return false;
     }
 
-    Jugador jugadorPago = propiedadRepository.propiedadHasOwner(propiedadId);
+    Jugador jugadorPago = null;
+    try {
+      jugadorPago = propiedadRepository.propiedadHasOwner(propiedadId);
+    } catch (SQLException e) {
+      logger.error(
+          "Error al comprobar si la propiedad con Id={} tiene dueño", propiedadId, e);
+      return false;
+    }
 
     if (jugadorPago == null) {
-      propiedadRepository.addAdquisicion(
-          jugador.getJugadorId(), propiedadId, propiedad.getNivelPropiedad());
+      try {
+        propiedadRepository.addAdquisicion(
+            jugador.getJugadorId(), propiedadId, propiedad.getNivelPropiedad());
+      } catch (SQLException e) {
+        logger.error("Error al añadir la adquisición de la propiedad con Id={}", propiedadId, e);
+        return false;
+      }
       int nuevoDinero = jugador.getDinero() - precio;
       jugador.setDinero(nuevoDinero);
 
@@ -51,8 +69,14 @@ public class AdquisicionService implements IAdquisicionService {
     } else {
       logger.info("Jugador pago: {}", jugadorPago.getDinero());
 
-      int precioNivel =
-          propiedad.getRentaPorNivel()[propiedadRepository.getNivelPropiedad(propiedadId) - 1];
+      int precioNivel = 0;
+      try {
+        precioNivel = propiedad.getRentaPorNivel()[propiedadRepository.getNivelPropiedad(propiedadId) - 1];
+      } catch (SQLException e) {
+        logger.error("Error al obtener el nivel de la propiedad con ID={}",
+          propiedadId,
+          e);
+      }
 
       logger.info("Precio nivel: {}", precioNivel);
 
@@ -88,7 +112,6 @@ public class AdquisicionService implements IAdquisicionService {
         logger.info(
             "Dinero jugador pagado: {}",
             jugadorRepository.getJugadorByID(jugadorPago.getJugadorId()).getDinero());
-
       } catch (SQLException e) {
         logger.error(
             "Error al actualizar de alguno de los jugadores con ID= {} - {}",
@@ -97,7 +120,11 @@ public class AdquisicionService implements IAdquisicionService {
             e);
       }
 
-      propiedadRepository.incrementarNivelPropiedad(propiedadId);
+      try {
+        propiedadRepository.incrementarNivelPropiedad(propiedadId);
+      } catch (SQLException e) {
+        logger.error("No se pudo incrementar el nivel de la propiedad con ID={}", propiedadId, e);
+      }
     }
 
     return true;
@@ -105,9 +132,22 @@ public class AdquisicionService implements IAdquisicionService {
 
   @Override
   public Propiedad prepararSubasta(int position) {
-    Propiedad propiedad = propiedadRepository.getPropiedadByPosition(position);
+    Propiedad propiedad = null;
+    try {
+      propiedad = propiedadRepository.getPropiedadByPosition(position);
+    } catch (SQLException e) {
+      logger.error("Error al obtener la propiedad en la posición {}", position, e);
+      return null;
+    }
     if (propiedad == null) return null;
-    Integer ownerId = propiedadRepository.getOwnerIdByPropiedadId(propiedad.getIdPropiedad());
+    Integer ownerId = null;
+    try {
+      ownerId = propiedadRepository.getOwnerIdByPropiedadId(propiedad.getIdPropiedad());
+    } catch (SQLException e) {
+      logger.error("Error al obtener el dueño de la propiedad con Id={}",
+        propiedad.getIdPropiedad(),
+        e);
+    }
     if (ownerId != null) return null;
     return propiedad;
   }
@@ -115,10 +155,28 @@ public class AdquisicionService implements IAdquisicionService {
   @Override
   public boolean comprarPropiedadEnSubasta(int position, Jugador jugador, int precioFinal) {
     if (precioFinal < 0) return false;
-    Propiedad propiedad = propiedadRepository.getPropiedadByPosition(position);
+    Propiedad propiedad = null;
+    try {
+      propiedad = propiedadRepository.getPropiedadByPosition(position);
+    } catch (SQLException e) {
+      logger.error("Error al obtener la propiedad en la posición {}",
+        position,
+        e);
+      return false;
+    }
+
     if (propiedad == null) return false;
-    Integer ownerId = propiedadRepository.getOwnerIdByPropiedadId(propiedad.getIdPropiedad());
+    Integer ownerId = null;
+    try {
+      ownerId = propiedadRepository.getOwnerIdByPropiedadId(propiedad.getIdPropiedad());
+    } catch (SQLException e) {
+      logger.error("Error al obtener el dueño de la propiedad con Id={}",
+        propiedad.getIdPropiedad(),
+        e);
+      return false;
+    }
     if (ownerId != null) return false;
+
     try {
       int saldoDb = jugadorRepository.getJugadorByID(jugador.getJugadorId()).getDinero();
       if (saldoDb < precioFinal) return false;
