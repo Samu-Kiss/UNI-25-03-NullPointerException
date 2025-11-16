@@ -8,6 +8,8 @@ import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import com.NullPtr.Pontiland.view.IScene;
 import java.sql.SQLException;
 import java.util.Arrays;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TurnService implements ITurnService {
   private IJugadorRepository jugadorRepository;
@@ -20,6 +22,7 @@ public class TurnService implements ITurnService {
   private boolean terminarTurno = false;
   private int tiradas = 1;
   private ISubastaService subastaService;
+  private static Logger logger = LogManager.getLogger(CasillaService.class);
 
   private enum TurnState {
     AWAIT_ROLL,
@@ -88,11 +91,10 @@ public class TurnService implements ITurnService {
         int nuevoDinero = jugadorActual.getDinero() + 200;
         jugadorActual.setDinero(nuevoDinero);
         jugadorRepository.updateDinero(jugadorActual.getJugadorId(), nuevoDinero);
-        System.out.println(
-            "El jugador "
-                + jugadorActual.getJugadorId()
-                + " pasa por la salida y cobra 200. Dinero actual: "
-                + nuevoDinero);
+        logger.info(
+            "El jugador {} pasa por la salida y cobra 200. Dinero actual: {}",
+            jugadorActual.getJugadorId(),
+            nuevoDinero);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -151,7 +153,6 @@ public class TurnService implements ITurnService {
   @Override
   public void update() {
     if (!enabled) return;
-
     try {
       gameFSM();
     } catch (Exception e) {
@@ -165,22 +166,14 @@ public class TurnService implements ITurnService {
       case AWAIT_ROLL:
         terminarTurno = false;
         lanzamientoDoble = false;
-        if (scene != null) scene.resetCamera();
+        scene.resetCamera();
 
         Byte[] dados = diceService.getResultados();
-        if (dados == null) return;
 
         if (dados[0] != null && dados[1] != null) {
           lastD1 = dados[0];
           lastD2 = dados[1];
-          pendingMovement = datosToInt(dados[0]) + datosToInt(dados[1]);
-          System.out.println(
-              "Dados lanzados: "
-                  + datosToInt(dados[0])
-                  + " + "
-                  + datosToInt(dados[1])
-                  + " = "
-                  + (datosToInt(dados[0]) + datosToInt(dados[1])));
+          pendingMovement = dados[0] + dados[1];
           dados[0] = null;
           dados[1] = null;
           state = TurnState.MOVING;
@@ -189,10 +182,8 @@ public class TurnService implements ITurnService {
 
       case MOVING:
         updateHUDAndTokens();
-        if (pendingMovement > 0) {
-          movePlayer(pendingMovement);
-          pendingMovement = 0;
-        }
+        movePlayer(pendingMovement);
+        pendingMovement = 0;
 
         if (!diceService.getCanInteract()) {
           return;
@@ -202,8 +193,7 @@ public class TurnService implements ITurnService {
         break;
 
       case INTERACT:
-        boolean esDoble = lastD1 != null && lastD1.equals(lastD2);
-        if (esDoble) {
+        if (lastD1.equals(lastD2)) {
           if (tiradas >= 3) {
             System.out.println("3 dobles seguidos, vas a la cárcel!");
             lastD1 = null;
@@ -290,10 +280,6 @@ public class TurnService implements ITurnService {
     } catch (SQLException e) {
       System.out.println("Error actualizando property tokens: " + e.getMessage());
     }
-  }
-
-  private int datosToInt(Byte b) {
-    return (b == null) ? 0 : b.intValue();
   }
 
   @Override

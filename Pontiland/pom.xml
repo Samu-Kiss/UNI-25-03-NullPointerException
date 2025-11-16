@@ -18,6 +18,8 @@
     <checkstyle.version>10.18.2</checkstyle.version>
     <spotbugs.plugin.version>4.9.8.1</spotbugs.plugin.version>
     <junit.jupiter.version>5.10.2</junit.jupiter.version>
+    <sonar.organization>samu-kiss</sonar.organization>
+    <sonar.projectKey>Samu-Kiss_UNI-25-03-NullPointerException</sonar.projectKey>
   </properties>
 
   <dependencies>
@@ -185,14 +187,14 @@
             </goals>
             <phase>verify</phase>
             <configuration>
-              <failOnError>false</failOnError>
+              <failOnError>true</failOnError>
               <effort>Max</effort>
               <threshold>Low</threshold>
               <xmlOutput>true</xmlOutput>
               <htmlOutput>false</htmlOutput>
               <excludeFilterFile>${project.basedir}/config/spotbugs/spotbugs-ignore.xml</excludeFilterFile>
               <includeFilterFile>${project.basedir}/config/spotbugs/spotbugs-enforce.xml</includeFilterFile>
-              <spotbugsXmlOutputFilename>spotbugs-enforce.xml</spotbugsXmlOutputFilename>
+              <spotbugsXmlOutputFilename>spotbugs-report-enforce.xml</spotbugsXmlOutputFilename>
             </configuration>
           </execution>
           <execution>
@@ -241,6 +243,11 @@
             <phase>verify</phase>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+        <version>5.1.0.4751</version>
       </plugin>
     </plugins>
   </build>

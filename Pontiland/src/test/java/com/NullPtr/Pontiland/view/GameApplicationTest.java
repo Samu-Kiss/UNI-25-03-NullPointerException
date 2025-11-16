@@ -1,3 +1,14 @@
 package com.NullPtr.Pontiland.view;
 
-public class GameApplicationTest {}
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+
+public class GameApplicationTest {
+
+  @Test
+  void placeholderTest() {
+    // Test placeholder — sirve como plantilla para futuros tests
+    assertTrue(true, "Este test placeholder debe pasar siempre");
+  }
+}
