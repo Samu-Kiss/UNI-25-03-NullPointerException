@@ -245,7 +245,7 @@ jobs:
         if: always()
         with:
           name: jacoco-report
-          path: Pontiland/target/site/jacoco/jacoco.xml
+          path: Pontiland/target/site/jacoco/
 
       - name: Read artifact file
         run: cat /home/runner/work/UNI-25-03-NullPointerException/UNI-25-03-NullPointerException/Pontiland/target/site/jacoco/jacoco.xml
