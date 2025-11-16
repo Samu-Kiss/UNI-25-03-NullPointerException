@@ -247,6 +247,9 @@ jobs:
           name: jacoco-report
           path: Pontiland/target/site/jacoco/jacoco.xml
 
+      - name: Read artifact file
+        run: cat Pontiland/target/site/jacoco/jacoco.xml
+
       #- name: Checkout del repositorio
       #  uses: actions/checkout@v5
 
