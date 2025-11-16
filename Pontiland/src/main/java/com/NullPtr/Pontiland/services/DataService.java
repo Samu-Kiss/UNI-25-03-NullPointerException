@@ -2,9 +2,6 @@ package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.utils.PropertiesReader;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +12,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DataService implements IDataService {
   String url;
@@ -65,10 +64,11 @@ public class DataService implements IDataService {
    */
   public Connection createConnection() {
     try {
-      //TODO: cambiar usuario y contrasena (Lo pide sonarqube)
+      // TODO: cambiar usuario y contrasena (Lo pide sonarqube)
       return DriverManager.getConnection(url, "sa", "");
     } catch (SQLException e) {
-      logger.fatal("DataService.createConnection: Error FATAL al crear la conexión a la base de datos", e);
+      logger.fatal(
+          "DataService.createConnection: Error FATAL al crear la conexión a la base de datos", e);
     }
     return null;
   }
@@ -88,11 +88,14 @@ public class DataService implements IDataService {
         InputStream ddlIn = this.getClass().getResourceAsStream(ddlResource);
         InputStream insIn = this.getClass().getResourceAsStream(insResource)) {
 
-
-      logger.info("DataService.newDataBase: ddlResource='{}' insResource='{}'", ddlResource, insResource);
+      logger.info(
+          "DataService.newDataBase: ddlResource='{}' insResource='{}'", ddlResource, insResource);
 
       if (ddlIn == null || insIn == null) {
-        logger.error ("DataService.newDataBase: FAILED to load DDL or INSERT resources. ddlIn={} insIn={}", (ddlIn == null), (insIn == null));
+        logger.error(
+            "DataService.newDataBase: FAILED to load DDL or INSERT resources. ddlIn={} insIn={}",
+            (ddlIn == null),
+            (insIn == null));
         logger.fatal("DataService.newDataBase: No se pudieron cargar los recursos DDL/INSERTS");
       }
 
@@ -154,7 +157,9 @@ public class DataService implements IDataService {
     File[] archivos = scriptsPartidas.listFiles();
 
     if (archivos == null || archivos.length == 0) {
-      logger.error("No se encontraron archivos de partidas pasadas en la carpeta: {}", scriptsPartidas.getAbsolutePath());
+      logger.error(
+          "No se encontraron archivos de partidas pasadas en la carpeta: {}",
+          scriptsPartidas.getAbsolutePath());
     }
 
     for (File archivo : archivos) {

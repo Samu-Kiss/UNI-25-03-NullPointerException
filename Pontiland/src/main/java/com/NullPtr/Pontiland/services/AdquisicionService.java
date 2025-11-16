@@ -4,10 +4,9 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
+import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.sql.SQLException;
 
 public class AdquisicionService implements IAdquisicionService {
   private final IPropiedadRepository propiedadRepository;
@@ -45,7 +44,8 @@ public class AdquisicionService implements IAdquisicionService {
       try {
         jugadorRepository.updateDinero(jugador.getJugadorId(), nuevoDinero);
       } catch (SQLException e) {
-        logger.error("Error al actualizar el dinero del jugador con Id={}", jugador.getJugadorId(), e);
+        logger.error(
+            "Error al actualizar el dinero del jugador con Id={}", jugador.getJugadorId(), e);
       }
 
     } else {
@@ -57,10 +57,17 @@ public class AdquisicionService implements IAdquisicionService {
       logger.info("Precio nivel: {}", precioNivel);
 
       try {
-        logger.debug("Dinero actual jugador a pagar: {}", jugadorRepository.getJugadorByID(jugador.getJugadorId()).getDinero());
-        logger.debug("Dinero actual jugador pagado: {}", jugadorRepository.getJugadorByID(jugadorPago.getJugadorId()).getDinero());
+        logger.debug(
+            "Dinero actual jugador a pagar: {}",
+            jugadorRepository.getJugadorByID(jugador.getJugadorId()).getDinero());
+        logger.debug(
+            "Dinero actual jugador pagado: {}",
+            jugadorRepository.getJugadorByID(jugadorPago.getJugadorId()).getDinero());
       } catch (SQLException e) {
-        logger.error("Error al recuperar los datos de los jugadores con id={} e id={}", jugador.getJugadorId(), jugadorPago.getJugadorId());
+        logger.error(
+            "Error al recuperar los datos de los jugadores con id={} e id={}",
+            jugador.getJugadorId(),
+            jugadorPago.getJugadorId());
       }
 
       try {
@@ -68,15 +75,26 @@ public class AdquisicionService implements IAdquisicionService {
         jugadorRepository.updateDinero(
             jugadorPago.getJugadorId(), jugadorPago.getDinero() + precioNivel);
       } catch (SQLException e) {
-        logger.error("Hubo un problema al actualizar el dinero del jugador con ID={}",jugador.getJugadorId(), e);
+        logger.error(
+            "Hubo un problema al actualizar el dinero del jugador con ID={}",
+            jugador.getJugadorId(),
+            e);
       }
 
       try {
-        logger.info("Dinero jugador a pagar: {}", jugadorRepository.getJugadorByID(jugador.getJugadorId()).getDinero());
-        logger.info("Dinero jugador pagado: {}", jugadorRepository.getJugadorByID(jugadorPago.getJugadorId()).getDinero());
+        logger.info(
+            "Dinero jugador a pagar: {}",
+            jugadorRepository.getJugadorByID(jugador.getJugadorId()).getDinero());
+        logger.info(
+            "Dinero jugador pagado: {}",
+            jugadorRepository.getJugadorByID(jugadorPago.getJugadorId()).getDinero());
 
       } catch (SQLException e) {
-        logger.error("Error al actualizar de alguno de los jugadores con ID= {} - {}", jugador.getJugadorId(), jugadorPago.getNombreJugador(), e);
+        logger.error(
+            "Error al actualizar de alguno de los jugadores con ID= {} - {}",
+            jugador.getJugadorId(),
+            jugadorPago.getNombreJugador(),
+            e);
       }
 
       propiedadRepository.incrementarNivelPropiedad(propiedadId);
@@ -111,7 +129,11 @@ public class AdquisicionService implements IAdquisicionService {
           jugador.getJugadorId(), propiedad.getIdPropiedad(), propiedad.getNivelPropiedad());
       return true;
     } catch (SQLException e) {
-      logger.error("No se pudo obtener el jugador con ID={} o no se pudo actualizar el jugador{}", jugador.getJugadorId(), jugador.getNombreJugador(), e);
+      logger.error(
+          "No se pudo obtener el jugador con ID={} o no se pudo actualizar el jugador{}",
+          jugador.getJugadorId(),
+          jugador.getNombreJugador(),
+          e);
     }
     return false;
   }
