@@ -64,7 +64,7 @@ public class FichaController {
       Vector3f initialOffset = placed.subtract(cell0);
       s.setUserData("initialOffset", initialOffset);
 
-      cellIndex = 0 ;
+      cellIndex = 0;
 
       RigidBodyControl rb = new RigidBodyControl(1f);
       s.addControl(rb);
@@ -152,8 +152,8 @@ public class FichaController {
         break;
 
       default:
-          cellSize = 0.0f;
-          break;
+        cellSize = 0.0f;
+        break;
     }
 
     return new Vector3f(boardFirstPosition.x + x, boardFirstPosition.y, boardFirstPosition.z + z);

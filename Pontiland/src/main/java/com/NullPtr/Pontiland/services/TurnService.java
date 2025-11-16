@@ -91,9 +91,10 @@ public class TurnService implements ITurnService {
         int nuevoDinero = jugadorActual.getDinero() + 200;
         jugadorActual.setDinero(nuevoDinero);
         jugadorRepository.updateDinero(jugadorActual.getJugadorId(), nuevoDinero);
-          logger.info("El jugador {} pasa por la salida y cobra 200. Dinero actual: {}",
-                jugadorActual.getJugadorId(),
-                nuevoDinero);
+        logger.info(
+            "El jugador {} pasa por la salida y cobra 200. Dinero actual: {}",
+            jugadorActual.getJugadorId(),
+            nuevoDinero);
       }
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -280,7 +281,6 @@ public class TurnService implements ITurnService {
       System.out.println("Error actualizando property tokens: " + e.getMessage());
     }
   }
-
 
   @Override
   public void buyProperty() {}

@@ -82,7 +82,7 @@ public class PropertyToken {
       String propNum = parts.length > 0 ? parts[0] : "?";
       String nivel = parts.length > 1 ? parts[1] : "?";
       int groupIdx = 1;
-        if (parts.length > 2) groupIdx = Integer.parseInt(parts[2]);
+      if (parts.length > 2) groupIdx = Integer.parseInt(parts[2]);
 
       Container tokenBox = new Container();
       tokenBox.setInsets(new Insets3f(6, 10, 6, 10));
@@ -93,19 +93,18 @@ public class PropertyToken {
               + Math.max(1, Math.min(8, groupIdx))
               + ".png";
 
-        TextureKey key = new TextureKey(path, true);
-        key.setGenerateMips(false);
-        Texture2D tex = (Texture2D) assets.loadTexture(key);
-        tex.setWrap(Texture.WrapMode.EdgeClamp);
-        tex.setMagFilter(Texture.MagFilter.Bilinear);
-        tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+      TextureKey key = new TextureKey(path, true);
+      key.setGenerateMips(false);
+      Texture2D tex = (Texture2D) assets.loadTexture(key);
+      tex.setWrap(Texture.WrapMode.EdgeClamp);
+      tex.setMagFilter(Texture.MagFilter.Bilinear);
+      tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
 
-        tokenBox.setBackground(new QuadBackgroundComponent(tex));
+      tokenBox.setBackground(new QuadBackgroundComponent(tex));
 
-        int w = tex.getImage().getWidth();
-        int h = tex.getImage().getHeight();
-        tokenBox.setPreferredSize(new Vector3f(w * SPRITE_SCALE, h * SPRITE_SCALE, 0));
-
+      int w = tex.getImage().getWidth();
+      int h = tex.getImage().getHeight();
+      tokenBox.setPreferredSize(new Vector3f(w * SPRITE_SCALE, h * SPRITE_SCALE, 0));
 
       // Create label and set contrast color based on the token's group
       Label lbl = tokenBox.addChild(new Label("\n#" + propNum + "\nNv. " + nivel));
