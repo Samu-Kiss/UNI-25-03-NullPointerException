@@ -82,11 +82,7 @@ public class PropertyToken {
       String propNum = parts.length > 0 ? parts[0] : "?";
       String nivel = parts.length > 1 ? parts[1] : "?";
       int groupIdx = 1;
-      try {
         if (parts.length > 2) groupIdx = Integer.parseInt(parts[2]);
-      } catch (NumberFormatException e) {
-        // keep default groupIdx = 1; no need to reassign
-      }
 
       Container tokenBox = new Container();
       tokenBox.setInsets(new Insets3f(6, 10, 6, 10));
@@ -96,7 +92,7 @@ public class PropertyToken {
           "graphics/sprites/HUD/Propery_Tokens/Group_"
               + Math.max(1, Math.min(8, groupIdx))
               + ".png";
-      try {
+
         TextureKey key = new TextureKey(path, true);
         key.setGenerateMips(false);
         Texture2D tex = (Texture2D) assets.loadTexture(key);
@@ -109,11 +105,7 @@ public class PropertyToken {
         int w = tex.getImage().getWidth();
         int h = tex.getImage().getHeight();
         tokenBox.setPreferredSize(new Vector3f(w * SPRITE_SCALE, h * SPRITE_SCALE, 0));
-      } catch (Exception e) {
-        // fallback color background
-        tokenBox.setBackground(
-            new QuadBackgroundComponent(new ColorRGBA(0.12f, 0.14f, 0.18f, 0.95f)));
-      }
+
 
       // Create label and set contrast color based on the token's group
       Label lbl = tokenBox.addChild(new Label("\n#" + propNum + "\nNv. " + nivel));
