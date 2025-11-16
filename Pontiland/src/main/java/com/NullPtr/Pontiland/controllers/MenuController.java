@@ -15,6 +15,8 @@ import com.jme3.app.state.AppStateManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Controlador central para manejar la navegación de menús y el inicio del juego.
@@ -42,6 +44,9 @@ public class MenuController implements IMenuActions {
 
   // Turn service to enable the loop when a game is created
   private final ITurnService turnService;
+
+  // Logger
+  private static Logger logger = LogManager.getLogger(MenuController.class);
 
   public MenuController(
       Launcher app,
@@ -133,12 +138,13 @@ public class MenuController implements IMenuActions {
     this.selectedPlayerCount = playerCount;
     this.gameStarted = true;
 
-    System.out.println("[Pontiland] Jugadores seleccionados: " + jugadores.size());
+    logger.info("Iniciando nueva partida con {} jugadores", jugadores.size());
     for (int i = 0; i < jugadores.size(); i++) {
       Jugador j = jugadores.get(i);
       Integer pid = personajeIds.size() > i ? personajeIds.get(i) : -1;
-      System.out.println(
-          "  - J" + j.getJugadorId() + " nombre='" + j.getNombreJugador() + "' personajeId=" + pid);
+
+      logger.info(
+          "  - J{} nombre='{}' personajeId={}", j.getJugadorId(), j.getNombreJugador(), pid);
     }
 
     startGameService.creatingNewGame(jugadores, personajeIds);
@@ -161,7 +167,7 @@ public class MenuController implements IMenuActions {
     for (Jugador j : jugadores) names.add(j.getNombreJugador());
     if (hudController != null) hudController.setPlayerNames(names);
 
-    System.out.println("Juego iniciado con " + playerCount + " jugadores");
+    logger.info("Juego iniciado con: {} jugadores", playerCount);
   }
 
   /** Abre el menú de carga with datos de demo. */
@@ -175,7 +181,7 @@ public class MenuController implements IMenuActions {
     showLoadMenu(
         saves,
         (String id) -> {
-          System.out.println("[Pontiland] Seleccionado guardado: " + id);
+          logger.info("Cargando partida guardada con ID: {}", id);
           dataService.loadDataBase(id);
 
           detachIfAttached(menuPrincipal);
