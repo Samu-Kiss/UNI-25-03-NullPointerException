@@ -21,21 +21,26 @@ public class PartidaRepository implements IPartidaRepository {
   long partidaID;
 
   /**
-   * Constructor que permite la inyección del servicio de datos.
+   * Crea una nueva instancia de {@code PartidaRepository} con el servicio de datos especificado.
    *
-   * @param dataService Servicio de datos utilizado para la conexión a la base de datos.
+   * @param dataService Servicio de datos utilizado para abrir conexiones y ejecutar sentencias SQL.
    */
   public PartidaRepository(IDataService dataService) {
     this.dataService = dataService;
   }
 
   /**
-   * Crea una nueva partida en la base de datos con el número de jugadores especificado. Genera un
-   * identificador único basado en la fecha y hora actual.
+   * Crea e inserta una nueva partida en la base de datos.
    *
-   * @param numJugadores Número de jugadores que participarán en la partida.
-   * @return El identificador único de la partida creada.
-   * @throws RuntimeException si ocurre un error de SQL durante la inserción.
+   * <p>Genera un identificador de partida único basado en la fecha y hora actual con el patrón
+   * {@code yyyyMMddHHmmss} y lo inserta en la tabla {@code PARTIDA} junto con el número de
+   * jugadores.
+   *
+   * @param numJugadores el número de jugadores que participarán en la partida (debe ser mayor que
+   *     cero según las reglas del dominio).
+   * @return el identificador (PartidaID) generado para la nueva partida.
+   * @throws SQLException si ocurre cualquier error al abrir la conexión o ejecutar la sentencia
+   *     SQL.
    */
   public long newPartida(int numJugadores) throws SQLException {
     LocalDateTime myDateObj = LocalDateTime.now();
@@ -56,6 +61,14 @@ public class PartidaRepository implements IPartidaRepository {
   }
 
   @Override
+  /**
+   * Obtiene el número de jugadores asociado a la partida actualmente referenciada por {@code
+   * partidaID} consultando la tabla {@code Partida}.
+   *
+   * @return el número de jugadores de la partida.
+   * @throws SQLException si no existe una partida con el {@code partidaID} actual o si ocurre un
+   *     error al consultar la base de datos.
+   */
   public int getNumJugadores() throws SQLException {
     String consulta = "SELECT NumeroJugadores FROM Partida WHERE PartidaID = ?";
     try (Connection conn = dataService.createConnection();
@@ -74,11 +87,28 @@ public class PartidaRepository implements IPartidaRepository {
     }
   }
 
+  /**
+   * Devuelve la instancia de {@link IDataService} que proporciona las conexiones a la base de
+   * datos.
+   *
+   * <p>Útil para pruebas unitarias o cuando se necesita acceder al servicio de datos desde fuera
+   * del repositorio.
+   *
+   * @return la instancia de {@code IDataService} inyectada en este repositorio.
+   */
   public IDataService getDataService() {
     return dataService;
   }
 
   @Override
+  /**
+   * Obtiene el identificador de la partida actualmente almacenado en este repositorio.
+   *
+   * <p>El valor se establece al llamar a {@link #newPartida(int)}. Si no se ha creado ninguna
+   * partida todavía, el valor por defecto es {@code 0}.
+   *
+   * @return el {@code partidaID} actual o {@code 0} si aún no se ha generado ninguno.
+   */
   public long getPartidaID() {
     return partidaID;
   }
