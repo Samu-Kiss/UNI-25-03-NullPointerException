@@ -8,14 +8,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
- * Test unitario para la clase {@link Jugador}.
- * Se prueban constructores, getters, setters y validaciones de argumentos inválidos.
+ * Test unitario para la clase {@link Jugador}. Se prueban constructores, getters, setters y
+ * validaciones de argumentos inválidos.
  */
 class JugadorTest {
 
-  /**
-   * Verifica el constructor completo con lista de propiedades.
-   */
+  /** Verifica el constructor completo con lista de propiedades. */
   @Test
   void fullConstructorWithPropertiesTest() {
     Propiedad mockProp = Mockito.mock(Propiedad.class);
@@ -32,9 +30,7 @@ class JugadorTest {
     assertEquals(props, jugador.getPropiedades());
   }
 
-  /**
-   * Verifica el constructor por defecto.
-   */
+  /** Verifica el constructor por defecto. */
   @Test
   void defaultConstructorTest() {
     Jugador jugador = new Jugador(1000, "Pontiland", 2);
@@ -48,9 +44,7 @@ class JugadorTest {
     assertTrue(jugador.getPropiedades().isEmpty());
   }
 
-  /**
-   * Verifica el constructor completo con todos los parámetros.
-   */
+  /** Verifica el constructor completo con todos los parámetros. */
   @Test
   void fullConstructorAllParamsTest() {
     Jugador jugador = new Jugador(3, 2, "Caramelo", 1, 10, true, 500, 123L);
@@ -64,9 +58,7 @@ class JugadorTest {
     assertEquals(123L, jugador.getPartida());
   }
 
-  /**
-   * Verifica setters y getters con valores válidos.
-   */
+  /** Verifica setters y getters con valores válidos. */
   @Test
   void settersAndGettersTest() {
     Jugador jugador = new Jugador(500, "Fantasma", 1);
@@ -89,9 +81,7 @@ class JugadorTest {
     assertEquals(props, jugador.getPropiedades());
   }
 
-  /**
-   * Verifica que los constructores y setters lancen excepciones con argumentos inválidos.
-   */
+  /** Verifica que los constructores y setters lancen excepciones con argumentos inválidos. */
   @Test
   void invalidArgumentsTest() {
     // Constructor por defecto inválido
@@ -100,24 +90,24 @@ class JugadorTest {
     assertThrows(IllegalArgumentException.class, () -> new Jugador(100, "Nombre", 5));
 
     // Constructor completo inválido
-    assertThrows(IllegalArgumentException.class,
-            () -> new Jugador(1, 2, "", 1, 10, false, 100, 100L));
-    assertThrows(IllegalArgumentException.class,
-            () -> new Jugador(1, 0, "Nombre", 1, 10, false, 100, 100L));
-    assertThrows(IllegalArgumentException.class,
-            () -> new Jugador(1, 5, "Nombre", 1, 10, false, 100, 100L));
-    assertThrows(IllegalArgumentException.class,
-            () -> new Jugador(1, 2, "Nombre", 0, 10, false, 100, 100L));
-    assertThrows(IllegalArgumentException.class,
-            () -> new Jugador(1, 2, "Nombre", 8, 10, false, 100, 100L));
-    assertThrows(IllegalArgumentException.class,
-            () -> new Jugador(1, 2, "Nombre", 1, 0, false, 100, 100L));
-    assertThrows(IllegalArgumentException.class,
-            () -> new Jugador(1, 2, "Nombre", 1, 41, false, 100, 100L));
-    assertThrows(IllegalArgumentException.class,
-            () -> new Jugador(1, 2, "Nombre", 1, 10, false, -1, 100L));
-    assertThrows(IllegalArgumentException.class,
-            () -> new Jugador(1, 2, "Nombre", 1, 10, false, 100, -1L));
+    assertThrows(
+        IllegalArgumentException.class, () -> new Jugador(1, 2, "", 1, 10, false, 100, 100L));
+    assertThrows(
+        IllegalArgumentException.class, () -> new Jugador(1, 0, "Nombre", 1, 10, false, 100, 100L));
+    assertThrows(
+        IllegalArgumentException.class, () -> new Jugador(1, 5, "Nombre", 1, 10, false, 100, 100L));
+    assertThrows(
+        IllegalArgumentException.class, () -> new Jugador(1, 2, "Nombre", 0, 10, false, 100, 100L));
+    assertThrows(
+        IllegalArgumentException.class, () -> new Jugador(1, 2, "Nombre", 8, 10, false, 100, 100L));
+    assertThrows(
+        IllegalArgumentException.class, () -> new Jugador(1, 2, "Nombre", 1, 0, false, 100, 100L));
+    assertThrows(
+        IllegalArgumentException.class, () -> new Jugador(1, 2, "Nombre", 1, 41, false, 100, 100L));
+    assertThrows(
+        IllegalArgumentException.class, () -> new Jugador(1, 2, "Nombre", 1, 10, false, -1, 100L));
+    assertThrows(
+        IllegalArgumentException.class, () -> new Jugador(1, 2, "Nombre", 1, 10, false, 100, -1L));
 
     // Setters inválidos
     Jugador jugador = new Jugador(100, "ValidName", 1);

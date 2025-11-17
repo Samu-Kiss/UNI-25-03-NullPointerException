@@ -8,54 +8,51 @@ import com.NullPtr.Pontiland.entities.Tipo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Pruebas unitarias completas para CasillaService. Cubre todas las ramas del switch en
+ * interaccion().
+ */
 class CasillaServiceTest {
 
-  private CasillaService casillaService;
+  private CasillaService service;
   private Jugador jugador;
 
   @BeforeEach
   void setUp() {
-    casillaService = new CasillaService();
+    service = new CasillaService();
     jugador = new Jugador(500, "JugadorTest", 1);
   }
 
   @Test
-  void testInteraccionConParadaLibre_NoActivaCarcel() {
-    Casilla casilla = new Casilla(5, "Parada Libre", Tipo.PARADALIBRE);
-    casillaService.interaccion(jugador, casilla);
-    assertFalse(casillaService.getIrACarcel(), "No debería activar irACarcel en PARADALIBRE");
+  void testAllSwitchCases() {
+    // PARADALIBRE
+    Casilla libre = new Casilla(1, "Parada Libre", Tipo.PARADALIBRE);
+    service.interaccion(jugador, libre);
+    assertFalse(service.getIrACarcel(), "PARADALIBRE no debería activar irACarcel");
+
+    // EVENTO
+    Casilla evento = new Casilla(2, "Evento Sorpresa", Tipo.EVENTO);
+    service.interaccion(jugador, evento);
+    assertFalse(service.getIrACarcel(), "EVENTO no debería activar irACarcel");
+
+    // PROPIEDAD
+    Casilla propiedad = new Casilla(3, "Propiedad Central", Tipo.PROPIEDAD);
+    service.interaccion(jugador, propiedad);
+    assertFalse(service.getIrACarcel(), "PROPIEDAD no debería activar irACarcel");
+
+    // MOVIMIENTO
+    Casilla movimiento = new Casilla(4, "Movimiento Especial", Tipo.MOVIMIENTO);
+    service.interaccion(jugador, movimiento);
+    assertFalse(service.getIrACarcel(), "MOVIMIENTO no debería activar irACarcel");
+
+    // IRALACARCEL
+    Casilla carcel = new Casilla(5, "Ir a la cárcel", Tipo.IRALACARCEL);
+    service.interaccion(jugador, carcel);
+    assertTrue(service.getIrACarcel(), "IRALACARCEL debe activar irACarcel");
   }
 
   @Test
-  void testInteraccionConEvento_NoActivaCarcel() {
-    Casilla casilla = new Casilla(10, "Evento Sorpresa", Tipo.EVENTO);
-    casillaService.interaccion(jugador, casilla);
-    assertFalse(casillaService.getIrACarcel(), "No debería activar irACarcel en EVENTO");
-  }
-
-  @Test
-  void testInteraccionConPropiedad_NoActivaCarcel() {
-    Casilla casilla = new Casilla(15, "Propiedad Central", Tipo.PROPIEDAD);
-    casillaService.interaccion(jugador, casilla);
-    assertFalse(casillaService.getIrACarcel(), "No debería activar irACarcel en PROPIEDAD");
-  }
-
-  @Test
-  void testInteraccionConMovimiento_NoActivaCarcel() {
-    Casilla casilla = new Casilla(20, "Movimiento Especial", Tipo.MOVIMIENTO);
-    casillaService.interaccion(jugador, casilla);
-    assertFalse(casillaService.getIrACarcel(), "No debería activar irACarcel en MOVIMIENTO");
-  }
-
-  @Test
-  void testInteraccionConIrALaCarcel_ActivaCarcel() {
-    Casilla casilla = new Casilla(30, "Ir a la cárcel", Tipo.IRALACARCEL);
-    casillaService.interaccion(jugador, casilla);
-    assertTrue(casillaService.getIrACarcel(), "Debe activar irACarcel cuando cae en IRALACARCEL");
-  }
-
-  @Test
-  void testGetIrACarcelInicialmenteFalso() {
-    assertFalse(casillaService.getIrACarcel(), "Por defecto, irACarcel debe ser falso");
+  void testIrACarcelInitiallyFalse() {
+    assertFalse(service.getIrACarcel(), "Por defecto irACarcel debe ser falso");
   }
 }
