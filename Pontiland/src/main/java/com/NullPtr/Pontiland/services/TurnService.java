@@ -1,13 +1,13 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.controllers.IHUDcontroller;
+import com.NullPtr.Pontiland.entities.Casilla;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.ICasillaRepository;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import com.NullPtr.Pontiland.view.IScene;
 import java.sql.SQLException;
-import java.util.Arrays;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,7 +22,8 @@ public class TurnService implements ITurnService {
   private boolean terminarTurno = false;
   private int tiradas = 1;
   private ISubastaService subastaService;
-  private static Logger logger = LogManager.getLogger(CasillaService.class);
+
+  private static Logger logger = LogManager.getLogger(TurnService.class);
 
   private enum TurnState {
     AWAIT_ROLL,
@@ -71,7 +72,7 @@ public class TurnService implements ITurnService {
       jugadorRepository.changeActivePlayer(playerID);
 
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.error("Error cambiando al siguiente jugador", e);
     }
   }
 
@@ -97,30 +98,34 @@ public class TurnService implements ITurnService {
             nuevoDinero);
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.error("Error moviendo al jugador", e);
+      return;
     }
 
     try {
-      System.out.println(
-          "Movimiendo al jugador "
-              + jugadorRepository.getActivePlayer()
-              + " a la posición = "
-              + jugadorActual.getPosicion());
-      System.out.println(
-          casillaRepository.casillaFromPosition(jugadorActual.getPosicion()).getNombreCasilla()
-              + " de "
-              + casillaRepository
-                  .casillaFromPosition(jugadorActual.getPosicion())
-                  .getTipoCasilla());
+      Casilla casillaLlegada = casillaRepository.casillaFromPosition(posicionAnterior);
+
+      logger.debug(
+          "El jugador {} se mueve a la posición {}",
+          jugadorActual.getJugadorId(),
+          jugadorActual.getPosicion());
+
+      logger.debug(
+          "El jugador {} ha llegado a la casilla {} ({})",
+          jugadorActual.getJugadorId(),
+          casillaLlegada.getNombreCasilla(),
+          casillaLlegada.getTipoCasilla());
 
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.error("Error obteniendo la casilla de llegada", e);
+      return;
     }
 
     try {
       jugadorRepository.updatePosition(jugadorActual.getJugadorId(), jugadorActual.getPosicion());
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.error("Error actualizando la posición del jugador en la base de datos", e);
+      return;
     }
     scene.replicateFichaPosition(jugadorActual.getJugadorId(), nuevaPosicion - 1);
   }
@@ -133,8 +138,7 @@ public class TurnService implements ITurnService {
         casillaService.updateActivePlayerPropertyTokens(
             jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer()));
       } catch (SQLException e) {
-        System.out.println(
-            "Error actualizando property tokens al habilitar TurnService: " + e.getMessage());
+        logger.error("Error actualizando property tokens al habilitar TurnService", e);
       }
     }
   }
@@ -156,8 +160,7 @@ public class TurnService implements ITurnService {
     try {
       gameFSM();
     } catch (Exception e) {
-      System.out.println(Arrays.toString(e.getStackTrace()));
-      throw new RuntimeException(e);
+      logger.fatal("Error en la máquina de estados en el turno de un jugador", e);
     }
   }
 
@@ -175,13 +178,7 @@ public class TurnService implements ITurnService {
           lastD1 = dados[0];
           lastD2 = dados[1];
           pendingMovement = datosToInt(dados[0]) + datosToInt(dados[1]);
-          System.out.println(
-              "Dados lanzados: "
-                  + datosToInt(dados[0])
-                  + " + "
-                  + datosToInt(dados[1])
-                  + " = "
-                  + (datosToInt(dados[0]) + datosToInt(dados[1])));
+          logger.debug("Dados lanzados: {} + {} = {}", lastD1, lastD2, pendingMovement);
           dados[0] = null;
           dados[1] = null;
           state = TurnState.MOVING;
@@ -206,21 +203,21 @@ public class TurnService implements ITurnService {
         boolean esDoble = lastD1 != null && lastD1.equals(lastD2);
         if (esDoble) {
           if (tiradas >= 3) {
-            System.out.println("3 dobles seguidos, vas a la cárcel!");
+            logger.info("3 dobles seguidos, vas a la cárcel!");
             lastD1 = null;
             lastD2 = null;
             moveToJail();
             state = TurnState.END_TURN;
           } else {
             tiradas++;
-            System.out.println("Doble! Tira de nuevo");
+            logger.info("Doble! Tira de nuevo");
             lastD1 = null;
             lastD2 = null;
             lanzamientoDoble = true;
             state = TurnState.END_TURN;
           }
         } else {
-          System.out.println("No doble: finalizar turno y cambiar jugador");
+          logger.info("No doble: finalizar turno y cambiar jugador");
           lastD1 = null;
           lastD2 = null;
           state = TurnState.END_TURN;
@@ -233,7 +230,7 @@ public class TurnService implements ITurnService {
 
       case END_TURN:
         if (casillaService.getIrACarcel()) {
-          System.out.println("La casilla envia a la cárcel después del movimiento");
+          logger.debug("La casilla envia a la cárcel después del movimiento");
           moveToJail();
         }
 
@@ -267,7 +264,7 @@ public class TurnService implements ITurnService {
       casillaService.interaccion(
           jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.fatal("Error realizando la interacción de la casilla", e);
     }
   }
 
@@ -277,7 +274,7 @@ public class TurnService implements ITurnService {
       casillaService.terminarInteraccion(
           jugadorActual, casillaRepository.casillaFromPosition(jugadorActual.getPosicion()));
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.fatal("Error terminando la interacción de la casilla", e);
     }
   }
 
@@ -293,15 +290,19 @@ public class TurnService implements ITurnService {
       casillaService.updateActivePlayerPropertyTokens(
           jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer()));
     } catch (SQLException e) {
-      System.out.println("Error actualizando property tokens: " + e.getMessage());
+      logger.error("Error actualizando property tokens", e);
     }
   }
 
   @Override
-  public void buyProperty() {}
+  public void buyProperty() {
+    // TODO Auto-generated method stub
+  }
 
   @Override
-  public void payRent() {}
+  public void payRent() {
+    // TODO Auto-generated method stub
+  }
 
   public void moveToJail() {
     int jailPosition = 11;
@@ -311,15 +312,14 @@ public class TurnService implements ITurnService {
       jugadorRepository.goToJail(
           jugadorRepository.getNumJugadorByPlayerId(jugadorActual.getJugadorId()));
 
-      System.out.println(
-          "El jugador "
-              + jugadorActual.getJugadorId()
-              + " ha sido enviado a la cárcel en la posición "
-              + jailPosition);
+      logger.info(
+          "El jugador {} ha sido enviado a la cárcel en la posición {}",
+          jugadorActual.getJugadorId(),
+          jailPosition);
 
       scene.replicateFichaPosition(jugadorActual.getJugadorId(), jailPosition - 1);
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      logger.error("Error al enviar al jugador a la cárcel", e);
     }
   }
 

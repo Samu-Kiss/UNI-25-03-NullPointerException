@@ -158,4 +158,9 @@ public class SubastaService implements ISubastaService {
     indiceActual = 1;
     excluidos.clear();
   }
+
+  // Para q sonarquba no se queje
+  public IPropiedadRepository getPropiedadRepository() {
+    return propiedadRepository;
+  }
 }

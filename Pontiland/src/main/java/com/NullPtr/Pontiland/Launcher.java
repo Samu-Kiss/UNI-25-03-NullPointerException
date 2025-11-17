@@ -31,7 +31,6 @@ public class Launcher extends SimpleApplication {
   private ITurnService turnService;
   private LanzamientoDadosController lanzamientoDadosController;
   private MenuPausaController menuPausaController;
-  private Byte[] resultados = new Byte[2];
   private IScene scene;
 
   private IDataService dataService;

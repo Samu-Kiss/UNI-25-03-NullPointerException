@@ -35,6 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Pantalla de selección de personajes y nombres para los jugadores. Permite elegir el personaje y
@@ -123,6 +125,9 @@ public class MenuSeleccion extends AbstractAppState {
   private static final ColorRGBA PLACEHOLDER_COLOR = new ColorRGBA(0.7f, 0.7f, 0.7f, 1f);
   private static final ColorRGBA INPUT_COLOR = ColorRGBA.White;
 
+  // Logging
+  private static Logger logger = LogManager.getLogger(MenuSeleccion.class);
+
   public MenuSeleccion(IMenuActions actions, int playerCount) {
     this.actions = actions;
     this.playerCount = playerCount;
@@ -191,7 +196,7 @@ public class MenuSeleccion extends AbstractAppState {
     row.addChild(iconBtn, BorderLayout.Position.West);
     row.addChild(textBtn, BorderLayout.Position.Center);
     backBar.addChild(row);
-    backBar.setLocalTranslation(10, cam.getHeight() - 10, 1);
+    backBar.setLocalTranslation(10, cam.getHeight() - 10f, 1);
     guiNode.attachChild(backBar);
 
     // Crear paneles de jugadores y posicionar
@@ -216,7 +221,7 @@ public class MenuSeleccion extends AbstractAppState {
           try {
             attemptStart();
           } catch (SQLException e) {
-            throw new RuntimeException(e);
+            logger.fatal("Error al iniciar la partida: ", e);
           }
         });
     Vector3f pref = startButton.getPreferredSize();
@@ -392,7 +397,7 @@ public class MenuSeleccion extends AbstractAppState {
       int padLeft = left;
       int padRight = w - 1 - right;
       int diff = padRight - padLeft;
-      float scale = displayedWidth / (float) w;
+      float scale = displayedWidth / w;
       float shift = diff * 0.5f * scale;
       arrowShiftCache.put(asset, shift);
       return shift;
@@ -519,7 +524,7 @@ public class MenuSeleccion extends AbstractAppState {
     ArrayList<Jugador> jugadores = new ArrayList<>();
     ArrayList<Integer> personajeIds = new ArrayList<>();
     for (int i = 0; i < playerCount; i++) {
-      if (placeholderActive.get(i)) {
+      if (Boolean.TRUE.equals(placeholderActive.get(i))) {
         errorLabel.setText("Faltan nombres");
         return;
       }
@@ -543,12 +548,10 @@ public class MenuSeleccion extends AbstractAppState {
 
   private boolean hasDuplicateNames() {
     Set<String> seen = new HashSet<>();
-    for (int i = 0; i < headerFields.size(); i++) {
-      if (placeholderActive.get(i)) continue;
-      String t = headerFields.get(i).getText();
-      if (t == null) continue;
+    for (TextField headerField : headerFields) {
+      String t = headerField.getText();
+      if (t == null || t.trim().isEmpty()) continue;
       t = t.trim();
-      if (t.isEmpty()) continue;
       String key = t.toLowerCase();
       if (!seen.add(key)) return true;
     }
@@ -563,7 +566,7 @@ public class MenuSeleccion extends AbstractAppState {
     for (int i = 0; i < playerCount; i++) {
       TextField f = headerFields.get(i);
       boolean focused = isFieldFocused(f);
-      if (placeholderActive.get(i)) {
+      if (Boolean.TRUE.equals(placeholderActive.get(i))) {
         // Si el usuario hace focus, limpiar placeholder
         if (focused) {
           f.setText("");
@@ -590,7 +593,7 @@ public class MenuSeleccion extends AbstractAppState {
           }
         }
       }
-      if (!placeholderActive.get(i)) {
+      if (Boolean.FALSE.equals(placeholderActive.get(i))) {
         String v = f.getText();
         if (v == null || v.trim().isEmpty()) ready = false;
       }

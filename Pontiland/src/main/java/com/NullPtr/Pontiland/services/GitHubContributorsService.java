@@ -63,7 +63,7 @@ public class GitHubContributorsService {
    */
   public List<Contributor> fetchContributorsDetailed(String owner, String repo, int limit)
       throws IOException, InterruptedException {
-    int pageSize = Math.min(Math.max(limit, 1), 100);
+    int pageSize = Math.clamp(limit, 1, 100);
     String url =
         String.format(
             "https://api.github.com/repos/%s/%s/contributors?per_page=%d", owner, repo, pageSize);

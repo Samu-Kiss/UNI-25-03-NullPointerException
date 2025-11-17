@@ -190,7 +190,7 @@ public class MenuCarga extends AbstractAppState {
     row.addChild(textBtn, BorderLayout.Position.Center);
     backBar.addChild(row);
 
-    backBar.setLocalTranslation(10, camera.getHeight() - 10, 1);
+    backBar.setLocalTranslation(10, camera.getHeight() - 10f, 1);
     guiNode.attachChild(backBar);
   }
 

@@ -37,6 +37,8 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Pantalla de créditos con layout consistente al menú principal: título a la izquierda y contenido
@@ -63,6 +65,8 @@ public class MenuCreditos extends AbstractAppState {
   private Container dynamicSection; // para insertar contribuidores
   private Container backBar;
   private static final int AVATAR_SIZE = 36; // px
+
+  private static Logger logger = LogManager.getLogger(MenuCreditos.class);
 
   public MenuCreditos(Runnable onClose) {
     this(onClose, null, null, 0);
@@ -212,7 +216,7 @@ public class MenuCreditos extends AbstractAppState {
     row.addChild(textBtn, BorderLayout.Position.Center);
     backBar.addChild(row);
 
-    backBar.setLocalTranslation(10, camera.getHeight() - 10, 1);
+    backBar.setLocalTranslation(10, camera.getHeight() - 10f, 1);
     guiNode.attachChild(backBar);
   }
 
@@ -233,12 +237,8 @@ public class MenuCreditos extends AbstractAppState {
                     img = makeCircular(img, AVATAR_SIZE);
                   } catch (Exception ex) {
                     img = makePlaceholderCircle(AVATAR_SIZE);
-                    System.err.println(
-                        "Failed to download or process avatar for "
-                            + c.login
-                            + ": "
-                            + ex.getMessage());
-                    ex.printStackTrace();
+
+                    logger.error("Failed to download or process avatar for {}: ", c.login, ex);
                   }
                   data.add(new Object[] {c.login, c.htmlUrl, img});
                 }
@@ -261,6 +261,9 @@ public class MenuCreditos extends AbstractAppState {
                         return null;
                       });
                 }
+                logger.error("Failed to fetch contributors from GitHub: ", ex);
+                // TODO revisar si es correcto interrumpir el hilo aquí (Sonarqube molesta)
+                if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
               }
             },
             "github-contrib-fetch");
@@ -268,7 +271,7 @@ public class MenuCreditos extends AbstractAppState {
     t.start();
   }
 
-  private BufferedImage downloadAvatar(String avatarUrl, int size) throws Exception {
+  private BufferedImage downloadAvatar(String avatarUrl, int size) {
     if (avatarUrl == null || avatarUrl.isBlank()) return null;
     String sizedUrl = avatarUrl + (avatarUrl.contains("?") ? "&" : "?") + "s=" + size;
     HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
@@ -279,10 +282,17 @@ public class MenuCreditos extends AbstractAppState {
             .header("User-Agent", "Pontiland/1.0")
             .GET()
             .build();
-    HttpResponse<java.io.InputStream> resp =
-        client.send(req, HttpResponse.BodyHandlers.ofInputStream());
-    if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
-      return javax.imageio.ImageIO.read(resp.body());
+
+    try {
+      HttpResponse<java.io.InputStream> resp =
+          client.send(req, HttpResponse.BodyHandlers.ofInputStream());
+      if (resp.statusCode() >= 200 && resp.statusCode() < 300) {
+        return javax.imageio.ImageIO.read(resp.body());
+      }
+    } catch (Exception ex) {
+      logger.error("Failed to download avatar from {}: ", sizedUrl, ex);
+      // TODO revisar si es correcto interrumpir el hilo aquí (Sonarqube molesta)
+      if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
     }
     return null;
   }
@@ -382,6 +392,7 @@ public class MenuCreditos extends AbstractAppState {
     rightPane.setLocalTranslation(rightX, rightY, 0);
   }
 
+  // TODO revisar si es necesario (Sonarqube molesta)
   private void showContributors(List<String> logins) {
     dynamicSection.clearChildren();
 

@@ -179,6 +179,9 @@ public class Auction {
       value = "$" + value;
     }
     priceValueLbl.setText(value);
+
+    // TODO: propertyName no se usa, pero se puede añadir si se quiere mostrar el nombre de la
+    // propiedad
   }
 
   public void setPlayerName(String playerName) {

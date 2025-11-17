@@ -21,6 +21,8 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Clase de vista que construye y mantiene la escena 3D de Pontiland.
@@ -31,9 +33,8 @@ import com.jme3.util.SkyFactory;
  * lógica.
  */
 public class Scene implements IScene {
-  private final int totalCasillas = 40;
-  private float cellSize = 1.5385f;
-  private final int side = totalCasillas / 4;
+  private static final int TOTAL_CASILLAS = 40;
+  private static final String DEFAULT_MATERIAL = "Common/MatDefs/Misc/Unshaded.j3md";
   private final Vector3f boardFirstPosition = new Vector3f(9.3f, 0.5f, 9.3f);
 
   private LegacyApplication app;
@@ -48,6 +49,9 @@ public class Scene implements IScene {
   private CameraController cameraController;
   private MovementAnimator movementAnimator;
   private FichaController fichaController;
+
+  // Logging
+  private static Logger logger = LogManager.getLogger(Scene.class);
 
   public Scene(
       LegacyApplication app,
@@ -65,7 +69,7 @@ public class Scene implements IScene {
     this.cameraController = new CameraController(cam, rootNode);
     this.movementAnimator = new MovementAnimator(lanzamientoController, cameraController);
     this.fichaController =
-        new FichaController(assetManager, bullet, rootNode, boardFirstPosition, totalCasillas);
+        new FichaController(assetManager, bullet, rootNode, boardFirstPosition, TOTAL_CASILLAS);
 
     // Cargar escena
     loadBoardModel();
@@ -105,6 +109,7 @@ public class Scene implements IScene {
     lanzamientoController.enableThrow(false);
   }
 
+  // Revisar si se puede
   private Vector3f posFromCell(int c) {
     return fichaController != null ? fichaController.posFromCell(c) : new Vector3f();
   }
@@ -129,8 +134,8 @@ public class Scene implements IScene {
       // Objeto de respaldo si falla la carga del tablero
       Box fallback = new Box(1, 1, 1);
       Geometry geom = new Geometry("FallbackBoard", fallback);
-      Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-      mat.setColor("Color", ColorRGBA.Red);
+      Material mat = new Material(assetManager, DEFAULT_MATERIAL);
+      mat.setColor("ColorRojo", ColorRGBA.Red);
       geom.setMaterial(mat);
       rootNode.attachChild(geom);
     }
@@ -151,8 +156,8 @@ public class Scene implements IScene {
       // Objeto de respaldo si falla la carga del conito
       Box fallback = new Box(1, 1, 1);
       Geometry geom = new Geometry("FallbackConito", fallback);
-      Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-      mat.setColor("Color", ColorRGBA.Blue);
+      Material mat = new Material(assetManager, DEFAULT_MATERIAL);
+      mat.setColor("ColorAzuñ", ColorRGBA.Blue);
       geom.setMaterial(mat);
       rootNode.attachChild(geom);
     }
@@ -198,15 +203,15 @@ public class Scene implements IScene {
       // Si falla la carga de los modelos, crear cubos de respaldo para ambos dados
       Box fallback1 = new Box(1, 1, 1);
       Geometry geom1 = new Geometry("FallbackDice1", fallback1);
-      Material mat1 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-      mat1.setColor("Color", ColorRGBA.Blue);
+      Material mat1 = new Material(assetManager, DEFAULT_MATERIAL);
+      mat1.setColor("ColorVerde", ColorRGBA.Green);
       geom1.setMaterial(mat1);
       geom1.setLocalTranslation(-2f, 10f, 0f);
       rootNode.attachChild(geom1);
       Box fallback2 = new Box(1, 1, 1);
       Geometry geom2 = new Geometry("FallbackDice2", fallback2);
-      Material mat2 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-      mat2.setColor("Color", ColorRGBA.Cyan);
+      Material mat2 = new Material(assetManager, DEFAULT_MATERIAL);
+      mat2.setColor("ColorCyan", ColorRGBA.Cyan);
       geom2.setMaterial(mat2);
       geom2.setLocalTranslation(2f, 10f, 0f);
       rootNode.attachChild(geom2);
@@ -221,16 +226,16 @@ public class Scene implements IScene {
       rootNode.attachChild(
           SkyFactory.createSky(assetManager, hdr, SkyFactory.EnvMapType.EquirectMap));
     } catch (Exception ex) {
-      System.err.println("Failed to load HDRi sky: " + ex.getMessage());
+      logger.error("Failed to load HDRi sky", ex);
     }
   }
 
   /** Configura las luces direccional y ambiental de la escena. */
   private void setupLighting() {
-    DirectionalLight sun = new DirectionalLight();
-    sun.setColor(ColorRGBA.White);
-    sun.setDirection(new Vector3f(-1f, -2f, -1f).normalizeLocal());
-    rootNode.addLight(sun);
+    DirectionalLight luz = new DirectionalLight();
+    luz.setColor(ColorRGBA.White);
+    luz.setDirection(new Vector3f(-1f, -2f, -1f).normalizeLocal());
+    rootNode.addLight(luz);
     AmbientLight ambient = new AmbientLight();
     ambient.setColor(ColorRGBA.White.mult(0.25f));
     rootNode.addLight(ambient);

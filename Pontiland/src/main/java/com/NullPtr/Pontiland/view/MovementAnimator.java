@@ -48,8 +48,8 @@ public class MovementAnimator {
       mvSpatial.setLocalTranslation(pos);
 
       Object jid = mvSpatial.getUserData("jugadorId");
-      if (jid instanceof Integer) {
-        cameraController.focusOnFicha((Integer) jid);
+      if (jid instanceof Integer dato) {
+        cameraController.focusOnFicha(dato);
       }
 
       if (t >= 1f) {

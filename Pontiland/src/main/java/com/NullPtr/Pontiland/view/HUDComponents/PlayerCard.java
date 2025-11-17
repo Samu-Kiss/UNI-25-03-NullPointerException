@@ -118,7 +118,8 @@ public class PlayerCard {
     } catch (Exception e) {
       root.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.12f, 0.14f, 0.18f, 0.85f)));
       // Tamaño fallback razonable
-      float ws = 220f, hs = 260f;
+      float ws = 220f;
+      float hs = 260f;
       root.setPreferredSize(new Vector3f(ws, hs, 0));
       float topH = hs * TOP_AREA_RATIO;
       topSpacer.setPreferredSize(new Vector3f(ws, topH, 0));
