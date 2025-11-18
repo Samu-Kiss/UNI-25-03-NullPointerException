@@ -17,6 +17,9 @@ import com.simsilica.lemur.Container;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -69,6 +72,9 @@ public class HUD extends AbstractAppState {
   // TODO: Revisar si se requiere su uso y verificar las lineas comentadas 360 y 380
   // private String currentPropertyName = null;
 
+  //Logger
+  private static Logger logger = LogManager.getLogger(HUD.class);
+
   public HUD() {
     // No necesita implemetacion (Creo)
     // Comentario para evitar warning de sonar
@@ -108,7 +114,7 @@ public class HUD extends AbstractAppState {
       try {
         propertyToken.setGroup(pendingTokensGroup);
       } catch (Exception ex) {
-        System.out.println("[DEBUG] No se pudo aplicar pendingTokensGroup: " + ex.getMessage());
+        logger.error("No se pudo aplicar pendingTokensGroup", ex);
       }
       pendingTokensGroup = null;
     }
@@ -118,7 +124,7 @@ public class HUD extends AbstractAppState {
         // marcar tokens como presentes
         hasTokens = pendingTokens.length > 0;
       } catch (Exception ex) {
-        System.out.println("[DEBUG] No se pudo aplicar pendingTokens: " + ex.getMessage());
+        logger.error("No se pudo aplicar pendingTokens", ex);
       }
       pendingTokens = null;
     }
@@ -183,9 +189,9 @@ public class HUD extends AbstractAppState {
             0.55f,
             com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     auctionBtn.addClickCommands(
-        ignored -> {
-          hudController.iniciarSubasta();
-        });
+        ignored ->
+          hudController.iniciarSubasta()
+        );
 
     actionRow.addChild(buyBtn);
     Container spacer = new Container();
@@ -216,7 +222,7 @@ public class HUD extends AbstractAppState {
     // clamp right size to avoid negative values
     if (rightSize == null) rightSize = new Vector3f(0f, 0f, 0f);
     if (rightSize.x < 0f || rightSize.y < 0f) {
-      System.out.println("[DEBUG] rightSize had negative values, clamping: " + rightSize);
+      logger.debug("rightSize had negative values, clamping: {}", rightSize);
       rightSize.x = Math.max(0f, rightSize.x);
       rightSize.y = Math.max(0f, rightSize.y);
       rightSize.z = Math.max(0f, rightSize.z);
@@ -230,7 +236,7 @@ public class HUD extends AbstractAppState {
     Vector3f actionSize = actionBar.getPreferredSize();
     if (actionSize == null) actionSize = new Vector3f(0f, 0f, 0f);
     if (actionSize.x < 0f || actionSize.y < 0f) {
-      System.out.println("[DEBUG] actionSize had negative values, clamping: " + actionSize);
+      logger.debug("actionSize had negative values, clamping: {}", actionSize);
       actionSize.x = Math.max(0f, actionSize.x);
       actionSize.y = Math.max(0f, actionSize.y);
       actionSize.z = Math.max(0f, actionSize.z);
@@ -244,7 +250,7 @@ public class HUD extends AbstractAppState {
     Vector3f bottomSize = propertyToken.getPreferredSize();
     if (bottomSize == null) bottomSize = new Vector3f(0f, 0f, 0f);
     if (bottomSize.x < 0f || bottomSize.y < 0f) {
-      System.out.println("[DEBUG] bottomSize had negative values, clamping: " + bottomSize);
+      logger.debug("bottomSize had negative values, clamping: {}", bottomSize);
       bottomSize.x = Math.max(0f, bottomSize.x);
       bottomSize.y = Math.max(0f, bottomSize.y);
       bottomSize.z = Math.max(0f, bottomSize.z);
@@ -257,7 +263,7 @@ public class HUD extends AbstractAppState {
     Vector3f overlaySize = auction.getPreferredSize();
     if (overlaySize == null) overlaySize = new Vector3f(0f, 0f, 0f);
     if (overlaySize.x < 0f || overlaySize.y < 0f) {
-      System.out.println("[DEBUG] overlaySize had negative values, clamping: " + overlaySize);
+      logger.debug("overlaySize had negative values, clamping: {}", overlaySize);
       overlaySize.x = Math.max(0f, overlaySize.x);
       overlaySize.y = Math.max(0f, overlaySize.y);
       overlaySize.z = Math.max(0f, overlaySize.z);
@@ -362,7 +368,7 @@ public class HUD extends AbstractAppState {
 
     // Actualizar el texto del botón de compra con el precio recibido (si viene)
     if (priceText != null && !priceText.isBlank()) {
-      String digits = priceText.replaceAll("[^0-9]", "");
+      String digits = priceText.replaceAll("\\D", "");
       if (digits.isEmpty()) digits = "0";
       currentPriceDigits = digits;
       if (buyBtn != null) buyBtn.setText("Comprar -$" + currentPriceDigits);
@@ -384,7 +390,7 @@ public class HUD extends AbstractAppState {
 
     // Precio inicial solo si se recibió
     if (priceText != null && !priceText.isBlank()) {
-      String digits = priceText.replaceAll("[^0-9]", "");
+      String digits = priceText.replaceAll("\\D", "");
       if (digits.isEmpty()) digits = "0";
       currentPriceDigits = digits;
       if (buyBtn != null) buyBtn.setText("Comprar -$" + currentPriceDigits);
@@ -412,8 +418,7 @@ public class HUD extends AbstractAppState {
   public void updatePropertyTokens(String[] tokens) {
     // Si el componente no está aún inicializado, guardar para aplicar luego
     if (propertyToken == null) {
-      System.out.println(
-          "[DEBUG] updatePropertyTokens llamado antes de inicializar HUD: almacenando tokens pendientes");
+      logger.debug("updatePropertyTokens llamado antes de inicializar HUD: almacenando tokens pendientes");
       pendingTokens = (tokens == null) ? null : Arrays.copyOf(tokens, tokens.length);
       hasTokens = pendingTokens != null && pendingTokens.length > 0;
       if (bottomPane != null) {
@@ -440,9 +445,9 @@ public class HUD extends AbstractAppState {
     if (propertyToken == null) {
       // almacenar el grupo y aplicarlo cuando se cree propertyToken
       pendingTokensGroup = groupIndex;
-      System.out.println(
-          "[DEBUG] setPropertyTokensGroup llamado antes de inicializar HUD: guardando grupo pendiente="
-              + groupIndex);
+      logger.debug(
+        "setPropertyTokensGroup llamado antes de inicializar HUD: guardando grupo pendiente={}",
+        groupIndex);
       return;
     }
     propertyToken.setGroup(groupIndex);

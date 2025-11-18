@@ -64,7 +64,7 @@ public class FichaController {
       Vector3f initialOffset = placed.subtract(cell0);
       s.setUserData("initialOffset", initialOffset);
 
-      cellIndex = 0;
+      s.setUserData("cellIndex", 0);
 
       RigidBodyControl rb = new RigidBodyControl(1f);
       s.addControl(rb);
@@ -78,7 +78,10 @@ public class FichaController {
     Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
     if (s == null) return;
 
-    int currentIndex = cellIndex;
+    int currentIndex = 0;
+    Object ciUd = s.getUserData("cellIndex");
+    if (ciUd instanceof Integer posicion) currentIndex = posicion;
+
 
     s.setUserData("jugadorId", jugadorId);
 
@@ -87,7 +90,7 @@ public class FichaController {
     }
     int steps = (casillaIndex - currentIndex) % totalCasillas;
     if (steps == 0) {
-      cellIndex = casillaIndex;
+      s.setUserData("cellIndex", casillaIndex);
       return;
     }
 
