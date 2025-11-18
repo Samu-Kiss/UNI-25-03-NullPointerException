@@ -15,6 +15,7 @@ import com.NullPtr.Pontiland.view.Scene;
 import com.jme3.app.SimpleApplication;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.input.InputManager;
 import com.jme3.system.AppSettings;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
@@ -120,10 +121,12 @@ public class Launcher extends SimpleApplication {
     MenuController menuController =
         new MenuController(this, startGameService, dataService, hudController, turnService);
 
+    InputManager inputManager = getInputManager();
+
     menuPausaController =
         new MenuPausaController(
             this,
-            getInputManager(),
+            inputManager,
             turnService,
             lanzamientoDadosController,
             diceService,

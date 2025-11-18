@@ -109,10 +109,10 @@ public class Scene implements IScene {
     lanzamientoController.enableThrow(false);
   }
 
-  // Revisar si se puede
+  /*TODO: Revisar el uso de este método, si no se usa, borrarlo
   private Vector3f posFromCell(int c) {
     return fichaController != null ? fichaController.posFromCell(c) : new Vector3f();
-  }
+  }*/
 
   /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
   private void loadBoardModel() {

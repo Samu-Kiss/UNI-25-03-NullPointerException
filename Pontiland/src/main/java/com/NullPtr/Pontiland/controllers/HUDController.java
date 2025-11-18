@@ -21,7 +21,15 @@ public class HUDController implements IHUDcontroller {
   private boolean puedeComprar = false;
 
   // Nuevo: servicio de adquisiciones y posición de la propiedad mostrada actualmente
-  private com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService;
+  // TODO: implementar lo q se tenga q implementar para adquisiciones pq sonar molestaba si se
+  // dejaba asi
+  // private com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService;
+
+  @Override
+  public void setAdquisicionService(
+      com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService) {
+    // this.adquisicionService = adquisicionService;
+  }
 
   public HUDController(Launcher app) {
     this.app = Objects.requireNonNull(app, "app no puede ser null");
@@ -46,12 +54,6 @@ public class HUDController implements IHUDcontroller {
   @Override
   public void setPuedeComprar(boolean puedeComprar) {
     this.puedeComprar = puedeComprar;
-  }
-
-  @Override
-  public void setAdquisicionService(
-      com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService) {
-    this.adquisicionService = adquisicionService;
   }
 
   @Override
