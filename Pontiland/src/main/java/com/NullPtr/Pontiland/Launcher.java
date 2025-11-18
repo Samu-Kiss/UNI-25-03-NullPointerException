@@ -146,4 +146,8 @@ public class Launcher extends SimpleApplication {
 
     lanzamientoDadosController.update();
   }
+
+  public MenuPausaController getMenuPausaController() {
+    return menuPausaController;
+  }
 }
