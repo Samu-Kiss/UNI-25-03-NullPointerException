@@ -17,12 +17,11 @@ import com.simsilica.lemur.Container;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.SpringGridLayout;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class HUD extends AbstractAppState {
 
@@ -72,7 +71,7 @@ public class HUD extends AbstractAppState {
   // TODO: Revisar si se requiere su uso y verificar las lineas comentadas 360 y 380
   // private String currentPropertyName = null;
 
-  //Logger
+  // Logger
   private static Logger logger = LogManager.getLogger(HUD.class);
 
   public HUD() {
@@ -188,10 +187,7 @@ public class HUD extends AbstractAppState {
             "Subastar",
             0.55f,
             com.NullPtr.Pontiland.view.Button.Variant.MAIN);
-    auctionBtn.addClickCommands(
-        ignored ->
-          hudController.iniciarSubasta()
-        );
+    auctionBtn.addClickCommands(ignored -> hudController.iniciarSubasta());
 
     actionRow.addChild(buyBtn);
     Container spacer = new Container();
@@ -418,7 +414,8 @@ public class HUD extends AbstractAppState {
   public void updatePropertyTokens(String[] tokens) {
     // Si el componente no está aún inicializado, guardar para aplicar luego
     if (propertyToken == null) {
-      logger.debug("updatePropertyTokens llamado antes de inicializar HUD: almacenando tokens pendientes");
+      logger.debug(
+          "updatePropertyTokens llamado antes de inicializar HUD: almacenando tokens pendientes");
       pendingTokens = (tokens == null) ? null : Arrays.copyOf(tokens, tokens.length);
       hasTokens = pendingTokens != null && pendingTokens.length > 0;
       if (bottomPane != null) {
@@ -446,8 +443,8 @@ public class HUD extends AbstractAppState {
       // almacenar el grupo y aplicarlo cuando se cree propertyToken
       pendingTokensGroup = groupIndex;
       logger.debug(
-        "setPropertyTokensGroup llamado antes de inicializar HUD: guardando grupo pendiente={}",
-        groupIndex);
+          "setPropertyTokensGroup llamado antes de inicializar HUD: guardando grupo pendiente={}",
+          groupIndex);
       return;
     }
     propertyToken.setGroup(groupIndex);

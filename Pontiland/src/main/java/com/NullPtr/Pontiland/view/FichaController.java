@@ -82,7 +82,6 @@ public class FichaController {
     Object ciUd = s.getUserData("cellIndex");
     if (ciUd instanceof Integer posicion) currentIndex = posicion;
 
-
     s.setUserData("jugadorId", jugadorId);
 
     if (casillaIndex < currentIndex) {
