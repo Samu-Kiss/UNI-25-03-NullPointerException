@@ -9,7 +9,6 @@ import com.NullPtr.Pontiland.view.HUDComponents.PropertyToken;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
-import com.jme3.input.InputManager;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
@@ -27,7 +26,8 @@ public class HUD extends AbstractAppState {
   private Launcher app;
   private Node guiNode;
   private Camera camera;
-  private InputManager input;
+  // TODO: Comprobar que realmente se necesita y revisar su eso en la linea 89
+  // private InputManager input;
 
   private Container leftPane;
   private Container rightPane;
@@ -58,15 +58,21 @@ public class HUD extends AbstractAppState {
   // Visibilidad de la tarjeta de propiedad
   private boolean showPropertyCard = false;
 
-  private boolean visible = false;
+  // TODO: Revisar si se requiere y ver su uso en la linea 284
+  // private boolean visible = false;
 
   private Container actionBar; // barra de acciones bajo la property card
   private com.simsilica.lemur.Button buyBtn;
   private com.simsilica.lemur.Button auctionBtn;
   private String currentPriceDigits = "0";
-  private String currentPropertyName = null;
 
-  public HUD() {}
+  // TODO: Revisar si se requiere su uso y verificar las lineas comentadas 360 y 380
+  // private String currentPropertyName = null;
+
+  public HUD() {
+    // No necesita implemetacion (Creo)
+    // Comentario para evitar warning de sonar
+  }
 
   @Override
   public void initialize(AppStateManager stateManager, Application application) {
@@ -79,7 +85,7 @@ public class HUD extends AbstractAppState {
 
     this.guiNode = app.getGuiNode();
     this.camera = app.getCamera();
-    this.input = app.getInputManager();
+    // this.input = app.getInputManager();
 
     buildPanes();
     layoutComponents();
@@ -203,9 +209,9 @@ public class HUD extends AbstractAppState {
     float leftX = 16f;
     float leftY = h - 16f;
     leftPane.setLocalTranslation(leftX, leftY, 0);
-    // Let Lemur compute preferred size automatically; do not force sizes here
-    // leftPane.setPreferredSize(leftPref);
-
+    /*Let Lemur compute preferred size automatically; do not force sizes here
+         leftPane.setPreferredSize(leftPref);
+    */
     Vector3f rightSize = propertyCard.getPreferredSize();
     // clamp right size to avoid negative values
     if (rightSize == null) rightSize = new Vector3f(0f, 0f, 0f);
@@ -278,7 +284,7 @@ public class HUD extends AbstractAppState {
   }
 
   public void setVisible(boolean value) {
-    this.visible = value;
+    // this.visible = value;
     if (leftPane != null)
       leftPane.setCullHint(
           value ? com.jme3.scene.Spatial.CullHint.Inherit : com.jme3.scene.Spatial.CullHint.Always);
@@ -350,9 +356,9 @@ public class HUD extends AbstractAppState {
   public void updatePropertyCard(String name, String priceText, String[] rentsText) {
     propertyCard.setInfo(name, priceText, rentsText);
 
-    if (name != null && !name.isBlank()) {
+    /*if (name != null && !name.isBlank()) {
       currentPropertyName = name;
-    }
+    }*/
 
     // Actualizar el texto del botón de compra con el precio recibido (si viene)
     if (priceText != null && !priceText.isBlank()) {
@@ -372,9 +378,9 @@ public class HUD extends AbstractAppState {
     propertyCard.setGroup(groupIndex);
     propertyCard.setInfo(name, priceText, rentsText);
 
-    if (name != null && !name.isBlank()) {
+    /*if (name != null && !name.isBlank()) {
       currentPropertyName = name;
-    }
+    }*/
 
     // Precio inicial solo si se recibió
     if (priceText != null && !priceText.isBlank()) {
@@ -445,7 +451,7 @@ public class HUD extends AbstractAppState {
   // Método compartido para obtener el color de texto contrastado por grupo.
   // Se hace público y estático para que los componentes HUDComponent lo reutilicen.
   public static ColorRGBA getContrastingColorForGroup(int group) {
-    int g = Math.max(1, Math.min(8, group));
+    int g = Math.clamp(group, 1, 8);
     switch (g) {
       case 1:
         return ColorRGBA.White;
