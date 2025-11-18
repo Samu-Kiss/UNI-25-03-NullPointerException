@@ -3,13 +3,11 @@ package com.NullPtr.Pontiland.repository;
 import com.NullPtr.Pontiland.entities.Accion;
 import com.NullPtr.Pontiland.entities.TarjetaEvento;
 import com.NullPtr.Pontiland.services.IDataService;
-
 import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Random;
 
 public class TarjetaEventoRepository {
 

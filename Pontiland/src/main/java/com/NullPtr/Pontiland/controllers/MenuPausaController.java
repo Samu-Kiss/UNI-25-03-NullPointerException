@@ -38,7 +38,7 @@ public class MenuPausaController implements IMenuPausaActions {
   private boolean turnWasEnabled;
   private boolean diceWasInteractable;
 
-  //Logging
+  // Logging
   private static Logger logger = LogManager.getLogger(MenuPausaController.class);
 
   private final RawInputListener keyListener =
