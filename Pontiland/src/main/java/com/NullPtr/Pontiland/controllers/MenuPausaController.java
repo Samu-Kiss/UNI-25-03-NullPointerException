@@ -16,6 +16,8 @@ import com.jme3.input.event.KeyInputEvent;
 import com.jme3.input.event.MouseButtonEvent;
 import com.jme3.input.event.MouseMotionEvent;
 import com.jme3.input.event.TouchEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /** Controlador encargado de mostrar y ocultar el menú de pausa durante la partida. */
 public class MenuPausaController implements IMenuPausaActions {
@@ -35,6 +37,9 @@ public class MenuPausaController implements IMenuPausaActions {
 
   private boolean turnWasEnabled;
   private boolean diceWasInteractable;
+
+  //Logging
+  private static Logger logger = LogManager.getLogger(MenuPausaController.class);
 
   private final RawInputListener keyListener =
       new RawInputListener() {
@@ -184,7 +189,7 @@ public class MenuPausaController implements IMenuPausaActions {
         dataService.saveDataBase(partidaId);
       } catch (RuntimeException ex) {
         // Registrar el error sin interrumpir el flujo para evitar perder el control de la UI.
-        ex.printStackTrace();
+        logger.error("Error al guardar la partida con ID {}", partidaId, ex);
       }
     }
 
