@@ -111,7 +111,6 @@ public class Launcher extends SimpleApplication {
     lanzamientoDadosController.registerInputs(getInputManager());
 
     hudController.setTurnService(turnService);
-    hudController.setAdquisicionService(adquisicionService);
 
     scene = new Scene(this, bulletAppState, lanzamientoDadosController);
     startGameService =

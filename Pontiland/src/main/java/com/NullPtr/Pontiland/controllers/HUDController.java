@@ -25,12 +25,6 @@ public class HUDController implements IHUDcontroller {
   // dejaba asi
   // private com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService;
 
-  @Override
-  public void setAdquisicionService(
-      com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService) {
-    // this.adquisicionService = adquisicionService;
-  }
-
   public HUDController(Launcher app) {
     this.app = Objects.requireNonNull(app, "app no puede ser null");
   }

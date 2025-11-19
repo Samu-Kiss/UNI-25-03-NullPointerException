@@ -41,8 +41,6 @@ public interface IHUDcontroller {
 
   void setPuedeComprar(boolean puedeComprar);
 
-  void setAdquisicionService(com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService);
-
   void increaseAuction(int delta);
 
   void exitAuction();
