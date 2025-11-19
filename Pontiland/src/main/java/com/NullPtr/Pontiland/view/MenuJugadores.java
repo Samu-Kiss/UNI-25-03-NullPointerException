@@ -170,9 +170,9 @@ public class MenuJugadores extends AbstractAppState {
     buttonsRow.setInsets(new com.simsilica.lemur.Insets3f(10, 20, 20, 20));
 
     // Botones como sprites con rotación ligera sobre su centro
-    Button btn2 = createSpriteButton("graphics/sprites/Button_2J.png", 2, -8f);
-    Button btn3 = createSpriteButton("graphics/sprites/Button_3J.png", 3, 7f);
-    Button btn4 = createSpriteButton("graphics/sprites/Button_4J.png", 4, -5f);
+    Button btn2 = createSpriteButton("graphics/sprites/PlayerMenu/Button_2J.png", 2, -8f);
+    Button btn3 = createSpriteButton("graphics/sprites/PlayerMenu/Button_3J.png", 3, 7f);
+    Button btn4 = createSpriteButton("graphics/sprites/PlayerMenu/Button_4J.png", 4, -5f);
 
     // Orden de apilado: rosa (2) encima del azul (3) encima del verde (4)
     zLayers.put(btn2, 0.3f);
@@ -212,7 +212,7 @@ public class MenuJugadores extends AbstractAppState {
     Container row = new Container(new BorderLayout(), "pontiland");
 
     // Icono de flecha con sprite
-    TextureKey key = new TextureKey("graphics/sprites/Icon_Back_White.png", true);
+    TextureKey key = new TextureKey("graphics/sprites/Common/Icons/Icon_Back_White.png", true);
     key.setGenerateMips(false);
     Texture2D iconTex = (Texture2D) this.app.getAssetManager().loadTexture(key);
     iconTex.setWrap(Texture.WrapMode.EdgeClamp);
@@ -235,7 +235,7 @@ public class MenuJugadores extends AbstractAppState {
 
     backBar.addChild(row);
 
-    backBar.setLocalTranslation(10, camera.getHeight() - 10, 1);
+    backBar.setLocalTranslation(10, camera.getHeight() - 10f, 1);
     guiNode.attachChild(backBar);
   }
 

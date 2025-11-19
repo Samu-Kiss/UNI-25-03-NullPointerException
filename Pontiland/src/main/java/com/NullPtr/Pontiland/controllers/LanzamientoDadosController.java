@@ -30,19 +30,33 @@ public class LanzamientoDadosController {
           }
         }
 
-        public void beginInput() {}
+        public void beginInput() {
+          // No es necesario implementar nada aquí
+        }
 
-        public void endInput() {}
+        public void endInput() {
+          // No es necesario implementar nada aquí
+        }
 
-        public void onMouseMotionEvent(MouseMotionEvent evt) {}
+        public void onMouseMotionEvent(MouseMotionEvent evt) {
+          // No es necesario implementar nada aquí
+        }
 
-        public void onMouseButtonEvent(MouseButtonEvent evt) {}
+        public void onMouseButtonEvent(MouseButtonEvent evt) {
+          // No es necesario implementar nada aquí
+        }
 
-        public void onJoyAxisEvent(JoyAxisEvent evt) {}
+        public void onJoyAxisEvent(JoyAxisEvent evt) {
+          // No es necesario implementar nada aquí
+        }
 
-        public void onJoyButtonEvent(JoyButtonEvent evt) {}
+        public void onJoyButtonEvent(JoyButtonEvent evt) {
+          // No es necesario implementar nada aquí
+        }
 
-        public void onTouchEvent(TouchEvent evt) {}
+        public void onTouchEvent(TouchEvent evt) {
+          // No es necesario implementar nada aquí
+        }
       };
 
   /**

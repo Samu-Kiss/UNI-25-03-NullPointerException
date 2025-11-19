@@ -21,8 +21,8 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Clase de vista que construye y mantiene la escena 3D de Pontiland.
@@ -32,22 +32,11 @@ import java.util.List;
  * cámara. Además, inyecta el dado creado en la escena en el {@link DiceService} para permitir su
  * lógica.
  */
-public class Scene {
-  private final int totalCasillas = 40;
-  private float cellSize = 1.5385f;
-  private final int side = totalCasillas / 4;
+public class Scene implements IScene {
+  private static final int TOTAL_CASILLAS = 40;
+  private static final String DEFAULT_MATERIAL = "Common/MatDefs/Misc/Unshaded.j3md";
   private final Vector3f boardFirstPosition = new Vector3f(9.3f, 0.5f, 9.3f);
 
-  // --- Cámara suave ---
-  private final Vector3f camLookTarget = new Vector3f(0, 0, 0); // a dónde mirar (dado o ficha)
-  private final Vector3f camLookCurr = new Vector3f(0, 0, 0); // se interpola hacia camLookTarget
-  private final Vector3f camPosTarget =
-      new Vector3f(15, 15, 15); // posición deseada (lookTarget + offset)
-  private final Vector3f camPosCurr = new Vector3f(15, 15, 15); // se interpola hacia camPosTarget
-
-  private float camLerpSpeed = 6f;
-
-  /** Referencias a la aplicación y a sus componentes para cargar assets y manipular la escena. */
   private LegacyApplication app;
 
   private AssetManager assetManager;
@@ -56,25 +45,14 @@ public class Scene {
   private LanzamientoDadosController lanzamientoController;
   private BulletAppState bullet;
 
-  private Spatial mvSpatial;
-  private RigidBodyControl mvRb;
-  private final List<Vector3f> mvTargets = new ArrayList<>();
-  private final List<Integer> mvIndices = new ArrayList<>();
-  private int mvSeg = -1;
-  private float mvTimer = 0f;
-  private float mvDuration = 0.45f;
-  private float mvJump = 0.9f;
-  private final Vector3f mvStart = new Vector3f();
+  // New collaborators
+  private CameraController cameraController;
+  private MovementAnimator movementAnimator;
+  private FichaController fichaController;
 
-  /**
-   * Inicializa la escena cargando modelos, creando luces y configurando la cámara.
-   *
-   * @param app Instancia de {@link LegacyApplication} usada para acceder a rootNode, assetManager y
-   *     cámara
-   * @param bullet Estado de físicas adjunto al stateManager de la aplicación
-   * @param lanzamientoController controlador encargado de manejar el lanzamiento de dados en la
-   *     escena
-   */
+  // Logging
+  private static Logger logger = LogManager.getLogger(Scene.class);
+
   public Scene(
       LegacyApplication app,
       BulletAppState bullet,
@@ -86,12 +64,20 @@ public class Scene {
     this.cam = launcher.getCamera();
     this.bullet = bullet;
     this.lanzamientoController = lanzamientoController;
+
+    // Inicializar controladores
+    this.cameraController = new CameraController(cam, rootNode);
+    this.movementAnimator = new MovementAnimator(lanzamientoController, cameraController);
+    this.fichaController =
+        new FichaController(assetManager, bullet, rootNode, boardFirstPosition, TOTAL_CASILLAS);
+
+    // Cargar escena
     loadBoardModel();
     loadConitoModel();
     loadDiceModels();
     setupSkyEnvironment();
     setupLighting();
-    setupCamera();
+    cameraController.setupCamera();
   }
 
   /**
@@ -100,237 +86,33 @@ public class Scene {
    *
    * @param tpf Tiempo por frame
    */
+  @Override
   public void update(float tpf) {
-    if (mvSeg >= 0 && mvSeg < mvTargets.size() && mvSpatial != null) {
-      mvTimer += tpf;
-      float t = Math.min(1f, mvTimer / mvDuration);
-
-      Vector3f target = mvTargets.get(mvSeg);
-      // Lerp en XZ
-      float nx = mvStart.x + (target.x - mvStart.x) * t;
-      float nz = mvStart.z + (target.z - mvStart.z) * t;
-      // Arco en Y con seno (salto)
-      float ny = mvStart.y + (float) Math.sin(Math.PI * t) * mvJump;
-
-      Vector3f pos = new Vector3f(nx, ny, nz);
-
-      if (mvRb != null) {
-        mvRb.setPhysicsLocation(pos);
-        mvRb.setLinearVelocity(Vector3f.ZERO);
-        mvRb.setAngularVelocity(Vector3f.ZERO);
-      }
-      mvSpatial.setLocalTranslation(pos);
-
-      Object jid = mvSpatial.getUserData("jugadorId");
-      if (jid instanceof Integer) {
-        focusCameraOnFicha((Integer) jid);
-      }
-
-      if (t >= 1f) {
-        if (mvRb != null) {
-          mvRb.setPhysicsLocation(target);
-          mvRb.setLinearVelocity(Vector3f.ZERO);
-          mvRb.setAngularVelocity(Vector3f.ZERO);
-        }
-        mvSpatial.setLocalTranslation(target);
-
-        // Actualiza cellIndex
-        Integer finalIdx = mvIndices.get(mvSeg);
-        mvSpatial.setUserData("cellIndex", finalIdx);
-
-        // Siguiente segmento
-        mvSeg++;
-        mvTimer = 0f;
-        System.out.println("Reached target " + mvSeg + " at " + target);
-        if (mvSeg < mvTargets.size()) {
-          mvStart.set(target);
-
-        } else {
-          mvSeg = -1;
-          lanzamientoController.enableThrow(true);
-          resetCamera();
-        }
-      }
-    }
-    // Lerp lineal controlado por tpf
-    float a = Math.min(1f, camLerpSpeed * tpf);
-
-    camPosCurr.interpolateLocal(camPosTarget, a);
-    camLookCurr.interpolateLocal(camLookTarget, a);
-
-    cam.setLocation(camPosCurr);
-    cam.lookAt(camLookCurr, Vector3f.UNIT_Y);
+    movementAnimator.update(tpf);
+    cameraController.update(tpf);
   }
 
+  @Override
+  public void resetCamera() {
+    cameraController.resetCamera();
+  }
+
+  @Override
   public void loadFichasModels(Ficha[] data) {
-    for (int i = 0; i < data.length; i++) {
-      Spatial s = assetManager.loadModel(data[i].getRutaFicha());
-
-      int jugadorId = data[i].getJugadorId();
-      s.setName("Ficha_J" + jugadorId);
-      s.setUserData("jugadorId", jugadorId);
-
-      s.scale(1f);
-
-      Vector3f placed;
-      if (i < 2) {
-        placed =
-            new Vector3f(boardFirstPosition.getX() + i * 0.5f, 0.5f, boardFirstPosition.getZ());
-      } else {
-        placed =
-            new Vector3f(
-                boardFirstPosition.getX() + i % 2 * 0.5f, 0.5f, boardFirstPosition.getZ() + 0.5f);
-      }
-
-      s.setLocalTranslation(placed);
-
-      s.setUserData("startPosition", placed.clone());
-
-      Vector3f cell0 = posFromCell(0);
-      Vector3f initialOffset = placed.subtract(cell0);
-      s.setUserData("initialOffset", initialOffset);
-
-      s.setUserData("cellIndex", 0);
-
-      com.jme3.bullet.control.RigidBodyControl rb =
-          new com.jme3.bullet.control.RigidBodyControl(1f);
-      s.addControl(rb);
-      rb.setPhysicsLocation(placed.clone());
-      bullet.getPhysicsSpace().add(rb);
-      rootNode.attachChild(s);
-    }
+    fichaController.loadFichasModels(data);
   }
 
+  @Override
   public void replicateFichaPosition(int jugadorId, int casillaIndex) {
-
+    // delegar al controlador de fichas y pasar el animator
+    fichaController.replicateFichaPosition(jugadorId, casillaIndex, movementAnimator);
     lanzamientoController.enableThrow(false);
-    Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
-    if (s == null) return;
-
-    int currentIndex = 0;
-    Object ciUd = s.getUserData("cellIndex");
-    if (ciUd instanceof Integer) currentIndex = (Integer) ciUd;
-
-    s.setUserData("jugadorId", jugadorId);
-
-    if (casillaIndex < currentIndex) {
-      casillaIndex += totalCasillas;
-    }
-    int steps = (casillaIndex - currentIndex) % totalCasillas;
-    System.out.println("pasos: " + steps);
-    if (steps == 0) {
-      s.setUserData("cellIndex", casillaIndex);
-      return;
-    }
-
-    List<Vector3f> targets = new ArrayList<>();
-    List<Integer> indices = new ArrayList<>();
-
-    if (steps > 0) {
-      for (int i = 1; i <= steps; i++) {
-        int idx = (currentIndex + i) % totalCasillas;
-        Vector3f center = posFromCell(idx);
-        targets.add(center);
-        indices.add(idx);
-      }
-    }
-    /*
-    else
-    {
-        for (int i = steps -1 ; i == 0 ; i--) {
-            int idx = (currentIndex - i) % TOTAL_CASILLAS;
-            Vector3f center = posFromCell(idx);
-            targets.add(center);
-            indices.add(idx);
-        }
-
-    }*/
-
-    RigidBodyControl rb = s.getControl(RigidBodyControl.class);
-    animateMoveAlongPath(s, rb, targets, indices, 0.45f, 0.9f);
   }
 
-  /**
-   * Animate a spatial sequentially through the provided targets. Updates the spatial's `cellIndex`
-   * after each reached target.
-   */
-  private void animateMoveAlongPath(
-      Spatial s,
-      RigidBodyControl rb,
-      List<Vector3f> targets,
-      List<Integer> indices,
-      float durationSeconds,
-      float jumpHeight) {
-    this.mvSpatial = s;
-    this.mvRb = rb;
-
-    this.mvTargets.clear();
-    this.mvTargets.addAll(targets);
-
-    this.mvIndices.clear();
-    this.mvIndices.addAll(indices);
-
-    this.mvDuration = durationSeconds;
-    this.mvJump = jumpHeight;
-
-    Vector3f start =
-        (rb != null && rb.getPhysicsLocation() != null)
-            ? rb.getPhysicsLocation()
-            : s.getLocalTranslation();
-    this.mvStart.set(start);
-
-    // Arrancar en el primer segmento
-    this.mvSeg = (targets.isEmpty() ? -1 : 0);
-    this.mvTimer = 0f;
-  }
-
+  /*TODO: Revisar el uso de este método, si no se usa, borrarlo
   private Vector3f posFromCell(int c) {
-    int idx = (c % totalCasillas);
-
-    int sideLocal = idx / side;
-    int pos = idx % side;
-
-    float x = 0f;
-    float z = 0f;
-    switch (sideLocal) {
-      case 0:
-        cellSize = 1.5385f;
-        x =
-            -(pos + 1)
-                * cellSize; // lograr llegar a ese pos+1 por mas absurdo que parezca me tomo como 2
-        // horas de mi vida
-        z = 0;
-        break;
-
-        // Left side: bottom -> top
-      case 1:
-        cellSize = 1.357500558970818f;
-        x = -boardFirstPosition.getX() * 2f;
-        z = -(((pos + 1) * cellSize) + (pos + 1) * 0.23f);
-        break;
-
-        // Top side: left -> right
-      case 2:
-        cellSize = 1.357500558970818f;
-        z = -boardFirstPosition.getZ() * 2f;
-        if ((pos + 1) == 0) {
-          x = (-boardFirstPosition.getX() * 2f) + ((pos + 1) * cellSize);
-          break;
-        } else {
-          x = (-boardFirstPosition.getX() * 2f) + ((pos + 1) * cellSize) + (pos + 1) * 0.24f;
-          break;
-        }
-
-        // Right side: top -> bottom
-      case 3:
-        cellSize = 1.5385f;
-        if ((pos + 1) == 0) cellSize *= 2f;
-        z = (-boardFirstPosition.getZ() * 2f) + ((pos + 1) * cellSize) + (pos + 1) * 0.24f;
-        break;
-    }
-
-    return new Vector3f(boardFirstPosition.x + x, boardFirstPosition.y, boardFirstPosition.z + z);
-  }
+    return fichaController != null ? fichaController.posFromCell(c) : new Vector3f();
+  }*/
 
   /** Carga el modelo del tablero e inicializa su cuerpo físico estático. */
   private void loadBoardModel() {
@@ -348,58 +130,15 @@ public class Scene {
       RigidBodyControl boardPhysics = new RigidBodyControl(0f);
       board.addControl(boardPhysics);
       bullet.getPhysicsSpace().add(boardPhysics);
-      medirTamanoCasilla(board);
     } catch (Exception ex) {
       // Objeto de respaldo si falla la carga del tablero
       Box fallback = new Box(1, 1, 1);
       Geometry geom = new Geometry("FallbackBoard", fallback);
-      Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-      mat.setColor("Color", ColorRGBA.Red);
+      Material mat = new Material(assetManager, DEFAULT_MATERIAL);
+      mat.setColor("ColorRojo", ColorRGBA.Red);
       geom.setMaterial(mat);
       rootNode.attachChild(geom);
     }
-  }
-
-  // Mide la distancia entre dos marcas en el tablero para calcular el tamaño de una casilla
-  private float medirTamanoCasilla(Spatial board) {
-    Geometry markA = (Geometry) rootNode.getChild("MeasureA");
-    Geometry markB = (Geometry) rootNode.getChild("MeasureB");
-    // EL TAMAÑO DEL TABLERO ES DE 20X20 UNIDADES
-    final float CELL = 20f / 13f; // 0.384615f
-    if (markA == null || markB == null) {
-      Box bx = new Box(0.1f, 0.1f, 0.1f);
-
-      if (markA == null) {
-        markA = new Geometry("MeasureA", bx);
-        Material mA = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mA.setColor("Color", ColorRGBA.Green);
-        markA.setMaterial(mA);
-        markA.setLocalTranslation(boardFirstPosition.add(-CELL * 2, -0.4f, -0.2f));
-        // markA.setLocalTranslation(BOARD_FIRST_POSITION.add(-0.68f, -0.4f, -0.88f));
-        rootNode.attachChild(markA);
-      }
-      if (markB == null) {
-        markB = new Geometry("MeasureB", bx);
-        Material mB = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mB.setColor("Color", ColorRGBA.Yellow);
-        markB.setMaterial(mB);
-        markB.setLocalTranslation(boardFirstPosition.add(-CELL * 3, -0.4f, -0.2f));
-        // markB.setLocalTranslation(BOARD_FIRST_POSITION.add( -0.68f, -0.4f, -2.38f));
-        rootNode.attachChild(markB);
-      }
-    }
-
-    board.updateGeometricState();
-
-    Vector3f a = markA.getWorldTranslation();
-    Vector3f b = markB.getWorldTranslation();
-    float dx = Math.abs(b.x - a.x);
-    float dz = Math.abs(b.z - a.z);
-
-    float cellSize = (dx >= dz) ? dx : dz;
-
-    System.out.printf("CellSize(UNA casilla) = %.4f  | dx=%.4f  dz=%.4f%n", cellSize, dx, dz);
-    return cellSize;
   }
 
   /** Carga el modelo del peón (conito) con cuerpo físico estático. */
@@ -407,7 +146,7 @@ public class Scene {
     try {
       Spatial conito = assetManager.loadModel("graphics/models/Conito.glb");
       conito.scale(10f);
-      conito.setLocalTranslation(0, 0, 0);
+      conito.setLocalTranslation(0, -0.5f, 0);
       conito.setName("Conito");
       rootNode.attachChild(conito);
       RigidBodyControl conitoPhysics = new RigidBodyControl(0f);
@@ -417,8 +156,8 @@ public class Scene {
       // Objeto de respaldo si falla la carga del conito
       Box fallback = new Box(1, 1, 1);
       Geometry geom = new Geometry("FallbackConito", fallback);
-      Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-      mat.setColor("Color", ColorRGBA.Blue);
+      Material mat = new Material(assetManager, DEFAULT_MATERIAL);
+      mat.setColor("ColorAzuñ", ColorRGBA.Blue);
       geom.setMaterial(mat);
       rootNode.attachChild(geom);
     }
@@ -464,15 +203,15 @@ public class Scene {
       // Si falla la carga de los modelos, crear cubos de respaldo para ambos dados
       Box fallback1 = new Box(1, 1, 1);
       Geometry geom1 = new Geometry("FallbackDice1", fallback1);
-      Material mat1 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-      mat1.setColor("Color", ColorRGBA.Blue);
+      Material mat1 = new Material(assetManager, DEFAULT_MATERIAL);
+      mat1.setColor("ColorVerde", ColorRGBA.Green);
       geom1.setMaterial(mat1);
       geom1.setLocalTranslation(-2f, 10f, 0f);
       rootNode.attachChild(geom1);
       Box fallback2 = new Box(1, 1, 1);
       Geometry geom2 = new Geometry("FallbackDice2", fallback2);
-      Material mat2 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-      mat2.setColor("Color", ColorRGBA.Cyan);
+      Material mat2 = new Material(assetManager, DEFAULT_MATERIAL);
+      mat2.setColor("ColorCyan", ColorRGBA.Cyan);
       geom2.setMaterial(mat2);
       geom2.setLocalTranslation(2f, 10f, 0f);
       rootNode.attachChild(geom2);
@@ -487,52 +226,18 @@ public class Scene {
       rootNode.attachChild(
           SkyFactory.createSky(assetManager, hdr, SkyFactory.EnvMapType.EquirectMap));
     } catch (Exception ex) {
-      System.err.println("Failed to load HDRi sky: " + ex.getMessage());
+      logger.error("Failed to load HDRi sky", ex);
     }
   }
 
   /** Configura las luces direccional y ambiental de la escena. */
   private void setupLighting() {
-    DirectionalLight sun = new DirectionalLight();
-    sun.setColor(ColorRGBA.White);
-    sun.setDirection(new Vector3f(-1f, -2f, -1f).normalizeLocal());
-    rootNode.addLight(sun);
+    DirectionalLight luz = new DirectionalLight();
+    luz.setColor(ColorRGBA.White);
+    luz.setDirection(new Vector3f(-1f, -2f, -1f).normalizeLocal());
+    rootNode.addLight(luz);
     AmbientLight ambient = new AmbientLight();
     ambient.setColor(ColorRGBA.White.mult(0.25f));
     rootNode.addLight(ambient);
-  }
-
-  /** Posiciona la cámara y ajusta su perspectiva y velocidad de movimiento. */
-  private void setupCamera() {
-    cam.setLocation(new Vector3f(15, 15, 15));
-    cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_Y);
-    cam.setFrustumPerspective(60f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 500f);
-  }
-
-  public void resetCamera() {
-    Vector3f offset = new Vector3f(0, 7, 3);
-
-    Spatial d1 = rootNode.getChild("Dice1");
-    if (d1 == null) d1 = rootNode.getChild("FallbackDice1");
-    Spatial d2 = rootNode.getChild("Dice2");
-    if (d2 == null) d2 = rootNode.getChild("FallbackDice2");
-
-    if (d1 != null && d2 != null) {
-      Vector3f mid = d1.getWorldTranslation().add(d2.getWorldTranslation()).multLocal(0.5f);
-      setCamTarget(mid, offset);
-    }
-  }
-
-  public void focusCameraOnFicha(int jugadorId) {
-    Spatial s = rootNode.getChild("Ficha_J" + jugadorId);
-    if (s != null) {
-      Vector3f fichaPos = s.getLocalTranslation();
-      setCamTarget(fichaPos, new Vector3f(5, 5, 5)); // misma toma oblicua, pero con lerp
-    }
-  }
-
-  private void setCamTarget(Vector3f lookAt, Vector3f offset) {
-    camLookTarget.set(lookAt);
-    camPosTarget.set(lookAt).addLocal(offset);
   }
 }

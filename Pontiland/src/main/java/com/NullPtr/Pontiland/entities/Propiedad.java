@@ -7,7 +7,6 @@ public class Propiedad {
   //    grupo
   private int idGrupo = -1;
   private Tipo tipoCasilla = Tipo.PROPIEDAD;
-  private String nombreCasilla = null;
   private Byte posicionTablero = -1;
   private int nivelPropiedad = 1;
   private int precioCompra = -1;
@@ -18,7 +17,6 @@ public class Propiedad {
    * Constructor de la clase Propiedad
    *
    * @param posicionTablero Posicion de la propiedad en el tablero (0-39)
-   * @param nombreCasilla Nombre de la propiedad
    * @param idPropiedad Identificador unico de la propiedad (1-24)
    * @param idGrupo Identificador del grupo al que pertenece la propiedad (1-8)
    * @param nivelPropiedad Nivel inicial de la propiedad (1-5)
@@ -28,7 +26,6 @@ public class Propiedad {
    */
   public Propiedad(
       int posicionTablero,
-      String nombreCasilla,
       int idPropiedad,
       int idGrupo,
       int nivelPropiedad,
@@ -111,22 +108,24 @@ public class Propiedad {
     return posicionTablero;
   }
 
-  public void setNombreCasilla(String nombreCasilla) {
-    if (nombreCasilla == null || nombreCasilla.trim().isEmpty()) {
-      throw new IllegalArgumentException("El nombre de la casilla no puede ser nulo o vacío");
-    }
-    this.nombreCasilla = nombreCasilla;
-  }
-
-  public String getNombreCasilla() {
-    return this.nombreCasilla;
-  }
-
   public void setTipoCasilla(Tipo tipoCasilla) {
     this.tipoCasilla = tipoCasilla;
   }
 
   public Tipo getTipoCasilla() {
     return this.tipoCasilla;
+  }
+
+  public int getGrupo() {
+    return this.idGrupo;
+  }
+
+  public String[] getRentasText() {
+    if (rentaPorNivel == null) return new String[0];
+    String[] out = new String[rentaPorNivel.length];
+    for (int i = 0; i < rentaPorNivel.length; i++) {
+      out[i] = String.valueOf(rentaPorNivel[i]);
+    }
+    return out;
   }
 }

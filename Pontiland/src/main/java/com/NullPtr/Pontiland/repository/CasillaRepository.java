@@ -17,9 +17,10 @@ public class CasillaRepository implements ICasillaRepository {
   }
 
   @Override
-  public Casilla casillaFromPosition(int posicion) {
+  public Casilla casillaFromPosition(int posicion) throws SQLException {
     if (posicion < 1 || posicion > 40) {
-      throw new RuntimeException("No existen casillas antes de 0 o después de 40");
+      throw new SQLException(
+          "Se ha intentado obtener una casilla en una posición inválida: " + posicion);
     }
 
     String obtenerCasillaPosicion =
@@ -49,7 +50,7 @@ public class CasillaRepository implements ICasillaRepository {
         return new Casilla(posicion, nombre, tipo);
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al obtener la casilla en posición " + posicion, e);
     }
   }
 }

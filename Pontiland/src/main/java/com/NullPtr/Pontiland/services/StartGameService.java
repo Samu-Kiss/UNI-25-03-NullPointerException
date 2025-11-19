@@ -3,7 +3,8 @@ package com.NullPtr.Pontiland.services;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
-import com.NullPtr.Pontiland.view.Scene;
+import com.NullPtr.Pontiland.repository.IPropiedadRepository;
+import com.NullPtr.Pontiland.view.IScene;
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -22,7 +23,9 @@ public class StartGameService implements IStartGameService {
   /** Servicio para la gestión de la base de datos y persistencia. */
   private IDataService dataService;
 
-  private Scene scene;
+  private IPropiedadRepository propiedadRepository;
+
+  private IScene scene;
 
   /**
    * Constructor que permite la inyección de dependencias.
@@ -31,12 +34,15 @@ public class StartGameService implements IStartGameService {
    * @param partidaRepository Repositorio de partidas.
    * @param dataService Servicio de datos.
    * @param scene escena principal usada para cargar los modelos al iniciar partida.
+   * @param propiedadRepository Repositorio de propiedades.
    */
   public StartGameService(
       IJugadorRepository jugadorRepository,
       IPartidaRepository partidaRepository,
       IDataService dataService,
-      Scene scene) {
+      IScene scene,
+      IPropiedadRepository propiedadRepository) {
+    this.propiedadRepository = propiedadRepository;
     this.jugadorRepository = jugadorRepository;
     this.partidaRepository = partidaRepository;
     this.dataService = dataService;
@@ -58,6 +64,7 @@ public class StartGameService implements IStartGameService {
     dataService.newDataBase();
     long partidaID = partidaRepository.newPartida(jugadores.size());
     jugadorRepository.setPartidaID(partidaID);
+    propiedadRepository.setPartidaID(partidaID);
     for (int i = 1; i <= jugadores.size(); i++) {
       jugadorRepository.newPlayer(jugadores.get(i - 1), iconos.get(i - 1));
     }
