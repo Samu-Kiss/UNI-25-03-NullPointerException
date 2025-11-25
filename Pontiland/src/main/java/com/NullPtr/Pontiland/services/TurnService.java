@@ -282,8 +282,7 @@ public class TurnService implements ITurnService {
     for (int i = jugadorRepository.getPlayerCount(); i > 0; i--) {
       Jugador jugador =
           jugadorRepository.getJugadorByID(jugadorRepository.getPlayerIdByNumJugador(i));
-      hudController.updatePlayerCard(
-          jugador.getNombreJugador(), String.valueOf(jugador.getDinero()), jugador.getEstado(), i);
+      hudController.updatePlayerCard(jugador, i);
     }
 
     try {

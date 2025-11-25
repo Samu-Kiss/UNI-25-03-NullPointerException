@@ -2,6 +2,7 @@ package com.NullPtr.Pontiland.view;
 
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.controllers.IHUDcontroller;
+import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.view.HUDComponents.Auction;
 import com.NullPtr.Pontiland.view.HUDComponents.PlayerCard;
 import com.NullPtr.Pontiland.view.HUDComponents.PropertyCard;
@@ -45,8 +46,8 @@ public class HUD extends AbstractAppState {
 
   private IHUDcontroller hudController;
 
-  // Nombres pendientes si se llaman antes de construir playersBox
-  private List<String> pendingPlayerNames;
+  // Jugadores pendientes si se llaman antes de construir playersBox
+  private List<Jugador> pendingPlayers;
 
   // Tokens pendientes si se reciben antes de construir la vista
   private String[] pendingTokens;
@@ -134,10 +135,10 @@ public class HUD extends AbstractAppState {
     playersBox = leftPane.addChild(new Container());
     playersBox.setBackground(null);
 
-    // Si había nombres pendientes, poblar ahora
-    if (pendingPlayerNames != null) {
-      populatePlayerNames(pendingPlayerNames);
-      pendingPlayerNames = null;
+    // Si había jugadores pendientes, poblar ahora
+    if (pendingPlayers != null) {
+      populatePlayers(pendingPlayers);
+      pendingPlayers = null;
     }
 
     // Right (PropertyCard)
@@ -320,31 +321,40 @@ public class HUD extends AbstractAppState {
     if (overlayPane != null) overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
   }
 
-  public void updatePlayerCard(
-      String playerName, String moneyText, boolean inJail, int playerIndex) {
-
+  /**
+   * Actualiza la tarjeta de un jugador específico.
+   *
+   * @param jugador entidad Jugador con los datos actualizados
+   * @param playerIndex índice del jugador (1-4)
+   */
+  public void updatePlayerCard(Jugador jugador, int playerIndex) {
     int idx = Math.max(1, playerIndex) - 1;
     if (idx >= 0 && idx < playerCards.size()) {
-      playerCards.get(idx).setInfo(playerName, moneyText, inJail, playerIndex);
+      playerCards.get(idx).setInfo(jugador, playerIndex);
     }
   }
 
-  public void setPlayerNames(List<String> names) {
+  /**
+   * Establece la lista de jugadores para mostrar en las PlayerCards.
+   *
+   * @param jugadores lista de entidades Jugador con nombre, dinero, iconoId, etc.
+   */
+  public void setPlayers(List<Jugador> jugadores) {
     if (playersBox == null) {
-      pendingPlayerNames = (names == null) ? null : new ArrayList<>(names);
+      pendingPlayers = (jugadores == null) ? null : new ArrayList<>(jugadores);
       return;
     }
-    populatePlayerNames(names);
+    populatePlayers(jugadores);
   }
 
-  private void populatePlayerNames(List<String> names) {
+  private void populatePlayers(List<Jugador> jugadores) {
     playerCards.clear();
     playersBox.detachAllChildren();
-    if (names == null) return;
+    if (jugadores == null) return;
 
-    for (int i = 0; i < names.size(); i++) {
+    for (int i = 0; i < jugadores.size(); i++) {
       PlayerCard card = new PlayerCard(app.getAssetManager());
-      card.setInfo(names.get(i), "$1500", false, i + 1);
+      card.setInfo(jugadores.get(i), i + 1);
       playerCards.add(card);
       playersBox.addChild(card.getRoot());
       // Añadir un pequeño separador

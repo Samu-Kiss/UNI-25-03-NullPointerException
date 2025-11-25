@@ -1,6 +1,7 @@
 package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.Launcher;
+import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.services.ITurnService;
 import com.NullPtr.Pontiland.view.HUD;
 import com.jme3.app.state.AppStateManager;
@@ -84,20 +85,18 @@ public class HUDController implements IHUDcontroller {
   }
 
   @Override
-  public void setPlayerNames(List<String> names) {
+  public void setPlayers(List<Jugador> jugadores) {
     if (hud != null) {
-      hud.setPlayerNames(names);
+      hud.setPlayers(jugadores);
     }
   }
 
   // ==== Wrappers de actualización ====
 
   @Override
-  public void updatePlayerCard(
-      String playerName, String moneyText, boolean inJail, int playerIndex) {
-    String money = "$" + moneyText;
+  public void updatePlayerCard(Jugador jugador, int playerIndex) {
     if (hud != null) {
-      hud.updatePlayerCard(playerName, money, inJail, playerIndex);
+      hud.updatePlayerCard(jugador, playerIndex);
     }
   }
 
