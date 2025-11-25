@@ -1,9 +1,7 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.controllers.IHUDcontroller;
-import com.NullPtr.Pontiland.entities.Casilla;
-import com.NullPtr.Pontiland.entities.Jugador;
-import com.NullPtr.Pontiland.entities.Propiedad;
+import com.NullPtr.Pontiland.entities.*;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import com.NullPtr.Pontiland.repository.TarjetaEventoRepository;
 import java.sql.SQLException;
@@ -109,6 +107,51 @@ public class CasillaService implements ICasillaService {
         "{} ha caido en Evento posicion de casilla {}",
         j.getNombreJugador(),
         c.getPosicionTablero());
+
+    TarjetaEvento evento = tarjetaEventoRepository.getRandomTarjetaEvento();
+
+    if (evento != null) {
+      logger.info("Tarjeta Evento obtenida: {}", evento);
+      // TODO: mostrar descripcion en HUD
+    } else {
+      logger.warn("No se pudo obtener una tarjeta de evento aleatoria.");
+      return;
+    }
+
+    switch (evento.getAccion()) {
+      case Accion.GANA_50:
+        logger.debug("{} gana 50 monedas.", j.getNombreJugador());
+        break;
+      case Accion.GANA_100:
+        logger.debug("{} gana 100 monedas.", j.getNombreJugador());
+        break;
+      case Accion.GANA_200:
+        logger.debug("{} gana 200 monedas.", j.getNombreJugador());
+        break;
+      case Accion.PROPIEDAD_A_NIVEL_1:
+        logger.debug("{} mejora una propiedad a nivel 1.", j.getNombreJugador());
+        break;
+      case Accion.PROPIEDAD_A_NIVEL_5:
+        logger.debug("{} mejora una propiedad a nivel 5.", j.getNombreJugador());
+        break;
+      case Accion.PROPIEDAD_NIVEL_PLUS_1:
+        logger.debug("{} mejora una propiedad en 1 nivel.", j.getNombreJugador());
+        break;
+      case Accion.PROPIEDAD_NIVEL_MINUS_1:
+        logger.debug("{} reduce una propiedad en 1 nivel.", j.getNombreJugador());
+        break;
+      case Accion.PIERDE_50_POR_PROPIEDAD:
+        logger.debug("{} pierde 50 monedas por propiedad.", j.getNombreJugador());
+        break;
+      case Accion.IR_A_LA_CARCEL:
+        logger.debug("{} va a la cárcel.", j.getNombreJugador());
+        irACarcel = true;
+        break;
+      default:
+        logger.warn("Acción de tarjeta de evento no reconocida.");
+        break;
+    }
+
     if (diceService != null) diceService.enableInteract(false);
   }
 
