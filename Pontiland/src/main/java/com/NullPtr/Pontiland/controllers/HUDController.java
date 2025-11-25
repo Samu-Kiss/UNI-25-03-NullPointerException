@@ -32,6 +32,7 @@ public class HUDController implements IHUDcontroller {
   @Override
   public void setHud(HUD hud) {
     this.hud = hud;
+    if (this.hud != null) this.hud.setHudController(this);
   }
 
   @Override
@@ -174,5 +175,20 @@ public class HUDController implements IHUDcontroller {
   @Override
   public void setAuctionPlayerName(String playerName) {
     if (hud != null) hud.setAuctionPlayerName(playerName);
+  }
+
+  @Override
+  public void showGoodEvent(String title, String descriptionText) {
+    if (hud != null) hud.showGoodEvent(title, descriptionText);
+  }
+
+  @Override
+  public void showBadEvent(String title, String descriptionText) {
+    if (hud != null) hud.showBadEvent(title, descriptionText);
+  }
+
+  @Override
+  public void hideEventCards() {
+    if (hud != null) hud.hideEventCards();
   }
 }

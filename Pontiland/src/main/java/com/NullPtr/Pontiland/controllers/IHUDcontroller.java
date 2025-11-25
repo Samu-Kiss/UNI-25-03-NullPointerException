@@ -46,4 +46,11 @@ public interface IHUDcontroller {
   void exitAuction();
 
   void setAuctionPlayerName(String playerName);
+
+  // Eventos: mostrar carta buena, carta mala y ocultar cartas de evento
+  void showGoodEvent(String title, String descriptionText);
+
+  void showBadEvent(String title, String descriptionText);
+
+  void hideEventCards();
 }

@@ -65,6 +65,7 @@ public class CasillaService implements ICasillaService {
         hudController.terminarTurno();
         break;
       case EVENTO:
+        onEvento(jugador, casilla);
         hudController.terminarTurno();
         break;
       case PROPIEDAD:
@@ -116,6 +117,14 @@ public class CasillaService implements ICasillaService {
     } else {
       logger.warn("No se pudo obtener una tarjeta de evento aleatoria.");
       return;
+    }
+
+    if (evento.getAccion() == Accion.GANA_50
+        || evento.getAccion() == Accion.GANA_100
+        || evento.getAccion() == Accion.GANA_200) {
+      hudController.showGoodEvent(evento.getNombre(), evento.getDescripcion());
+    } else {
+      hudController.showBadEvent(evento.getNombre(), evento.getDescripcion());
     }
 
     switch (evento.getAccion()) {
@@ -195,6 +204,7 @@ public class CasillaService implements ICasillaService {
         "{} ha caido en Movimiento posicion de casilla {}",
         j.getNombreJugador(),
         c.getPosicionTablero());
+    //TODO
     if (diceService != null) diceService.enableInteract(false);
   }
 
