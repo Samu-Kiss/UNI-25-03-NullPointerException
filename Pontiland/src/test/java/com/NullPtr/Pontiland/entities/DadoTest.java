@@ -34,16 +34,12 @@ class DadoTest {
     dado = new Dado(spatialMock);
   }
 
-  // --- Pruebas de getCaraSuperior() ---
-
   /** Verifica que getCaraSuperior devuelve un valor entre 1 y 6. */
   @Test
   void testGetCaraSuperiorReturnsValidValue() {
     byte cara = dado.getCaraSuperior();
     assertTrue(cara >= 1 && cara <= 6, "La cara superior debe estar entre 1 y 6");
   }
-
-  // --- Pruebas de lanzar() ---
 
   /** Verifica que lanzar invoca los métodos esperados de RigidBodyControl. */
   @Test
@@ -57,8 +53,6 @@ class DadoTest {
     verify(rigidBodyMock).applyImpulse(any(Vector3f.class), eq(Vector3f.ZERO));
     verify(rigidBodyMock).applyTorqueImpulse(any(Vector3f.class));
   }
-
-  // --- Pruebas de enMovimiento() ---
 
   /** Verifica que enMovimiento devuelve true cuando la velocidad es mayor que 0.02f. */
   @Test
