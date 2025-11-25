@@ -72,6 +72,7 @@ public class Launcher extends SimpleApplication {
     bulletAppState.getPhysicsSpace().setMaxSubSteps(2);
 
     dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
+    //dataService = new DataService("jdbc:h2:./data/PontilandDB;AUTO_SERVER=TRUE");
 
     partidaRepository = new PartidaRepository(dataService);
     jugadorRepository = new JugadorRepository(dataService);

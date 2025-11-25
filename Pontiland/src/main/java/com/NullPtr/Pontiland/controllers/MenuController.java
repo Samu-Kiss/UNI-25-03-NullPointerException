@@ -176,8 +176,7 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuSeleccion);
 
-    List<SavedGame> saves = dataService.listarPartidasPasadas();
-
+    List<SavedGame> saves = startGameService.listPastGames();
     showLoadMenu(
         saves,
         (String id) -> {

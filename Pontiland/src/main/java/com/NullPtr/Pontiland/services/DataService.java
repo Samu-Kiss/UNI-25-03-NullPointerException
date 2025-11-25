@@ -83,8 +83,17 @@ public class DataService implements IDataService {
    * @throws RuntimeException si ocurre un error de SQL o de lectura de archivos.
    */
   public void newDataBase() {
-    try (Connection conn = createConnection();
-        Statement stmt = conn.createStatement();
+    Connection conn = createConnection();
+    try (PreparedStatement ps = conn.prepareStatement(
+            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='PUBLIC' ")) {
+      ResultSet rs = ps.executeQuery();
+      rs.next();
+      boolean empty = rs.getInt(1) == 0;
+      if(!empty) return;
+    } catch (SQLException e) {
+      logger.fatal("DataService.newDataBase: Error FATAL al verificar tablas en la base de datos", e);
+    }
+    try (Statement stmt = conn.createStatement();
         InputStream ddlIn = this.getClass().getResourceAsStream(ddlResource);
         InputStream insIn = this.getClass().getResourceAsStream(insResource)) {
 
@@ -149,6 +158,7 @@ public class DataService implements IDataService {
    *
    * @return Mapa con fechas formateadas y nombres de archivos de partidas pasadas.
    */
+  @Deprecated
   public List<SavedGame> listarPartidasPasadas() {
     Map<String, String> mapaArchivo = new LinkedHashMap<>();
 
