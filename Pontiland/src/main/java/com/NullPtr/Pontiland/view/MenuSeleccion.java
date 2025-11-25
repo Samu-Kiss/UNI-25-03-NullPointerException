@@ -16,6 +16,7 @@ import com.jme3.scene.Node;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
+import com.jme3.ui.Picture;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.GuiGlobals;
@@ -26,7 +27,6 @@ import com.simsilica.lemur.TextField;
 import com.simsilica.lemur.component.BorderLayout;
 import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
-import com.simsilica.lemur.style.Styles;
 import java.nio.ByteBuffer;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -96,6 +96,7 @@ public class MenuSeleccion extends AbstractAppState {
   // Ya no usamos mainPane/playersRow para grid automático: posicionaremos manualmente
   private final List<Integer> characterIndex = new ArrayList<>();
   private final List<Label> characterLabels = new ArrayList<>();
+  private final List<Picture> characterIcons = new ArrayList<>();
   private final List<Container> playerPanels = new ArrayList<>();
   private final List<TextField> headerFields = new ArrayList<>();
   private final List<Boolean> placeholderActive = new ArrayList<>();
@@ -124,6 +125,12 @@ public class MenuSeleccion extends AbstractAppState {
   private static final int MAX_NICK_LENGTH = 12; // Límite de caracteres para nickname
   private static final ColorRGBA PLACEHOLDER_COLOR = new ColorRGBA(0.7f, 0.7f, 0.7f, 1f);
   private static final ColorRGBA INPUT_COLOR = ColorRGBA.White;
+  private static final ColorRGBA INPUT_BG_INNER = new ColorRGBA(0.24f, 0.24f, 0.28f, 0.98f);
+  // Icon size relative to bill height (1.0 = same height as bill)
+  private static final float ICON_HEIGHT_FACTOR = 1.0f;
+  // Cache for loaded character sprite backgrounds (keyed by asset path)
+  private final Map<String, Texture2D> characterSpriteCache = new HashMap<>();
+  private final Map<String, Vector2f> characterSpriteSizeCache = new HashMap<>();
 
   // Logging
   private static Logger logger = LogManager.getLogger(MenuSeleccion.class);
@@ -143,20 +150,7 @@ public class MenuSeleccion extends AbstractAppState {
     if (GuiGlobals.getInstance() == null) {
       GuiGlobals.initialize(application);
     }
-    setupStyles();
     buildUI();
-  }
-
-  private void setupStyles() {
-    Styles styles = GuiGlobals.getInstance().getStyles();
-    styles
-        .getSelector("container", "pontiland")
-        .set(
-            "background",
-            new QuadBackgroundComponent(new ColorRGBA(0.10f, 0.11f, 0.14f, 0.88f)),
-            false);
-    styles.getSelector("button", "pontiland").set("color", ColorRGBA.White, false);
-    styles.getSelector("label", "pontiland").set("color", ColorRGBA.White, false);
   }
 
   private void buildUI() {
@@ -268,18 +262,23 @@ public class MenuSeleccion extends AbstractAppState {
     Container panel = new Container("pontiland");
     panel.setBackground(null);
 
+    float headerHeight = 34f;
+    Container headerWrapper = new Container("pontiland");
+    headerWrapper.setPreferredSize(new Vector3f(panelTotalWidth, headerHeight + 14f, 0));
+    headerWrapper.setInsets(new Insets3f(3, 3, 8, 3));
+
     TextField headerField = new TextField("", "pontiland");
     headerField.setFontSize(22);
-    headerField.setPreferredSize(
-        new Vector3f(panelTotalWidth, headerField.getPreferredSize().y, 0));
+    headerField.setPreferredSize(new Vector3f(panelTotalWidth - 20f, headerHeight, 0));
     headerField.setTextHAlignment(HAlignment.Center);
-    // Placeholder inicial
+    headerField.setBackground(new QuadBackgroundComponent(INPUT_BG_INNER));
+    headerField.setInsets(new Insets3f(6, 12, 6, 12));
     headerField.setText(placeholderFor(idx));
     headerField.setColor(PLACEHOLDER_COLOR);
-    headerField.setBackground(null);
-    placeholderActive.add(true);
-    panel.addChild(headerField);
+    headerWrapper.addChild(headerField);
     headerFields.add(headerField);
+    placeholderActive.add(true);
+    panel.addChild(headerWrapper);
 
     // Fila central con flechas y billete usando BorderLayout para alinear horizontalmente
     Container middle = new Container(new BorderLayout(), "pontiland");
@@ -303,8 +302,15 @@ public class MenuSeleccion extends AbstractAppState {
     Label charName = new Label(CHARACTER_NAMES[initialCharIdx], "pontiland");
     charName.setFontSize(20);
     characterLabels.add(charName);
+
+    Picture charIcon = new Picture("CharacterIcon-" + idx);
+    configureCharacterIcon(charIcon, initialCharIdx);
+    characterIcons.add(charIcon);
+
+    // Adjuntar icono y label al billete
+    bill.attachChild(charIcon);
     Vector3f cs = charName.getPreferredSize();
-    charName.setLocalTranslation((billWidth - cs.x) / 2f, (billHeight + cs.y) / 2f, 0);
+    charName.setLocalTranslation((billWidth - cs.x) / 2f, (billHeight + cs.y) / 2f, 2f);
     bill.setUserData("charLabel", charName);
     bill.attachChild(charName);
     middle.addChild(bill, BorderLayout.Position.Center);
@@ -341,6 +347,27 @@ public class MenuSeleccion extends AbstractAppState {
     tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
     tex.setWrap(Texture.WrapMode.EdgeClamp);
     return new QuadBackgroundComponent(tex);
+  }
+
+  private Texture2D loadCharacterTexture(int charIdx) {
+    String path = "graphics/sprites/Fichas/" + CHARACTER_NAMES[charIdx] + ".png";
+    Texture2D cached = characterSpriteCache.get(path);
+    if (cached != null) {
+      return cached;
+    }
+    try {
+      TextureKey key = new TextureKey(path, true);
+      key.setGenerateMips(false);
+      Texture2D tex = (Texture2D) app.getAssetManager().loadTexture(key);
+      tex.setMagFilter(Texture.MagFilter.Bilinear);
+      tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+      tex.setWrap(Texture.WrapMode.EdgeClamp);
+      characterSpriteCache.put(path, tex);
+      return tex;
+    } catch (Exception e) {
+      logger.warn("No se pudo cargar sprite personaje: {}", path, e);
+      return null;
+    }
   }
 
   private Vector2f computeArrowIconSize(String asset) {
@@ -447,7 +474,9 @@ public class MenuSeleccion extends AbstractAppState {
           Label lbl = characterLabels.get(playerIdx);
           lbl.setText(CHARACTER_NAMES[next]);
           Vector3f size = lbl.getPreferredSize();
-          lbl.setLocalTranslation((billWidth - size.x) / 2f, (billHeight + size.y) / 2f, 0);
+          lbl.setLocalTranslation((billWidth - size.x) / 2f, (billHeight + size.y) / 2f, 2f);
+          Picture iconRef = characterIcons.get(playerIdx);
+          configureCharacterIcon(iconRef, next);
           if (!hasDuplicateCharacters()
               && (ERR_DUPLICADOS.equals(errorLabel.getText())
                   || ERR_SIN_SUFFICIENTES.equals(errorLabel.getText()))) {
@@ -561,6 +590,11 @@ public class MenuSeleccion extends AbstractAppState {
   @Override
   public void update(float tpf) {
     super.update(tpf);
+    if (headerFields.size() < playerCount
+        || placeholderActive.size() < playerCount
+        || characterIndex.size() < playerCount) {
+      return;
+    }
     boolean ready = true;
     // Gestión de placeholders, recorte de longitud y estado de readiness
     for (int i = 0; i < playerCount; i++) {
@@ -646,6 +680,65 @@ public class MenuSeleccion extends AbstractAppState {
     characterIndex.clear();
     characterLabels.clear();
     playerPanels.clear();
+    characterIcons.clear();
+    characterSpriteCache.clear();
+    characterSpriteSizeCache.clear();
     super.cleanup();
+  }
+
+  private void configureCharacterIcon(Picture icon, int charIdx) {
+    if (icon == null) {
+      return;
+    }
+    Texture2D tex = loadCharacterTexture(charIdx);
+    if (tex == null) {
+      icon.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+      return;
+    }
+    icon.setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
+    icon.setTexture(app.getAssetManager(), tex, true);
+    Vector2f iconSize = computeCharacterIconSize(charIdx);
+    icon.setWidth(iconSize.x);
+    icon.setHeight(iconSize.y);
+    Vector3f translation =
+        new Vector3f((billWidth - iconSize.x) / 2f, (billHeight - iconSize.y) / 2f - 140f, 1.5f);
+    icon.setLocalTranslation(translation);
+    if (logger.isDebugEnabled()) {
+      logger.debug(
+          "Icon {} -> size {}x{} pos {}",
+          CHARACTER_NAMES[charIdx],
+          iconSize.x,
+          iconSize.y,
+          translation);
+    }
+  }
+
+  private Vector2f computeCharacterIconSize(int charIdx) {
+    String path = "graphics/sprites/Fichas/" + CHARACTER_NAMES[charIdx] + ".png";
+    Vector2f cached = characterSpriteSizeCache.get(path);
+    if (cached != null) {
+      return cached.clone();
+    }
+    try {
+      TextureKey key = new TextureKey(path, true);
+      key.setGenerateMips(false);
+      Texture2D tex = (Texture2D) app.getAssetManager().loadTexture(key);
+      int iw = tex.getImage().getWidth();
+      int ih = tex.getImage().getHeight();
+      float iconH = billHeight * ICON_HEIGHT_FACTOR;
+      float iconW = (iw > 0 && ih > 0) ? iconH * ((float) iw / (float) ih) : billWidth;
+      if (iconW > billWidth) {
+        iconW = billWidth;
+        iconH = (ih > 0 && iw > 0) ? iconW * ((float) ih / (float) iw) : billHeight;
+      }
+      Vector2f size = new Vector2f(iconW, iconH);
+      characterSpriteSizeCache.put(path, size.clone());
+      return size;
+    } catch (Exception e) {
+      logger.warn("No se pudo calcular tamaño de sprite: {}", path, e);
+      Vector2f fallback = new Vector2f(billWidth, billHeight);
+      characterSpriteSizeCache.put(path, fallback.clone());
+      return fallback;
+    }
   }
 }
