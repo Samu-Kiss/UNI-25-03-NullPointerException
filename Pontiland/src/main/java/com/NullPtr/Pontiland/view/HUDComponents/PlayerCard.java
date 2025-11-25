@@ -29,6 +29,9 @@ public class PlayerCard {
     "Kiwi", "Balon", "Maleta", "Pescadito", "Carnet", "Ignacito", "Nave"
   };
 
+  // Texto por defecto para el nombre del jugador
+  private static final String DEFAULT_PLAYER_NAME = "Jugador";
+
   private final Container root;
   private final Container topSpacer;
   private final Container iconContainer; // contenedor para el icono del jugador superpuesto
@@ -58,7 +61,7 @@ public class PlayerCard {
     textBox.setBackground(null);
     textBox.setInsets(new Insets3f(6, 10, 6, 10));
 
-    nameLbl = textBox.addChild(new Label("Jugador"));
+    nameLbl = textBox.addChild(new Label(DEFAULT_PLAYER_NAME));
     nameLbl.setFontSize(18);
     nameLbl.setColor(ColorRGBA.Black);
     nameLbl.setTextHAlignment(HAlignment.Center);
@@ -91,13 +94,13 @@ public class PlayerCard {
    * @param playerIndex índice del jugador (1-4) para determinar el color de fondo
    */
   public void setInfo(Jugador jugador, int playerIndex) {
-    String playerName = jugador != null ? jugador.getNombreJugador() : "Jugador";
+    String playerName = jugador != null ? jugador.getNombreJugador() : DEFAULT_PLAYER_NAME;
     String moneyText = jugador != null ? "$" + jugador.getDinero() : "$0";
     boolean inJail = jugador != null && jugador.getEstado();
     int iconoId = jugador != null ? jugador.getIconoId() : -1;
 
-    nameLbl.setText(playerName != null ? playerName : "Jugador");
-    moneyLbl.setText(moneyText != null ? moneyText : "$0");
+    nameLbl.setText(playerName);
+    moneyLbl.setText(moneyText);
     jailLbl.setText(inJail ? "En la cárcel" : "");
 
     applyBackground(inJail, playerIndex);

@@ -74,6 +74,9 @@ public class MenuSeleccion extends AbstractAppState {
   /** Mensaje de error para nombres duplicados. */
   private static final String ERR_NOMBRES_DUP = "Nombres duplicados";
 
+  /** Estilo de UI usado en los componentes Lemur. */
+  private static final String UI_STYLE = "pontiland";
+
   /** Referencia a las acciones del menú. */
   private final IMenuActions actions;
 
@@ -158,16 +161,16 @@ public class MenuSeleccion extends AbstractAppState {
     // Calcular dimensiones reales del billete para preservar aspecto
     computeBillDimensions();
 
-    backdrop = new Container("pontiland");
+    backdrop = new Container(UI_STYLE);
     backdrop.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.08f, 0.09f, 0.11f, 1f)));
     backdrop.setLocalTranslation(0, cam.getHeight(), -1);
     backdrop.setPreferredSize(new Vector3f(cam.getWidth(), cam.getHeight(), 0));
     guiNode.attachChild(backdrop);
 
-    backBar = new Container("pontiland");
+    backBar = new Container(UI_STYLE);
     backBar.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.16f, 0.18f, 0.22f, 0.85f)));
     backBar.setInsets(new Insets3f(6, 10, 6, 10));
-    Container row = new Container(new BorderLayout(), "pontiland");
+    Container row = new Container(new BorderLayout(), UI_STYLE);
 
     TextureKey key = new TextureKey("graphics/sprites/Common/Icons/Icon_Back_White.png", true);
     key.setGenerateMips(false);
@@ -176,13 +179,13 @@ public class MenuSeleccion extends AbstractAppState {
     iconTex.setMagFilter(Texture.MagFilter.Bilinear);
     iconTex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
 
-    Button iconBtn = new Button("", "pontiland");
+    Button iconBtn = new Button("", UI_STYLE);
     iconBtn.setBackground(new QuadBackgroundComponent(iconTex));
     iconBtn.setPreferredSize(new Vector3f(24, 24, 0));
     iconBtn.setInsets(new Insets3f(0, 0, 0, 6));
     iconBtn.addClickCommands(ignored -> actions.startPlayerSelection());
 
-    Button textBtn = new Button("Volver", "pontiland");
+    Button textBtn = new Button("Volver", UI_STYLE);
     textBtn.setFontSize(16);
     textBtn.setInsets(new Insets3f(2, 6, 2, 6));
     textBtn.addClickCommands(ignored -> actions.startPlayerSelection());
@@ -222,7 +225,7 @@ public class MenuSeleccion extends AbstractAppState {
     startButton.setLocalTranslation((cam.getWidth() - pref.x) / 2f, 90, 0);
     guiNode.attachChild(startButton);
 
-    errorLabel = new Label("", "pontiland");
+    errorLabel = new Label("", UI_STYLE);
     errorLabel.setColor(new ColorRGBA(1f, 0.4f, 0.4f, 1f));
     Vector3f ep = errorLabel.getPreferredSize();
     errorLabel.setLocalTranslation((cam.getWidth() - ep.x) / 2f, 60, 0);
@@ -259,15 +262,15 @@ public class MenuSeleccion extends AbstractAppState {
   }
 
   private void createPlayerPanel(int idx) {
-    Container panel = new Container("pontiland");
+    Container panel = new Container(UI_STYLE);
     panel.setBackground(null);
 
     float headerHeight = 34f;
-    Container headerWrapper = new Container("pontiland");
+    Container headerWrapper = new Container(UI_STYLE);
     headerWrapper.setPreferredSize(new Vector3f(panelTotalWidth, headerHeight + 14f, 0));
     headerWrapper.setInsets(new Insets3f(3, 3, 8, 3));
 
-    TextField headerField = new TextField("", "pontiland");
+    TextField headerField = new TextField("", UI_STYLE);
     headerField.setFontSize(22);
     headerField.setPreferredSize(new Vector3f(panelTotalWidth - 20f, headerHeight, 0));
     headerField.setTextHAlignment(HAlignment.Center);
@@ -281,11 +284,11 @@ public class MenuSeleccion extends AbstractAppState {
     panel.addChild(headerWrapper);
 
     // Fila central con flechas y billete usando BorderLayout para alinear horizontalmente
-    Container middle = new Container(new BorderLayout(), "pontiland");
+    Container middle = new Container(new BorderLayout(), UI_STYLE);
     middle.setBackground(null);
 
     // Wrapper izquierda para centrar verticalmente
-    Container leftWrap = new Container(new BorderLayout(), "pontiland");
+    Container leftWrap = new Container(new BorderLayout(), UI_STYLE);
     leftWrap.setBackground(null);
     leftWrap.setPreferredSize(new Vector3f(40 + ARROW_GAP, billHeight, 0));
     Button left = createArrowButton(false, idx);
@@ -294,12 +297,12 @@ public class MenuSeleccion extends AbstractAppState {
     middle.addChild(leftWrap, BorderLayout.Position.West);
 
     // Bill sprite central
-    Container bill = new Container("pontiland");
+    Container bill = new Container(UI_STYLE);
     bill.setBackground(loadBillSprite(idx));
     bill.setPreferredSize(new Vector3f(billWidth, billHeight, 0));
     int initialCharIdx = getFirstFreeCharacter();
     characterIndex.add(initialCharIdx);
-    Label charName = new Label(CHARACTER_NAMES[initialCharIdx], "pontiland");
+    Label charName = new Label(CHARACTER_NAMES[initialCharIdx], UI_STYLE);
     charName.setFontSize(20);
     characterLabels.add(charName);
 
@@ -316,7 +319,7 @@ public class MenuSeleccion extends AbstractAppState {
     middle.addChild(bill, BorderLayout.Position.Center);
 
     // Wrapper derecha para centrar verticalmente
-    Container rightWrap = new Container(new BorderLayout(), "pontiland");
+    Container rightWrap = new Container(new BorderLayout(), UI_STYLE);
     rightWrap.setBackground(null);
     rightWrap.setPreferredSize(new Vector3f(40 + ARROW_GAP, billHeight, 0));
     Button right = createArrowButton(true, idx);
@@ -442,7 +445,7 @@ public class MenuSeleccion extends AbstractAppState {
     Vector2f iconSize = computeArrowIconSize(asset);
     IconComponent icon = new IconComponent(asset);
     icon.setIconSize(iconSize);
-    Button b = new Button("", "pontiland");
+    Button b = new Button("", UI_STYLE);
     b.setBackground(null);
     b.setIcon(icon);
     // Mantener área de click cuadrada de 40x40 para consistencia aunque el icono no ocupe todo
