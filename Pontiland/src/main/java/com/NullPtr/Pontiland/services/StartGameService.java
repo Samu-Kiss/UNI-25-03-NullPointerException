@@ -88,6 +88,7 @@ public class StartGameService implements IStartGameService {
   @Override
   public void loadingOldGame(String partidaSeleccionada) throws SQLException {
     Long partidaID = Long.parseLong(partidaSeleccionada);
+    partidaRepository.setPartidaID(partidaID);
     jugadorRepository.setPartidaID(partidaID);
     propiedadRepository.setPartidaID(partidaID);
 

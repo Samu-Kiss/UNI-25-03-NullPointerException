@@ -182,4 +182,8 @@ public class PartidaRepository implements IPartidaRepository {
           "Error al actualizar el estado activo de la partida con Id=" + partidaID, e);
     }
   }
+
+  public void setPartidaID(long partidaID) {
+    this.partidaID = partidaID;
+  }
 }
