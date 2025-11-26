@@ -20,6 +20,8 @@ public interface IHUDcontroller {
 
   void updatePlayerCard(Jugador jugador, int playerIndex);
 
+  void setActivePlayerIndex(int playerIndex);
+
   void updatePropertyCard(String name, String priceText, String[] rentsText);
 
   void showPropertyCard(String name, String priceText, String[] rentsText, int groupIndex);

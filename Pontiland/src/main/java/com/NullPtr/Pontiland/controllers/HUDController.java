@@ -101,6 +101,13 @@ public class HUDController implements IHUDcontroller {
   }
 
   @Override
+  public void setActivePlayerIndex(int playerIndex) {
+    if (hud != null) {
+      hud.setActivePlayerIndex(playerIndex);
+    }
+  }
+
+  @Override
   public void updatePropertyCard(String name, String priceText, String[] rentsText) {
     if (hud != null) {
       hud.updatePropertyCard(name, priceText, rentsText);

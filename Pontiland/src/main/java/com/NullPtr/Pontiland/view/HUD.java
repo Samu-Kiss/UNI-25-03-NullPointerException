@@ -49,6 +49,12 @@ public class HUD extends AbstractAppState {
   // Jugadores pendientes si se llaman antes de construir playersBox
   private List<Jugador> pendingPlayers;
 
+  // Animación indicador de turno: offset X del jugador activo
+  private static final float ACTIVE_PLAYER_OFFSET_X = 30f;
+  private static final float ANIMATION_SPEED = 8f;
+  private int activePlayerIndex = 1; // índice del jugador activo (1-based)
+  private List<Float> cardCurrentOffsets = new ArrayList<>();
+
   // Tokens pendientes si se reciben antes de construir la vista
   private String[] pendingTokens;
 
@@ -275,6 +281,7 @@ public class HUD extends AbstractAppState {
   public void update(float tpf) {
     super.update(tpf);
     layoutComponents();
+    animateActivePlayerIndicator(tpf);
   }
 
   @Override
@@ -319,6 +326,51 @@ public class HUD extends AbstractAppState {
 
   public void hideAuction() {
     if (overlayPane != null) overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+  }
+
+  /**
+   * Establece el índice del jugador activo para la animación del indicador de turno.
+   *
+   * @param playerIndex índice del jugador activo (1-based)
+   */
+  public void setActivePlayerIndex(int playerIndex) {
+    this.activePlayerIndex = Math.max(1, playerIndex);
+  }
+
+  /**
+   * Anima el desplazamiento de las tarjetas de jugador para indicar el turno activo. El jugador
+   * activo se desplaza hacia la derecha.
+   *
+   * @param tpf tiempo transcurrido desde el último frame
+   */
+  private void animateActivePlayerIndicator(float tpf) {
+    if (playerCards.isEmpty()) return;
+
+    // Asegurar que tenemos la lista de offsets inicializada
+    while (cardCurrentOffsets.size() < playerCards.size()) {
+      cardCurrentOffsets.add(0f);
+    }
+
+    for (int i = 0; i < playerCards.size(); i++) {
+      float targetOffset = (i + 1 == activePlayerIndex) ? ACTIVE_PLAYER_OFFSET_X : 0f;
+      float currentOffset = cardCurrentOffsets.get(i);
+
+      // Interpolación suave hacia el offset objetivo
+      float newOffset = currentOffset + (targetOffset - currentOffset) * ANIMATION_SPEED * tpf;
+
+      // Evitar oscilaciones mínimas
+      if (Math.abs(newOffset - targetOffset) < 0.5f) {
+        newOffset = targetOffset;
+      }
+
+      cardCurrentOffsets.set(i, newOffset);
+
+      // Aplicar el offset usando setLocalTranslation con la posición Y/Z preservada del layout
+      Container cardRoot = playerCards.get(i).getRoot();
+      Vector3f currentPos = cardRoot.getLocalTranslation();
+      // Solo modificar X, preservar Y y Z que Lemur calcula
+      cardRoot.setLocalTranslation(newOffset, currentPos.y, currentPos.z);
+    }
   }
 
   /**
