@@ -8,7 +8,7 @@ import com.NullPtr.Pontiland.entities.Tipo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/** Pruebas unitarias completas para CasillaService. */
+/** Pruebas unitarias para CasillaService. */
 class CasillaServiceTest {
 
   private CasillaService service;
