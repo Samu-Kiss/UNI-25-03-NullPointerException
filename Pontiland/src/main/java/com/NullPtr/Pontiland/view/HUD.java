@@ -2,10 +2,7 @@ package com.NullPtr.Pontiland.view;
 
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.controllers.IHUDcontroller;
-import com.NullPtr.Pontiland.view.HUDComponents.Auction;
-import com.NullPtr.Pontiland.view.HUDComponents.PlayerCard;
-import com.NullPtr.Pontiland.view.HUDComponents.PropertyCard;
-import com.NullPtr.Pontiland.view.HUDComponents.PropertyToken;
+import com.NullPtr.Pontiland.view.HUDComponents.*;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
@@ -42,6 +39,7 @@ public class HUD extends AbstractAppState {
   private PropertyCard propertyCard;
   private PropertyToken propertyToken;
   private Auction auction;
+  private EventCard eventCard;
 
   private IHUDcontroller hudController;
 
@@ -107,8 +105,6 @@ public class HUD extends AbstractAppState {
     this.propertyToken = new PropertyToken(app.getAssetManager());
     this.auction = new Auction(app.getAssetManager());
     this.auction.setHudController(hudController);
-
-    // Aplicar grupo o tokens pendientes si existieron llamadas tempranas
     if (pendingTokensGroup != null) {
       try {
         propertyToken.setGroup(pendingTokensGroup);
@@ -189,11 +185,17 @@ public class HUD extends AbstractAppState {
             com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     auctionBtn.addClickCommands(ignored -> hudController.iniciarSubasta());
 
+    // Event card (usada para mostrar eventos buenos y malos)
+    this.eventCard = new com.NullPtr.Pontiland.view.HUDComponents.EventCard(app.getAssetManager());
+    // El botón de la EventCard ocultará la carta al ser pulsado
+    eventCard.setCloseCommand(this::hideEventCards);
+
     actionRow.addChild(buyBtn);
     Container spacer = new Container();
     spacer.setBackground(null);
     spacer.setPreferredSize(new Vector3f(12f, 0f, 0));
     actionRow.addChild(spacer);
+
     actionRow.addChild(auctionBtn);
 
     guiNode.attachChild(leftPane);
@@ -201,6 +203,9 @@ public class HUD extends AbstractAppState {
     guiNode.attachChild(bottomPane);
     guiNode.attachChild(overlayPane);
     guiNode.attachChild(actionBar);
+    // Event card overlay: añadir pero ocultar por defecto
+    guiNode.attachChild(eventCard.getRoot());
+    eventCard.getRoot().setCullHint(com.jme3.scene.Spatial.CullHint.Always);
   }
 
   private void layoutComponents() {
@@ -312,12 +317,53 @@ public class HUD extends AbstractAppState {
     if (overlayPane != null) overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
   }
 
+  /** Actualiza el nombre del jugador que participa en la subasta (vista). */
   public void setAuctionPlayerName(String playerName) {
-    auction.setPlayerName(playerName);
+    if (auction != null) auction.setPlayerName(playerName);
   }
 
+  /** Oculta la UI de subasta. */
   public void hideAuction() {
     if (overlayPane != null) overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+  }
+
+  /** Muestra una carta de evento "buena" en el centro con estilo por defecto. */
+  public void showGoodEvent(String title, String descriptionText) {
+    if (eventCard == null) return;
+    eventCard.setInfo(title, descriptionText);
+    // usar sprite positivo
+    eventCard.setType(com.NullPtr.Pontiland.view.HUDComponents.EventCard.Type.POSITIVE);
+    // posicionar en el centro de la pantalla
+    layoutEventCard();
+    eventCard.getRoot().setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
+  }
+
+  /** Muestra una carta de evento "mala" en el centro con estilo por defecto. */
+  public void showBadEvent(String title, String descriptionText) {
+    if (eventCard == null) return;
+    eventCard.setInfo(title, descriptionText);
+    // usar sprite negativo
+    eventCard.setType(com.NullPtr.Pontiland.view.HUDComponents.EventCard.Type.NEGATIVE);
+    layoutEventCard();
+    eventCard.getRoot().setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
+  }
+
+  private void layoutEventCard() {
+    if (eventCard == null || camera == null) return;
+    Vector3f pref = eventCard.getRoot().getPreferredSize();
+    if (pref == null) pref = new Vector3f(300f, 160f, 0f);
+    float cx = (camera.getWidth() - pref.x) / 2f;
+    float cy = (camera.getHeight() + pref.y) / 2f;
+    eventCard.getRoot().setLocalTranslation(cx, cy, 20f);
+  }
+
+  /**
+   * Oculta cualquier carta de evento visible.
+   */
+  public void hideEventCards() {
+    if (eventCard != null) {
+      eventCard.getRoot().setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+    }
   }
 
   public void updatePlayerCard(
