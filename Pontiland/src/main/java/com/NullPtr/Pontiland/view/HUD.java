@@ -317,17 +317,17 @@ public class HUD extends AbstractAppState {
     if (overlayPane != null) overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
   }
 
-  /** Actualiza el nombre del jugador que participa en la subasta (vista). */
+  // Actualiza el nombre del jugador que participa en la subasta (vista).
   public void setAuctionPlayerName(String playerName) {
     if (auction != null) auction.setPlayerName(playerName);
   }
 
-  /** Oculta la UI de subasta. */
+  // Oculta la UI de subasta
   public void hideAuction() {
     if (overlayPane != null) overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
   }
 
-  /** Muestra una carta de evento "buena" en el centro con estilo por defecto. */
+  // Muestra una carta de evento "buena" en el centro con estilo por defecto.
   public void showGoodEvent(String title, String descriptionText) {
     if (eventCard == null) return;
     eventCard.setInfo(title, descriptionText);
@@ -338,7 +338,7 @@ public class HUD extends AbstractAppState {
     eventCard.getRoot().setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
   }
 
-  /** Muestra una carta de evento "mala" en el centro con estilo por defecto. */
+  // Muestra una carta de evento "mala" en el centro con estilo por defecto.
   public void showBadEvent(String title, String descriptionText) {
     if (eventCard == null) return;
     eventCard.setInfo(title, descriptionText);
@@ -357,9 +357,7 @@ public class HUD extends AbstractAppState {
     eventCard.getRoot().setLocalTranslation(cx, cy, 20f);
   }
 
-  /**
-   * Oculta cualquier carta de evento visible.
-   */
+  // Oculta cualquier carta de evento visible
   public void hideEventCards() {
     if (eventCard != null) {
       eventCard.getRoot().setCullHint(com.jme3.scene.Spatial.CullHint.Always);
@@ -404,6 +402,7 @@ public class HUD extends AbstractAppState {
   public void updatePropertyCard(String name, String priceText, String[] rentsText) {
     propertyCard.setInfo(name, priceText, rentsText);
 
+    // No se usa aun
     /*if (name != null && !name.isBlank()) {
       currentPropertyName = name;
     }*/

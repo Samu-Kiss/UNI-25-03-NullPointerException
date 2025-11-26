@@ -2,8 +2,10 @@ package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.controllers.IHUDcontroller;
 import com.NullPtr.Pontiland.entities.*;
+import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import com.NullPtr.Pontiland.repository.TarjetaEventoRepository;
+import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
@@ -17,6 +19,8 @@ public class CasillaService implements ICasillaService {
   private IPropiedadRepository propiedadRepository;
   private IAdquisicionService adquisicionService;
   private TarjetaEventoRepository tarjetaEventoRepository;
+  private IJugadorRepository jugadorRepository;
+
   // Logger
   private static Logger logger = LogManager.getLogger(CasillaService.class);
 
@@ -25,19 +29,20 @@ public class CasillaService implements ICasillaService {
       DiceService diceService,
       IPropiedadRepository propiedadRepository,
       IAdquisicionService adquisicionService,
-      TarjetaEventoRepository tarjetaEventoRepository) {
+      TarjetaEventoRepository tarjetaEventoRepository,
+      IJugadorRepository jugadorRepository) {
     this.hudController = hudController;
     this.diceService = diceService;
     this.propiedadRepository = propiedadRepository;
     this.adquisicionService = adquisicionService;
     this.tarjetaEventoRepository = tarjetaEventoRepository;
+    this.jugadorRepository = jugadorRepository;
   }
 
   @Override
   public void interaccion(Jugador jugador, Casilla casilla) {
     logger.debug(
         "{} ha caido en la casilla {}", jugador.getNombreJugador(), casilla.getTipoCasilla());
-
     switch (casilla.getTipoCasilla()) {
       case PARADALIBRE:
         onParadaLibre(jugador, casilla);
@@ -113,7 +118,6 @@ public class CasillaService implements ICasillaService {
 
     if (evento != null) {
       logger.info("Tarjeta Evento obtenida: {}", evento);
-      // TODO: mostrar descripcion en HUD
     } else {
       logger.warn("No se pudo obtener una tarjeta de evento aleatoria.");
       return;
@@ -127,45 +131,102 @@ public class CasillaService implements ICasillaService {
       hudController.showBadEvent(evento.getNombre(), evento.getDescripcion());
     }
 
-    switch (evento.getAccion()) {
-      case Accion.GANA_50:
-        logger.debug("{} gana 50 monedas.", j.getNombreJugador());
-        break;
-      case Accion.GANA_100:
-        logger.debug("{} gana 100 monedas.", j.getNombreJugador());
-        break;
-      case Accion.GANA_200:
-        logger.debug("{} gana 200 monedas.", j.getNombreJugador());
-        break;
-      case Accion.PROPIEDAD_A_NIVEL_1:
-        logger.debug("{} mejora una propiedad a nivel 1.", j.getNombreJugador());
-        break;
-      case Accion.PROPIEDAD_A_NIVEL_5:
-        logger.debug("{} mejora una propiedad a nivel 5.", j.getNombreJugador());
-        break;
-      case Accion.PROPIEDAD_NIVEL_PLUS_1:
-        logger.debug("{} mejora una propiedad en 1 nivel.", j.getNombreJugador());
-        break;
-      case Accion.PROPIEDAD_NIVEL_MINUS_1:
-        logger.debug("{} reduce una propiedad en 1 nivel.", j.getNombreJugador());
-        break;
-      case Accion.PIERDE_50_POR_PROPIEDAD:
-        logger.debug("{} pierde 50 monedas por propiedad.", j.getNombreJugador());
-        break;
-      case Accion.IR_A_LA_CARCEL:
-        logger.debug("{} va a la cárcel.", j.getNombreJugador());
-        irACarcel = true;
-        break;
-      default:
-        logger.warn("Acción de tarjeta de evento no reconocida.");
-        break;
+    try {
+      switch (evento.getAccion()) {
+        case Accion.GANA_50:
+          accionGana(j, 50);
+          break;
+        case Accion.GANA_100:
+          accionGana(j, 100);
+          break;
+        case Accion.GANA_200:
+          accionGana(j, 200);
+          break;
+        case Accion.PROPIEDAD_A_NIVEL_1:
+          cambiarNivelPropiedad(j, 1);
+          break;
+        case Accion.PROPIEDAD_A_NIVEL_5:
+          cambiarNivelPropiedad(j, 5);
+          break;
+        case Accion.PROPIEDAD_NIVEL_PLUS_1:
+          logger.debug("{} mejora una propiedad en 1 nivel.", j.getNombreJugador());
+          mejorarPropiedad(j, 1);
+          break;
+        case Accion.PROPIEDAD_NIVEL_MINUS_1:
+          logger.debug("{} reduce una propiedad en 1 nivel.", j.getNombreJugador());
+          mejorarPropiedad(j, -1);
+          break;
+        case Accion.PIERDE_50_POR_PROPIEDAD:
+          pierde50PorPropiedad(j);
+          break;
+        case Accion.IR_A_LA_CARCEL:
+          logger.debug("{} va a la cárcel.", j.getNombreJugador());
+          irACarcel = true;
+          break;
+        default:
+          logger.warn("Acción de tarjeta de evento no reconocida.");
+          break;
+      }
+    } catch (SQLException e) {
+      logger.error("Error al ejecutar la acción de la tarjeta de evento", e);
     }
 
     if (diceService != null) diceService.enableInteract(false);
   }
 
-  private void onPropiedad(Casilla casilla) {
+  // Sonarqube me cae mal >:(
+  private static String warningNoPropiedades =
+      "No hay propiedades para modificar para el jugador {}";
 
+  private void pierde50PorPropiedad(Jugador j) throws SQLException {
+    logger.debug("{} pierde 50 monedas por propiedad.", j.getNombreJugador());
+    List<Propiedad> propiedades = propiedadRepository.getPropiedadesByJugador(j.getJugadorId());
+    if (propiedades == null || propiedades.isEmpty()) {
+      logger.warn(warningNoPropiedades, j.getJugadorId());
+      return;
+    }
+    int totalPerdido = propiedades.size() * 50;
+    jugadorRepository.updateDinero(j.getJugadorId(), j.getDinero() - totalPerdido);
+  }
+
+  private void mejorarPropiedad(Jugador j, int nivel) throws SQLException {
+    List<Propiedad> propiedades = propiedadRepository.getPropiedadesByJugador(j.getJugadorId());
+    if (propiedades == null || propiedades.isEmpty()) {
+      logger.warn(warningNoPropiedades, j.getJugadorId());
+      return;
+    }
+    SecureRandom rnd = new SecureRandom();
+    int randomIndex = rnd.nextInt(propiedades.size());
+    Propiedad propiedadSeleccionada = propiedades.get(randomIndex);
+    if (propiedadSeleccionada.getNivelPropiedad() == 1 && nivel == -1) {
+      return;
+    }
+    propiedadRepository.updateAdquisicionNivel(
+        propiedadSeleccionada.getIdPropiedad(),
+        j.getJugadorId(),
+        propiedadSeleccionada.getNivelPropiedad() + nivel);
+  }
+
+  private void cambiarNivelPropiedad(Jugador j, int nivel) throws SQLException {
+    logger.debug("{} modifica una propiedad a nivel {}.", j.getNombreJugador(), nivel);
+    List<Propiedad> propiedades = propiedadRepository.getPropiedadesByJugador(j.getJugadorId());
+    if (propiedades == null || propiedades.isEmpty()) {
+      logger.warn(warningNoPropiedades, j.getJugadorId());
+      return;
+    }
+    SecureRandom rnd = new SecureRandom();
+    int randomIndex = rnd.nextInt(propiedades.size());
+    Propiedad propiedadSeleccionada = propiedades.get(randomIndex);
+    propiedadRepository.updateAdquisicionNivel(
+        propiedadSeleccionada.getIdPropiedad(), j.getJugadorId(), nivel);
+  }
+
+  private void accionGana(Jugador j, int dinero) throws SQLException {
+    logger.debug("{} gana {} monedas.", j.getNombreJugador(), dinero);
+    jugadorRepository.updateDinero(j.getJugadorId(), j.getDinero() + dinero);
+  }
+
+  private void onPropiedad(Casilla casilla) {
     Propiedad prop = null;
     if (propiedadRepository != null) {
       try {
@@ -204,7 +265,8 @@ public class CasillaService implements ICasillaService {
         "{} ha caido en Movimiento posicion de casilla {}",
         j.getNombreJugador(),
         c.getPosicionTablero());
-    //TODO
+    // TODO
+    // q hay hacer aqui?
     if (diceService != null) diceService.enableInteract(false);
   }
 
@@ -254,7 +316,7 @@ public class CasillaService implements ICasillaService {
     hudController.updatePropertyTokens(tokens);
   }
 
-  // Para q sonarquba no se queje
+  // Para q sonarqube no se queje
   public TarjetaEventoRepository getTarjetaEventoRepository() {
     return tarjetaEventoRepository;
   }

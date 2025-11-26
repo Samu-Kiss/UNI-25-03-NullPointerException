@@ -10,9 +10,7 @@ import com.simsilica.lemur.Container;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 
-/**
- * Componente simple para mostrar una carta de evento (bueno o malo) con un botón de cerrar.
- */
+/** Componente simple para mostrar una carta de evento (bueno o malo) con un botón de cerrar. */
 public class EventCard {
 
   private static final float SPRITE_SCALE = 0.80f;
@@ -38,8 +36,8 @@ public class EventCard {
   private final com.simsilica.lemur.Button closeBtn;
   private final AssetManager assets;
 
-  //TODO Revisar tamaños y fuentes
-  //(El boton está muy grande)
+  // TODO Revisar tamaños y fuentes
+  // (El boton está muy grande)
   public EventCard(AssetManager assets) {
     this.assets = assets;
     root = new Container();
@@ -49,7 +47,7 @@ public class EventCard {
     Container header = root.addChild(new Container());
     header.setBackground(null);
     title = header.addChild(new Label(""));
-    title.setLocalTranslation(0, -2 ,0);
+    title.setLocalTranslation(0, -2, 0);
     title.setFontSize(24f);
     title.setColor(ColorRGBA.Black);
     title.setTextHAlignment(com.simsilica.lemur.HAlignment.Center);
@@ -62,15 +60,13 @@ public class EventCard {
     description.setColor(ColorRGBA.Black);
     description.setTextHAlignment(com.simsilica.lemur.HAlignment.Center);
 
-    com.NullPtr.Pontiland.view.Button renderer = new com.NullPtr.Pontiland.view.Button(assets)
-        .setDefaultFontSize(24f)
-        .setHoverScale(1.04f);
+    com.NullPtr.Pontiland.view.Button renderer =
+        new com.NullPtr.Pontiland.view.Button(assets).setDefaultFontSize(24f).setHoverScale(1.04f);
 
     // Footer: botón de cerrado, centrado abajo
     Container footer = root.addChild(new Container());
     footer.setBackground(null);
-    closeBtn = renderer.render(Button.Type.ACCENT, "Cerrar", 1f,
-        Button.Variant.MAIN);
+    closeBtn = renderer.render(Button.Type.ACCENT, "Cerrar", 1f, Button.Variant.MAIN);
     footer.addChild(closeBtn);
 
     // Layout spacing (valor por defecto si no se cargan sprites)
@@ -86,16 +82,14 @@ public class EventCard {
     description.setText(desc == null ? "" : desc);
   }
 
-  /**
-   * Registra una acción de cierre. Se recibe un Runnable que se ejecuta al hacer click.
-   */
+  // Cerrar la ventana
   public void setCloseCommand(Runnable action) {
     if (closeBtn != null && action != null) {
       closeBtn.addClickCommands(src -> action.run());
     }
   }
 
-  /**
+  /*
    * Establece el tipo de carta (POSITIVE/NEGATIVE) y carga el sprite correspondiente desde
    * resources. Si falla, mantiene el fondo de color.
    */

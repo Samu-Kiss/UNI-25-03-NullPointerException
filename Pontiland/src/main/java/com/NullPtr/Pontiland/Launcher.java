@@ -98,7 +98,8 @@ public class Launcher extends SimpleApplication {
             diceService,
             propiedadRepository,
             adquisicionService,
-            new TarjetaEventoRepository(dataService));
+            new TarjetaEventoRepository(dataService),
+            jugadorRepository);
     turnService =
         new TurnService(
             jugadorRepository,

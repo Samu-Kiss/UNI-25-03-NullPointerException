@@ -323,4 +323,20 @@ public class PropiedadRepository implements IPropiedadRepository {
       throw new SQLException("Error al intentar agregar la adquisición de la propiedad", e);
     }
   }
+
+  @Override
+  public void updateAdquisicionNivel(int propiedadId, int jugadorId, int nuevoNivel)
+      throws SQLException {
+    String update =
+        "UPDATE Adquisiciones SET NivelPropiedad = ? WHERE PropiedadID = ? AND JugadorID = ?";
+    try (Connection conex = dataService.createConnection();
+        PreparedStatement ps = conex.prepareStatement(update)) {
+      ps.setInt(1, nuevoNivel);
+      ps.setInt(2, propiedadId);
+      ps.setInt(3, jugadorId);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      throw new SQLException("Error al intentar actualizar el nivel de la adquisición", e);
+    }
+  }
 }
