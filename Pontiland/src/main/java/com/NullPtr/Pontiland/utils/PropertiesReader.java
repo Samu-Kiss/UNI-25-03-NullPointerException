@@ -12,6 +12,11 @@ public class PropertiesReader {
   private static final Path DEV_FALLBACK = Paths.get("src/main/resources", RESOURCE_NAME);
   private static final Properties PROPERTIES = new Properties();
 
+  private PropertiesReader() {
+    // Prevent instantiation
+    throw new UnsupportedOperationException("Utility class");
+  }
+
   static {
     // 1) Try classpath (works when packaged and in IDE if resource is on classpath)
     try (InputStream is =

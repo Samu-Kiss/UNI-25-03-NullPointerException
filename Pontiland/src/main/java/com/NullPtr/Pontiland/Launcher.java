@@ -1,8 +1,6 @@
 package com.NullPtr.Pontiland;
 
-import com.NullPtr.Pontiland.controllers.IMenuActions;
-import com.NullPtr.Pontiland.controllers.LanzamientoDadosController;
-import com.NullPtr.Pontiland.controllers.MenuController;
+import com.NullPtr.Pontiland.controllers.*;
 import com.NullPtr.Pontiland.repository.*;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import com.NullPtr.Pontiland.repository.JugadorRepository;
@@ -10,11 +8,14 @@ import com.NullPtr.Pontiland.repository.PartidaRepository;
 import com.NullPtr.Pontiland.services.*;
 import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
+import com.NullPtr.Pontiland.view.HUD;
+import com.NullPtr.Pontiland.view.IScene;
 import com.NullPtr.Pontiland.view.MenuPrincipal;
 import com.NullPtr.Pontiland.view.Scene;
 import com.jme3.app.SimpleApplication;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.input.InputManager;
 import com.jme3.system.AppSettings;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
@@ -27,11 +28,11 @@ public class Launcher extends SimpleApplication {
   }
 
   private final BulletAppState bulletAppState = new BulletAppState();
-  private final DiceService diceService = new DiceService();
+  private DiceService diceService;
   private ITurnService turnService;
   private LanzamientoDadosController lanzamientoDadosController;
-  private Byte[] resultados = new Byte[2];
-  private Scene scene;
+  private MenuPausaController menuPausaController;
+  private IScene scene;
 
   private IDataService dataService;
   private ICasillaRepository casillaRepository;
@@ -75,19 +76,65 @@ public class Launcher extends SimpleApplication {
     partidaRepository = new PartidaRepository(dataService);
     jugadorRepository = new JugadorRepository(dataService);
     casillaRepository = new CasillaRepository(dataService);
-    casillaService = new CasillaService();
+    HUD hud = new HUD();
+
+    IHUDcontroller hudController = new HUDController(this);
+    hudController.setHud(hud);
+
+    hud.setHudController(hudController);
+
+    diceService = new DiceService();
+
+    PropiedadRepository propiedadRepository = new PropiedadRepository(dataService);
+    AdquisicionService adquisicionService =
+        new AdquisicionService(propiedadRepository, jugadorRepository);
+    SubastaService subastaService =
+        new SubastaService(
+            adquisicionService, jugadorRepository, hudController, propiedadRepository);
+    casillaService =
+        new CasillaService(
+            hudController,
+            diceService,
+            propiedadRepository,
+            adquisicionService,
+            new TarjetaEventoRepository(dataService));
     turnService =
         new TurnService(
-            jugadorRepository, partidaRepository, diceService, casillaRepository, casillaService);
+            jugadorRepository,
+            partidaRepository,
+            diceService,
+            casillaRepository,
+            casillaService,
+            hudController,
+            subastaService);
     lanzamientoDadosController = new LanzamientoDadosController(diceService);
     lanzamientoDadosController.registerInputs(getInputManager());
 
+    hudController.setTurnService(turnService);
+
     scene = new Scene(this, bulletAppState, lanzamientoDadosController);
     startGameService =
-        new StartGameService(jugadorRepository, partidaRepository, dataService, scene);
+        new StartGameService(
+            jugadorRepository, partidaRepository, dataService, scene, propiedadRepository);
+    turnService.setScene(scene);
+    MenuController menuController =
+        new MenuController(this, startGameService, dataService, hudController, turnService);
 
-    IMenuActions actions = new MenuController(this, startGameService, dataService);
-    stateManager.attach(new MenuPrincipal(actions));
+    InputManager inputManager = getInputManager();
+
+    menuPausaController =
+        new MenuPausaController(
+            this,
+            inputManager,
+            turnService,
+            lanzamientoDadosController,
+            diceService,
+            hudController,
+            dataService,
+            partidaRepository,
+            menuController);
+
+    stateManager.attach(new MenuPrincipal(menuController));
   }
 
   @Override
@@ -95,14 +142,11 @@ public class Launcher extends SimpleApplication {
     if (scene != null) scene.update(tpf);
 
     turnService.update();
-    // TODO refactor this
-    if (scene != null && turnService.hasMovePending()) {
-      int[] mv = turnService.consumeLastMove();
-      if (mv != null) {
-        scene.replicateFichaPosition(mv[0], mv[1] - 1);
-      }
-    }
 
     lanzamientoDadosController.update();
+  }
+
+  public MenuPausaController getMenuPausaController() {
+    return menuPausaController;
   }
 }

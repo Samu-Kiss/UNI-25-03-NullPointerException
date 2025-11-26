@@ -14,4 +14,28 @@ public class Partida {
     this.nombrePartida = nombrePartida;
     this.cantidadJugadores = cantidadJugadores;
   }
+
+  public String getNombrePartida() {
+    return nombrePartida;
+  }
+
+  public void setNombrePartida(String nombrePartida) {
+    this.nombrePartida = nombrePartida;
+  }
+
+  public int getCantidadJugadores() {
+    return cantidadJugadores;
+  }
+
+  public void setCantidadJugadores(int cantidadJugadores) {
+    this.cantidadJugadores = cantidadJugadores;
+  }
+
+  public boolean isActiva() {
+    return activa;
+  }
+
+  public void setActiva(boolean activa) {
+    this.activa = activa;
+  }
 }

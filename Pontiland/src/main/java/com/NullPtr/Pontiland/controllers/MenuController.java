@@ -5,6 +5,7 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
+import com.NullPtr.Pontiland.services.ITurnService;
 import com.NullPtr.Pontiland.view.MenuCarga;
 import com.NullPtr.Pontiland.view.MenuCreditos;
 import com.NullPtr.Pontiland.view.MenuJugadores;
@@ -14,6 +15,8 @@ import com.jme3.app.state.AppStateManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Controlador central para manejar la navegación de menús y el inicio del juego.
@@ -36,14 +39,29 @@ public class MenuController implements IMenuActions {
   private final IStartGameService startGameService;
   private final IDataService dataService;
 
+  // HUD controller para mostrar la UI del juego
+  private final IHUDcontroller hudController;
+
+  // Turn service to enable the loop when a game is created
+  private final ITurnService turnService;
+
+  // Logger
+  private static Logger logger = LogManager.getLogger(MenuController.class);
+
   public MenuController(
-      Launcher app, IStartGameService startGameService, IDataService dataService) {
+      Launcher app,
+      IStartGameService startGameService,
+      IDataService dataService,
+      IHUDcontroller hudController,
+      ITurnService turnService) {
     this.dataService = dataService;
     if (app == null) {
       throw new IllegalArgumentException("app no puede ser null");
     }
     this.startGameService = startGameService;
     this.app = app;
+    this.hudController = hudController;
+    this.turnService = turnService;
   }
 
   private AppStateManager stateManager() {
@@ -59,6 +77,9 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuCarga);
     detachIfAttached(menuCreditos);
     detachIfAttached(menuSeleccion);
+
+    // Ocultar/detener HUD si estuviera activo
+    if (hudController != null) hudController.detachHUD();
 
     if (menuPrincipal == null) {
       menuPrincipal = new MenuPrincipal(this);
@@ -117,30 +138,39 @@ public class MenuController implements IMenuActions {
     this.selectedPlayerCount = playerCount;
     this.gameStarted = true;
 
-    System.out.println("[Pontiland] Jugadores seleccionados: " + jugadores.size());
+    logger.info("Iniciando nueva partida con {} jugadores", jugadores.size());
     for (int i = 0; i < jugadores.size(); i++) {
       Jugador j = jugadores.get(i);
       Integer pid = personajeIds.size() > i ? personajeIds.get(i) : -1;
-      System.out.println(
-          "  - J" + j.getJugadorId() + " nombre='" + j.getNombreJugador() + "' personajeId=" + pid);
+
+      logger.info(
+          "  - J{} nombre='{}' personajeId={}", j.getJugadorId(), j.getNombreJugador(), pid);
     }
 
     startGameService.creatingNewGame(jugadores, personajeIds);
 
-    // Desconectar cualquier menú de UI
+    if (turnService != null) {
+      turnService.setEnabled(true);
+    }
+
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuJugadores);
     detachIfAttached(menuCarga);
     detachIfAttached(menuCreditos);
     detachIfAttached(menuSeleccion);
 
-    // TODO controller no puede comunicarse directamente con app
+    // Asegurar escena y mostrar HUD del juego
     startGameService.ensureSceneReady();
+    if (hudController != null) hudController.showHUD();
+    // Poblar nombres de jugadores en las player cards
+    java.util.List<String> names = new java.util.ArrayList<>();
+    for (Jugador j : jugadores) names.add(j.getNombreJugador());
+    if (hudController != null) hudController.setPlayerNames(names);
 
-    System.out.println("Juego iniciado con " + playerCount + " jugadores");
+    logger.info("Juego iniciado con: {} jugadores", playerCount);
   }
 
-  /** Abre el menú de carga con datos de demo. */
+  /** Abre el menú de carga with datos de demo. */
   @Override
   public void loadSavedGame() {
     detachIfAttached(menuPrincipal);
@@ -151,7 +181,7 @@ public class MenuController implements IMenuActions {
     showLoadMenu(
         saves,
         (String id) -> {
-          System.out.println("[Pontiland] Seleccionado guardado: " + id);
+          logger.info("Cargando partida guardada con ID: {}", id);
           dataService.loadDataBase(id);
 
           detachIfAttached(menuPrincipal);
@@ -160,8 +190,10 @@ public class MenuController implements IMenuActions {
           detachIfAttached(menuCreditos);
           detachIfAttached(menuSeleccion);
 
-          // TODO controller no puede comunicarse directamente con app
+          // Asegurar escena y mostrar HUD del juego
           startGameService.ensureSceneReady();
+          if (hudController != null) hudController.showHUD();
+          // TODO: si hubiera nombres disponibles en el guardado, poblarlos aquí
         });
   }
 
@@ -198,6 +230,9 @@ public class MenuController implements IMenuActions {
     detachIfAttached(menuCreditos);
     detachIfAttached(menuPrincipal);
     detachIfAttached(menuSeleccion);
+
+    // Ocultar/detener HUD si estuviera activo
+    if (hudController != null) hudController.detachHUD();
 
     showStartScreen();
   }

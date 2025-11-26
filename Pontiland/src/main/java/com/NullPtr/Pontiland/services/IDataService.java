@@ -13,5 +13,7 @@ public interface IDataService {
 
   List<SavedGame> listarPartidasPasadas();
 
+  void saveDataBase(long partidaID);
+
   void deleteDataBase();
 }

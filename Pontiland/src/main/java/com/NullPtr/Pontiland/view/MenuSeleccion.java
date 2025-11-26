@@ -35,6 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Pantalla de selección de personajes y nombres para los jugadores. Permite elegir el personaje y
@@ -49,8 +51,6 @@ import java.util.Set;
  * placeholder.
  */
 public class MenuSeleccion extends AbstractAppState {
-  /** Dinero inicial de cada jugador. */
-  private static final int STARTING_MONEY = 0;
 
   /** Nombres de los personajes disponibles. */
   private static final String[] CHARACTER_NAMES = {
@@ -59,10 +59,10 @@ public class MenuSeleccion extends AbstractAppState {
 
   /** Rutas de los sprites de billetes. */
   private static final String[] BILL_SPRITES = {
-    "graphics/sprites/Bill_Rosado.png",
-    "graphics/sprites/Bill_Morado.png",
-    "graphics/sprites/Bill_Azul.png",
-    "graphics/sprites/Bill_Verde.png"
+    "graphics/sprites/Common/Bill_Rosado.png",
+    "graphics/sprites/Common/Bill_Morado.png",
+    "graphics/sprites/Common/Bill_Azul.png",
+    "graphics/sprites/Common/Bill_Verde.png"
   };
 
   /** Mensaje de error para personajes repetidos. */
@@ -125,6 +125,9 @@ public class MenuSeleccion extends AbstractAppState {
   private static final ColorRGBA PLACEHOLDER_COLOR = new ColorRGBA(0.7f, 0.7f, 0.7f, 1f);
   private static final ColorRGBA INPUT_COLOR = ColorRGBA.White;
 
+  // Logging
+  private static Logger logger = LogManager.getLogger(MenuSeleccion.class);
+
   public MenuSeleccion(IMenuActions actions, int playerCount) {
     this.actions = actions;
     this.playerCount = playerCount;
@@ -172,7 +175,7 @@ public class MenuSeleccion extends AbstractAppState {
     backBar.setInsets(new Insets3f(6, 10, 6, 10));
     Container row = new Container(new BorderLayout(), "pontiland");
 
-    TextureKey key = new TextureKey("graphics/sprites/Icon_Back_White.png", true);
+    TextureKey key = new TextureKey("graphics/sprites/Common/Icons/Icon_Back_White.png", true);
     key.setGenerateMips(false);
     Texture2D iconTex = (Texture2D) this.app.getAssetManager().loadTexture(key);
     iconTex.setWrap(Texture.WrapMode.EdgeClamp);
@@ -193,25 +196,32 @@ public class MenuSeleccion extends AbstractAppState {
     row.addChild(iconBtn, BorderLayout.Position.West);
     row.addChild(textBtn, BorderLayout.Position.Center);
     backBar.addChild(row);
-    backBar.setLocalTranslation(10, cam.getHeight() - 10, 1);
+    backBar.setLocalTranslation(10, cam.getHeight() - 10f, 1);
     guiNode.attachChild(backBar);
 
     // Crear paneles de jugadores y posicionar
     for (int i = 0; i < playerCount; i++) createPlayerPanel(i);
     layoutPlayerPanels();
 
-    // Botón PLAY centrado (mantiene estilo anterior, pero ahora texto blanco sobre fondo amarillo)
-    startButton = new Button("PLAY", "pontiland");
-    startButton.setFontSize(28);
+    // Botón PLAY centrado con renderer de botones comunes (sprite + texto + hover)
+    com.NullPtr.Pontiland.view.Button renderer =
+        new com.NullPtr.Pontiland.view.Button(this.app.getAssetManager())
+            .setDefaultFontSize(30f) // texto grande por defecto
+            .setHoverScale(1.08f); // ligera animación al pasar el cursor
+
+    startButton =
+        renderer.render(
+            com.NullPtr.Pontiland.view.Button.Type.BASE, // tipo de sprite
+            "PLAY",
+            0.5f, // factor de escala del sprite
+            com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     startButton.setEnabled(false);
-    startButton.setColor(new ColorRGBA(0.1f, 0.1f, 0.1f, 1f));
-    startButton.setBackground(new QuadBackgroundComponent(new ColorRGBA(0.95f, 0.9f, 0.3f, 1f)));
     startButton.addClickCommands(
         ignored -> {
           try {
             attemptStart();
           } catch (SQLException e) {
-            throw new RuntimeException(e);
+            logger.fatal("Error al iniciar la partida: ", e);
           }
         });
     Vector3f pref = startButton.getPreferredSize();
@@ -387,7 +397,7 @@ public class MenuSeleccion extends AbstractAppState {
       int padLeft = left;
       int padRight = w - 1 - right;
       int diff = padRight - padLeft;
-      float scale = displayedWidth / (float) w;
+      float scale = displayedWidth / w;
       float shift = diff * 0.5f * scale;
       arrowShiftCache.put(asset, shift);
       return shift;
@@ -399,8 +409,8 @@ public class MenuSeleccion extends AbstractAppState {
   private Button createArrowButton(boolean forward, int playerIdx) {
     String asset =
         forward
-            ? "graphics/sprites/Icon_Forward_Black.png"
-            : "graphics/sprites/Icon_Back_Black.png";
+            ? "graphics/sprites/Common/Icons/Icon_Forward_Black.png"
+            : "graphics/sprites/Common/Icons/Icon_Back_Black.png";
     // Calcular tamaño proporcional del icono
     Vector2f iconSize = computeArrowIconSize(asset);
     IconComponent icon = new IconComponent(asset);
@@ -514,7 +524,7 @@ public class MenuSeleccion extends AbstractAppState {
     ArrayList<Jugador> jugadores = new ArrayList<>();
     ArrayList<Integer> personajeIds = new ArrayList<>();
     for (int i = 0; i < playerCount; i++) {
-      if (placeholderActive.get(i)) {
+      if (Boolean.TRUE.equals(placeholderActive.get(i))) {
         errorLabel.setText("Faltan nombres");
         return;
       }
@@ -527,7 +537,7 @@ public class MenuSeleccion extends AbstractAppState {
       int charIdx = characterIndex.get(i);
       personajeIds.add(charIdx + 1);
       try {
-        jugadores.add(new Jugador(STARTING_MONEY, nombre, (byte) (i + 1)));
+        jugadores.add(new Jugador(nombre, (byte) (i + 1)));
       } catch (IllegalArgumentException ex) {
         errorLabel.setText(ex.getMessage());
         return;
@@ -538,12 +548,10 @@ public class MenuSeleccion extends AbstractAppState {
 
   private boolean hasDuplicateNames() {
     Set<String> seen = new HashSet<>();
-    for (int i = 0; i < headerFields.size(); i++) {
-      if (placeholderActive.get(i)) continue;
-      String t = headerFields.get(i).getText();
-      if (t == null) continue;
+    for (TextField headerField : headerFields) {
+      String t = headerField.getText();
+      if (t == null || t.trim().isEmpty()) continue;
       t = t.trim();
-      if (t.isEmpty()) continue;
       String key = t.toLowerCase();
       if (!seen.add(key)) return true;
     }
@@ -558,7 +566,7 @@ public class MenuSeleccion extends AbstractAppState {
     for (int i = 0; i < playerCount; i++) {
       TextField f = headerFields.get(i);
       boolean focused = isFieldFocused(f);
-      if (placeholderActive.get(i)) {
+      if (Boolean.TRUE.equals(placeholderActive.get(i))) {
         // Si el usuario hace focus, limpiar placeholder
         if (focused) {
           f.setText("");
@@ -585,7 +593,7 @@ public class MenuSeleccion extends AbstractAppState {
           }
         }
       }
-      if (!placeholderActive.get(i)) {
+      if (Boolean.FALSE.equals(placeholderActive.get(i))) {
         String v = f.getText();
         if (v == null || v.trim().isEmpty()) ready = false;
       }

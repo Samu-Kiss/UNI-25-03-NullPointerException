@@ -57,10 +57,10 @@ public class DiceService implements IDiceService {
    */
   @Override
   public Byte[] leerDados() {
-    Byte[] resultados = new Byte[2];
-    resultados[0] = (dados[0] != null) ? dados[0].getCaraSuperior() : null;
-    resultados[1] = (dados[1] != null) ? dados[1].getCaraSuperior() : null;
-    return resultados;
+    Byte[] resultados2 = new Byte[2];
+    resultados2[0] = (dados[0] != null) ? dados[0].getCaraSuperior() : null;
+    resultados2[1] = (dados[1] != null) ? dados[1].getCaraSuperior() : null;
+    return resultados2;
   }
 
   @Override

@@ -48,7 +48,7 @@ public class JugadorRepository implements IJugadorRepository {
       crearJugador.setLong(4, partidaID);
       crearJugador.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al insertar nuevo jugador: " + newPlayer.getNombreJugador(), e);
     }
   }
 
@@ -66,7 +66,7 @@ public class JugadorRepository implements IJugadorRepository {
       cambiarJugador.setLong(2, partidaID);
       cambiarJugador.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al cambiar el jugador activo a ID:" + nuevoID, e);
     }
   }
 
@@ -89,6 +89,9 @@ public class JugadorRepository implements IJugadorRepository {
         } else {
           return -1;
         }
+      } catch (SQLException e) {
+        throw new SQLException(
+            "Error al obtener el jugador activo para la partida ID:" + partidaID, e);
       }
     }
   }
@@ -105,7 +108,8 @@ public class JugadorRepository implements IJugadorRepository {
       stmt.setLong(4, partidaID);
       stmt.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException(
+          "Error al enviar al jugador con ID {" + jugadorID + "} a la cárcel", e);
     }
   }
 
@@ -129,10 +133,10 @@ public class JugadorRepository implements IJugadorRepository {
         if (rs.next()) {
           return rs.getInt("JugadorID");
         }
-        throw new RuntimeException("No se encontró el jugador con NumJugador: " + numJugador);
+        throw new SQLException("No se encontró el jugador con NumJugador:" + numJugador);
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error obteniendo playerID por NumJugador:" + numJugador, e);
     }
   }
 
@@ -156,11 +160,11 @@ public class JugadorRepository implements IJugadorRepository {
         if (rs.next()) {
           return rs.getInt("NumJugador");
         } else {
-          throw new RuntimeException("No se encontró el jugador con playerID: " + playerId);
+          throw new SQLException("No se encontró el jugador con playerID:" + playerId);
         }
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error obteniendo NumJugador por playerID:" + playerId, e);
     }
   }
 
@@ -180,7 +184,7 @@ public class JugadorRepository implements IJugadorRepository {
       crearJugadorActivo.setLong(2, partidaID);
       crearJugadorActivo.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al insertar nuevo jugador activo con ID:" + jugadorID, e);
     }
   }
 
@@ -206,20 +210,38 @@ public class JugadorRepository implements IJugadorRepository {
           throw new SQLException(
               "Jugador no encontrado (partida=" + partidaID + ", id=" + jugadorID + ")");
         }
-        Jugador jugador =
-            new Jugador(
-                rs.getInt("JugadorID"),
-                rs.getInt("NumJugador"),
-                rs.getString("NombreJugador"),
-                rs.getInt("IconoID"),
-                rs.getInt("Posicion"),
-                rs.getBoolean("Encarcelado"),
-                rs.getInt("Dinero"),
-                rs.getLong("Partida"));
-        return jugador;
+
+        return new Jugador(
+            rs.getInt("JugadorID"),
+            rs.getInt("NumJugador"),
+            rs.getString("NombreJugador"),
+            rs.getInt("IconoID"),
+            rs.getInt("Posicion"),
+            rs.getBoolean("Encarcelado"),
+            rs.getInt("Dinero"),
+            rs.getLong("Partida"));
       }
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error obteniendo el jugador con ID:" + jugadorID, e);
+    }
+  }
+
+  @Override
+  public int getPlayerCount() throws SQLException {
+    String consulta = "SELECT COUNT(*) AS TotalJugadores FROM Jugador WHERE Partida = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
+      stmt.setLong(1, partidaID);
+      try (ResultSet rs = stmt.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("TotalJugadores");
+        } else {
+          throw new SQLException(
+              "No se pudo obtener el conteo de jugadores para la partida ID:" + partidaID);
+        }
+      }
+    } catch (SQLException e) {
+      throw new SQLException("Error obteniendo el conteo de jugadores", e);
     }
   }
 
@@ -249,59 +271,55 @@ public class JugadorRepository implements IJugadorRepository {
       }
       return fichas;
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error obteniendo las fichas de los jugadores", e);
     }
   }
 
   @Override
-  public void updateJugador(Jugador jugador) throws SQLException {
-    String consulta =
-        "UPDATE Jugador SET Posicion = ?, Encarcelado = ?, Dinero = ? WHERE JugadorID = ? AND Partida = ?";
+  public void updatePosition(int jugadorID, int nuevaPosicion) throws SQLException {
+    String consulta = "UPDATE Jugador SET Posicion = ? WHERE JugadorID = ? AND Partida = ?";
     try (Connection conn = dataService.createConnection();
         PreparedStatement stmt = conn.prepareStatement(consulta)) {
-      stmt.setInt(1, jugador.getPosicion());
-      stmt.setBoolean(2, jugador.getEstado());
-      stmt.setInt(3, jugador.getDinero());
-      stmt.setInt(4, jugador.getJugadorId());
-      stmt.setLong(5, partidaID);
+      stmt.setInt(1, nuevaPosicion);
+      stmt.setInt(2, jugadorID);
+      stmt.setLong(3, partidaID);
       stmt.executeUpdate();
     } catch (SQLException e) {
-      throw new RuntimeException(e);
+      throw new SQLException("Error al actualizar la posición del jugador", e);
     }
   }
 
-  public void rentPaymentTransaction(Jugador j1, Jugador j2) throws SQLException {
-    Connection conn = dataService.createConnection();
-    String updateSql = "UPDATE Jugador SET Dinero = ? WHERE NumJugador = ? AND Partida = ?";
-    boolean originalAutoCommit = conn.getAutoCommit();
-    try {
-      conn.setAutoCommit(false);
+  @Override
+  public void updateDinero(int jugadorID, int nuevoDinero) throws SQLException {
+    String consulta = "UPDATE Jugador SET Dinero = ? WHERE JugadorID = ? AND Partida = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
+      stmt.setInt(1, nuevoDinero);
+      stmt.setInt(2, jugadorID);
+      stmt.setLong(3, partidaID);
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      throw new SQLException(
+          "Error al actualizar el dinero del jugador con id="
+              + jugadorID
+              + "y dinero="
+              + nuevoDinero,
+          e);
+    }
+  }
 
-      try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
-        // Actualizar primer jugador
-        ps.setInt(1, j1.getDinero());
-        ps.setInt(2, j1.getNumJugador());
-        ps.setLong(3, j1.getPartida());
-        ps.executeUpdate();
-
-        // Actualizar segundo jugador
-        ps.setInt(1, j2.getDinero());
-        ps.setInt(2, j2.getNumJugador());
-        ps.setLong(3, j2.getPartida());
-        ps.executeUpdate();
-      }
-
-      conn.commit();
-    } catch (SQLException ex) {
-      try {
-        conn.rollback();
-      } catch (SQLException rbEx) {
-        // ignorar o registrar según necesidad
-      }
-      throw ex;
-    } finally {
-      conn.setAutoCommit(originalAutoCommit);
-      conn.close();
+  @Override
+  public void updateEstado(int jugadorID, String nuevoEstado) throws SQLException {
+    String consulta = "UPDATE Jugador SET Encarcelado = ? WHERE JugadorID = ? AND Partida = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
+      boolean estado = Boolean.parseBoolean(nuevoEstado);
+      stmt.setBoolean(1, estado);
+      stmt.setInt(2, jugadorID);
+      stmt.setLong(3, partidaID);
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      throw new SQLException("Error updating player state", e);
     }
   }
 }

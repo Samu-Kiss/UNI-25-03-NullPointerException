@@ -17,6 +17,8 @@ public interface IJugadorRepository {
 
   int getNumJugadorByPlayerId(int playerId) throws SQLException;
 
+  int getPlayerCount() throws SQLException;
+
   void newActivePlayer(int jugadorID) throws SQLException;
 
   Jugador getJugadorByID(int jugadorID) throws SQLException;
@@ -25,7 +27,9 @@ public interface IJugadorRepository {
 
   Ficha[] getFichas(int numJugadores) throws SQLException;
 
-  void updateJugador(Jugador jugador) throws SQLException;
+  void updatePosition(int jugadorID, int nuevaPosicion) throws SQLException;
 
-  void rentPaymentTransaction(Jugador j1, Jugador j2) throws SQLException;
+  void updateDinero(int jugadorID, int nuevoDinero) throws SQLException;
+
+  void updateEstado(int jugadorID, String nuevoEstado) throws SQLException;
 }

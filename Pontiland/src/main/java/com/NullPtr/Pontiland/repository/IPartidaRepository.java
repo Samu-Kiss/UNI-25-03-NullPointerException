@@ -1,7 +1,11 @@
 package com.NullPtr.Pontiland.repository;
 
-public interface IPartidaRepository {
-  long newPartida(int numJugadores);
+import java.sql.SQLException;
 
-  int getNumJugadores();
+public interface IPartidaRepository {
+  long newPartida(int numJugadores) throws SQLException;
+
+  int getNumJugadores() throws SQLException;
+
+  long getPartidaID();
 }
