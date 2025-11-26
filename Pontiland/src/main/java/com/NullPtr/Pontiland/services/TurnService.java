@@ -178,8 +178,8 @@ public class TurnService implements ITurnService {
           lastD1 = dados[0];
           lastD2 = dados[1];
           pendingMovement = datosToInt(dados[0]) + datosToInt(dados[1]);
-          //FIXME: Esto se usa para pruebas
-          //pendingMovement = 2;
+          // FIXME: Esto se usa para pruebas
+          // pendingMovement = 2;
           logger.debug("Dados lanzados: {} + {} = {}", lastD1, lastD2, pendingMovement);
           dados[0] = null;
           dados[1] = null;

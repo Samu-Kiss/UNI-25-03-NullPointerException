@@ -339,4 +339,35 @@ public class PropiedadRepository implements IPropiedadRepository {
       throw new SQLException("Error al intentar actualizar el nivel de la adquisición", e);
     }
   }
+
+  /**
+   * Calcula el patrimonio total de un jugador sumando los precios de compra de todas sus
+   * propiedades.
+   *
+   * @param jugadorId id del jugador
+   * @return el patrimonio total (suma de precios de compra)
+   * @throws SQLException si ocurre un error al ejecutar la consulta
+   */
+  public int getPatrimonioTotalJugador(int jugadorId) throws SQLException {
+    String query =
+        "SELECT SUM(Propiedad.PrecioCompra) AS PatrimonioTotal "
+            + "FROM Adquisiciones "
+            + "INNER JOIN Propiedad ON Adquisiciones.PropiedadID = Propiedad.PropiedadID "
+            + "WHERE Adquisiciones.JugadorID = ?";
+
+    try (Connection conex = dataService.createConnection();
+        PreparedStatement ps = conex.prepareStatement(query)) {
+      ps.setInt(1, jugadorId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("PatrimonioTotal");
+        } else {
+          return 0;
+        }
+      }
+    } catch (SQLException e) {
+      throw new SQLException(
+          "Error al intentar obtener el patrimonio total del jugador con id=" + jugadorId, e);
+    }
+  }
 }
