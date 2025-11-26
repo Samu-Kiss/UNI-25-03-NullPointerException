@@ -84,14 +84,16 @@ public class DataService implements IDataService {
    */
   public void newDataBase() {
     Connection conn = createConnection();
-    try (PreparedStatement ps = conn.prepareStatement(
+    try (PreparedStatement ps =
+        conn.prepareStatement(
             "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='PUBLIC' ")) {
       ResultSet rs = ps.executeQuery();
       rs.next();
       boolean empty = rs.getInt(1) == 0;
-      if(!empty) return;
+      if (!empty) return;
     } catch (SQLException e) {
-      logger.fatal("DataService.newDataBase: Error FATAL al verificar tablas en la base de datos", e);
+      logger.fatal(
+          "DataService.newDataBase: Error FATAL al verificar tablas en la base de datos", e);
     }
     try (Statement stmt = conn.createStatement();
         InputStream ddlIn = this.getClass().getResourceAsStream(ddlResource);

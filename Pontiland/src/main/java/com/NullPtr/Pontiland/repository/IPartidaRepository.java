@@ -1,7 +1,6 @@
 package com.NullPtr.Pontiland.repository;
 
 import com.NullPtr.Pontiland.entities.SavedGame;
-
 import java.sql.SQLException;
 import java.util.List;
 

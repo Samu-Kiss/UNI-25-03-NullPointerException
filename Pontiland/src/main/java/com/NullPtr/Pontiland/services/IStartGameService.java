@@ -2,7 +2,6 @@ package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.SavedGame;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;

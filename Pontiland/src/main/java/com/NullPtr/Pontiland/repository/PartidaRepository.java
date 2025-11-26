@@ -54,7 +54,7 @@ public class PartidaRepository implements IPartidaRepository {
 
     String creacionPartida = "INSERT INTO PARTIDA(PartidaID, NumeroJugadores) VALUES( ? , ? )";
     try (Connection conn = dataService.createConnection();
-         PreparedStatement crearPartida = conn.prepareStatement(creacionPartida)) {
+        PreparedStatement crearPartida = conn.prepareStatement(creacionPartida)) {
       crearPartida.setLong(1, partidaID);
       crearPartida.setInt(2, numJugadores);
       crearPartida.executeUpdate();
@@ -134,7 +134,7 @@ public class PartidaRepository implements IPartidaRepository {
     } catch (SQLException e) {
       throw new SQLException("Error al intentar obtener los IDs de las partidas", e);
     } catch (ParseException e) {
-        throw new RuntimeException(e);
+      throw new RuntimeException(e);
     }
     List<SavedGame> listaPartidas = new ArrayList<>();
 
@@ -146,17 +146,18 @@ public class PartidaRepository implements IPartidaRepository {
   }
 
   public Map<String, Map.Entry<Integer, Long>> finalResults() throws SQLException {
-    String consulta = "SELECT JUGADOR.NOMBREJUGADOR, JUGADOR.JUGADORID, JUGADOR.ICONOID, DINERO, COALESCE(SUM(PROPIEDAD.PRECIOCOMPRA),0) AS PATRIMONIO " +
-            "FROM JUGADOR " +
-            "LEFT JOIN ADQUISICIONES " +
-            "ON JUGADOR.JUGADORID=ADQUISICIONES.JUGADORID " +
-            "LEFT JOIN PROPIEDAD ON ADQUISICIONES.PROPIEDADID=PROPIEDAD.PROPIEDADID " +
-            "WHERE JUGADOR.PARTIDA= ? " +
-            "GROUP BY JUGADOR.JUGADORID";
+    String consulta =
+        "SELECT JUGADOR.NOMBREJUGADOR, JUGADOR.JUGADORID, JUGADOR.ICONOID, DINERO, COALESCE(SUM(PROPIEDAD.PRECIOCOMPRA),0) AS PATRIMONIO "
+            + "FROM JUGADOR "
+            + "LEFT JOIN ADQUISICIONES "
+            + "ON JUGADOR.JUGADORID=ADQUISICIONES.JUGADORID "
+            + "LEFT JOIN PROPIEDAD ON ADQUISICIONES.PROPIEDADID=PROPIEDAD.PROPIEDADID "
+            + "WHERE JUGADOR.PARTIDA= ? "
+            + "GROUP BY JUGADOR.JUGADORID";
     Map<String, Map.Entry<Integer, Long>> resFinales = new HashMap<>();
     try (Connection conn = dataService.createConnection();
-         PreparedStatement stmt = conn.prepareStatement(consulta);
-         ResultSet rs = stmt.executeQuery()) {
+        PreparedStatement stmt = conn.prepareStatement(consulta);
+        ResultSet rs = stmt.executeQuery()) {
       while (rs.next()) {
         String nombreJugador = rs.getString("NOMBREJUGADOR");
         int iconoID = rs.getInt("ICONOID");
@@ -172,12 +173,13 @@ public class PartidaRepository implements IPartidaRepository {
   public void updatePartidaActiveStatus() throws SQLException {
     String updateQuery = "UPDATE PARTIDA SET Activa = ? WHERE PartidaID = ?";
     try (Connection conn = dataService.createConnection();
-         PreparedStatement updateStmt = conn.prepareStatement(updateQuery)) {
+        PreparedStatement updateStmt = conn.prepareStatement(updateQuery)) {
       updateStmt.setBoolean(1, false);
       updateStmt.setLong(2, partidaID);
       updateStmt.executeUpdate();
     } catch (SQLException e) {
-      throw new SQLException("Error al actualizar el estado activo de la partida con Id=" + partidaID, e);
+      throw new SQLException(
+          "Error al actualizar el estado activo de la partida con Id=" + partidaID, e);
     }
   }
 }
