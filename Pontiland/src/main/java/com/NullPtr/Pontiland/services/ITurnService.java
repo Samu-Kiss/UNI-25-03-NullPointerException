@@ -26,8 +26,6 @@ public interface ITurnService {
 
   void exitAuction();
 
-  void aplicarCostoSistema(int costo);
-
   /** Finaliza la partida: deshabilita turnos/inputs y muestra pantalla de fin de juego. */
   void finalizarPartida();
 

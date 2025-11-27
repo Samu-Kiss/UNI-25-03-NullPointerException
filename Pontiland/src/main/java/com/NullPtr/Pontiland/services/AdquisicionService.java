@@ -36,7 +36,7 @@ public class AdquisicionService implements IAdquisicionService {
     }
 
     int propiedadId = propiedad.getIdPropiedad();
-    int precio = propiedad.getPrecioCompra();
+    int precio = propiedad.getPrecioCompra() * 5;
 
     Jugador jugadorPago;
     try {
@@ -298,7 +298,6 @@ public class AdquisicionService implements IAdquisicionService {
             "{} no puede saldar la deuda con {} ni con todo su patrimonio",
             deudor.getNombreJugador(),
             acreedor.getNombreJugador());
-        // TODO: lógica de finalizarPartida
         return;
       }
 

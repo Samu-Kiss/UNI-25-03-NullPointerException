@@ -156,13 +156,15 @@ public class PartidaRepository implements IPartidaRepository {
             + "GROUP BY JUGADOR.JUGADORID";
     Map<String, Map.Entry<Integer, Long>> resFinales = new HashMap<>();
     try (Connection conn = dataService.createConnection();
-        PreparedStatement stmt = conn.prepareStatement(consulta);
-        ResultSet rs = stmt.executeQuery()) {
-      while (rs.next()) {
-        String nombreJugador = rs.getString("NOMBREJUGADOR");
-        int iconoID = rs.getInt("ICONOID");
-        long patrimonio = rs.getLong("DINERO") + rs.getLong("PATRIMONIO");
-        resFinales.put(nombreJugador, new AbstractMap.SimpleEntry<>(iconoID, patrimonio));
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
+      stmt.setLong(1, partidaID);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          String nombreJugador = rs.getString("NOMBREJUGADOR");
+          int iconoID = rs.getInt("ICONOID");
+          long patrimonio = rs.getLong("DINERO") + rs.getLong("PATRIMONIO");
+          resFinales.put(nombreJugador, new AbstractMap.SimpleEntry<>(iconoID, patrimonio));
+        }
       }
     } catch (SQLException e) {
       throw new SQLException("Error al calcular los resultados finales", e);
@@ -170,6 +172,7 @@ public class PartidaRepository implements IPartidaRepository {
     return resFinales;
   }
 
+  @Override
   public void updatePartidaActiveStatus() throws SQLException {
     String updateQuery = "UPDATE PARTIDA SET Activa = ? WHERE PartidaID = ?";
     try (Connection conn = dataService.createConnection();

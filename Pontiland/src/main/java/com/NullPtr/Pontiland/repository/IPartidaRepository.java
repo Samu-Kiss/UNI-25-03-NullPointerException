@@ -14,4 +14,6 @@ public interface IPartidaRepository {
   List<SavedGame> getAllPartidaIDs() throws SQLException;
 
   void setPartidaID(long partidaID);
+
+  void updatePartidaActiveStatus() throws SQLException;
 }

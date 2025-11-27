@@ -26,6 +26,7 @@ public class TurnService implements ITurnService {
   private boolean irACarcel = false;
   private IAdquisicionService adquisicionService;
   private IMenuActions menuActions;
+  private boolean terminarPartida = false;
 
   private static Logger logger = LogManager.getLogger(TurnService.class);
 
@@ -151,6 +152,8 @@ public class TurnService implements ITurnService {
     this.enabled = enabled;
     if (enabled) {
       try {
+        state = TurnState.AWAIT_ROLL;
+        jailState = JailState.CHECK_ROLLS;
         // Actualizar indicador de turno activo al inicio del juego
         int activePlayerId = jugadorRepository.getActivePlayer();
         int activeNumJugador = jugadorRepository.getNumJugadorByPlayerId(activePlayerId);
@@ -184,12 +187,23 @@ public class TurnService implements ITurnService {
         return;
       }
 
-      boolean encarcelado = jugadorRepository.getJugadorEstadoByID(activePlayerId);
-      if (encarcelado) {
-        jailFSM();
+      if (terminarPartida) {
+        java.util.List<com.NullPtr.Pontiland.entities.Jugador> ranking =
+            adquisicionService.obtenerRankingJugadoresDesc();
+        logger.info("Ranking de jugadores por capital (desc):");
+        for (com.NullPtr.Pontiland.entities.Jugador j : ranking) {
+          logger.info("{} -> capital={} (dinero+propiedades)", j.getNombreJugador(), j.getDinero());
+        }
+        finalizarPartida();
       } else {
-        gameFSM();
+        boolean encarcelado = jugadorRepository.getJugadorEstadoByID(activePlayerId);
+        if (encarcelado) {
+          jailFSM();
+        } else {
+          gameFSM();
+        }
       }
+
     } catch (Exception e) {
       logger.fatal("Error en la máquina de estados en el turno de un jugador", e);
     }
@@ -331,14 +345,7 @@ public class TurnService implements ITurnService {
             adquisicionService.liquidarDeudaConBanco(jugador);
             jugador = jugadorRepository.getJugadorByID(activePlayerId);
             if (jugador.getDinero() < 0) {
-              java.util.List<com.NullPtr.Pontiland.entities.Jugador> ranking =
-                  adquisicionService.obtenerRankingJugadoresDesc();
-              logger.info("Ranking de jugadores por capital (desc):");
-              for (com.NullPtr.Pontiland.entities.Jugador j : ranking) {
-                logger.info(
-                    "{} -> capital={} (dinero+propiedades)", j.getNombreJugador(), j.getDinero());
-              }
-              finalizarPartida();
+              terminarPartida = true;
               return;
             }
           }
@@ -443,25 +450,22 @@ public class TurnService implements ITurnService {
           moveToJail();
           irACarcel = false;
         }
-        if (!lanzamientoDoble) {
-          tiradas = 1;
-          nextTurn();
-        }
         Jugador jugador = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
         if (jugador.getDinero() < 0) {
           adquisicionService.liquidarDeudaConBanco(jugador);
           jugador = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+          logger.info(
+              "Después de liquidar deudas, el jugador {} tiene dinero: {}",
+              jugador.getJugadorId(),
+              jugador.getDinero());
           if (jugador.getDinero() < 0) {
-            java.util.List<com.NullPtr.Pontiland.entities.Jugador> ranking =
-                adquisicionService.obtenerRankingJugadoresDesc();
-            logger.info("Ranking de jugadores por capital (desc):");
-            for (com.NullPtr.Pontiland.entities.Jugador j : ranking) {
-              logger.info(
-                  "{} -> capital={} (dinero+propiedades)", j.getNombreJugador(), j.getDinero());
-            }
-            finalizarPartida();
+            terminarPartida = true;
             return;
           }
+        }
+        if (!lanzamientoDoble) {
+          tiradas = 1;
+          nextTurn();
         }
         updateHUDAndTokens();
         state = TurnState.AWAIT_ROLL;
@@ -560,41 +564,14 @@ public class TurnService implements ITurnService {
   }
 
   @Override
-  public void aplicarCostoSistema(int costo) {
-    try {
-      int activePlayerId = jugadorRepository.getActivePlayer();
-      Jugador jugador = jugadorRepository.getJugadorByID(activePlayerId);
-      int nuevoSaldo = jugador.getDinero() - Math.abs(costo);
-      jugadorRepository.updateDinero(activePlayerId, nuevoSaldo);
-      jugador = jugadorRepository.getJugadorByID(activePlayerId);
-      if (jugador.getDinero() < 0) {
-        adquisicionService.liquidarDeudaConBanco(jugador);
-        jugador = jugadorRepository.getJugadorByID(activePlayerId);
-        if (jugador.getDinero() < 0) {
-          java.util.List<com.NullPtr.Pontiland.entities.Jugador> ranking =
-              adquisicionService.obtenerRankingJugadoresDesc();
-          logger.info("Ranking de jugadores por capital (desc):");
-          for (com.NullPtr.Pontiland.entities.Jugador j : ranking) {
-            logger.info(
-                "{} -> capital={} (dinero+propiedades)", j.getNombreJugador(), j.getDinero());
-          }
-          finalizarPartida();
-          return;
-        }
-      }
-      updateHUDAndTokens();
-    } catch (SQLException e) {
-      logger.error("Error al aplicar costo del sistema al jugador activo", e);
-    }
-  }
-
-  @Override
   public void setMenuActions(IMenuActions menuActions) {
     this.menuActions = menuActions;
   }
 
   @Override
   public void finalizarPartida() {
+    state = TurnState.AWAIT_ROLL;
+    jailState = JailState.CHECK_ROLLS;
     logger.info("Finalizando partida - deshabilitando turnos e inputs");
     enabled = false;
     if (diceService != null) {
