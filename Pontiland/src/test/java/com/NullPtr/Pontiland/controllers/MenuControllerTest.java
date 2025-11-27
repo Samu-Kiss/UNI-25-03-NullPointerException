@@ -296,16 +296,21 @@ class MenuControllerTest {
   @Test
   void testLoadSavedGameShowsMenuCargaAndLoadsGame() {
     SavedGame savedGame = new SavedGame("save1", "Partida de prueba");
-    List<SavedGame> saves = List.of(savedGame);
+    List<SavedGame> expectedSaves = List.of(savedGame);
 
-    when(dataService.listarPartidasPasadas()).thenReturn(saves);
+    // 1. CORRECCIÓN: Mockear el servicio correcto y el método correcto.
+    when(startGameService.listPastGames()).thenReturn(expectedSaves);
 
     MenuController spyController = spy(controller);
+
+    // Aseguramos que showLoadMenu no ejecute su lógica interna que podría fallar
     doNothing().when(spyController).showLoadMenu(anyList(), any());
 
     spyController.loadSavedGame();
 
-    verify(spyController).showLoadMenu(eq(saves), any());
+    // 2. Verificación: Ahora verificamos que se llamó con la lista esperada (expectedSaves).
+    // Note el uso de eq(expectedSaves)
+    verify(spyController).showLoadMenu(eq(expectedSaves), any());
   }
 
   /**
