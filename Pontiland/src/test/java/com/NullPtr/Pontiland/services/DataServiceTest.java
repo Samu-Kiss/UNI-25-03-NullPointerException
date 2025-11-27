@@ -201,12 +201,9 @@ class DataServiceTest {
     }
   }
 
-  /**
-   * Verifica que newDataBase() lance AssertionError cuando los recursos no existen. El código usa
-   * assert que lanza AssertionError en producción si los recursos son null.
-   */
+  /** Verifica que newDataBase() lance AssertionError cuando los recursos no existen. */
   @Test
-  void testNewDatabase_resourcesMissing() {
+  void testNewDatabase_resourcesMissing() throws Exception {
     try (MockedStatic<PropertiesReader> mockedProps = mockStatic(PropertiesReader.class)) {
       mockedProps
           .when(() -> PropertiesReader.getProperty("nuevaPartida.ddl"))

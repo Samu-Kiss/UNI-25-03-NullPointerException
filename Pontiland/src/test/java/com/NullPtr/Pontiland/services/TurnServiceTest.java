@@ -42,7 +42,7 @@ class TurnServiceTest {
             casillaService,
             hudController,
             subastaService,
-                adquisicionService);
+            adquisicionService);
     turnService.setScene(scene);
   }
 
@@ -213,7 +213,7 @@ class TurnServiceTest {
             casillaService,
             hudController,
             subastaService,
-                adquisicionService);
+            adquisicionService);
 
     assertDoesNotThrow(() -> serviceConDiceNulo.terminarTurno());
   }
@@ -441,7 +441,7 @@ class TurnServiceTest {
             casillaService,
             hudController,
             null,
-                adquisicionService);
+            adquisicionService);
 
     boolean resultado = serviceConSubastaNula.iniciarSubasta();
 
@@ -485,7 +485,7 @@ class TurnServiceTest {
             casillaService,
             hudController,
             null,
-                adquisicionService);
+            adquisicionService);
 
     boolean resultado = serviceConSubastaNula.increaseAuction(50);
 
