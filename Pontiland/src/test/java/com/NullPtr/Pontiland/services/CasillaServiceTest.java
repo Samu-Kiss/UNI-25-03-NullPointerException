@@ -4,10 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.NullPtr.Pontiland.controllers.IHUDcontroller;
-import com.NullPtr.Pontiland.entities.Casilla;
-import com.NullPtr.Pontiland.entities.Jugador;
-import com.NullPtr.Pontiland.entities.Propiedad;
-import com.NullPtr.Pontiland.entities.Tipo;
+import com.NullPtr.Pontiland.entities.*;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import com.NullPtr.Pontiland.repository.TarjetaEventoRepository;
@@ -29,6 +26,15 @@ class CasillaServiceTest {
   private IAdquisicionService adquisicionService;
   private TarjetaEventoRepository tarjetaEventoRepository;
   private IJugadorRepository jugadorRepository;
+
+  // Clase Helper para crear mocks de TarjetaEvento fácilmente
+  private TarjetaEvento createMockTarjeta(String nombre, String desc, Accion accion) {
+    TarjetaEvento evento = mock(TarjetaEvento.class);
+    when(evento.getAccion()).thenReturn(accion);
+    when(evento.getNombre()).thenReturn(nombre);
+    when(evento.getDescripcion()).thenReturn(desc);
+    return evento;
+  }
 
   @BeforeEach
   void setUp() {
@@ -370,5 +376,144 @@ class CasillaServiceTest {
     // Verificación: Aseguramos que la ejecución fue suave y que los servicios posteriores no fueron
     // llamados.
     verifyNoInteractions(diceService);
+  }
+
+  @Test
+  void testInteraccion_Evento_AccionGANA_200() throws SQLException {
+    // Caso GANA_200
+    TarjetaEvento evento = createMockTarjeta("Big Prize", "Ganas 200", Accion.GANA_200);
+    when(tarjetaEventoRepository.getRandomTarjetaEvento()).thenReturn(evento);
+    service.interaccion(jugador, new Casilla(2, "E", Tipo.EVENTO));
+
+    verify(hudController, times(1)).showGoodEvent(anyString(), anyString());
+    verify(jugadorRepository, times(1))
+        .updateDinero(jugador.getJugadorId(), jugador.getDinero() + 200);
+  }
+
+  @Test
+  void testInteraccion_Evento_PROPIEDAD_NIVEL_PLUS_1_Exito() throws SQLException {
+    // Caso PROPIEDAD_NIVEL_PLUS_1 (Bad Event, llama a mejorarPropiedad(j, 1))
+    TarjetaEvento evento = createMockTarjeta("Mejora", "Nivel +1", Accion.PROPIEDAD_NIVEL_PLUS_1);
+    Propiedad prop = mock(Propiedad.class);
+    when(prop.getIdPropiedad()).thenReturn(100);
+    when(prop.getNivelPropiedad()).thenReturn(3); // Nivel inicial 3
+
+    when(tarjetaEventoRepository.getRandomTarjetaEvento()).thenReturn(evento);
+    when(propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId()))
+        .thenReturn(List.of(prop));
+
+    service.interaccion(jugador, new Casilla(2, "E", Tipo.EVENTO));
+
+    verify(hudController, times(1)).showBadEvent(anyString(), anyString());
+    // Verifica mejora: 3 + 1 = 4
+    verify(propiedadRepository, times(1)).updateAdquisicionNivel(100, jugador.getJugadorId(), 4);
+  }
+
+  @Test
+  void testInteraccion_Evento_IR_A_LA_CARCEL() {
+    // Caso IR_A_LA_CARCEL
+    TarjetaEvento evento = createMockTarjeta("Carcel", "Go to jail", Accion.IR_A_LA_CARCEL);
+    when(tarjetaEventoRepository.getRandomTarjetaEvento()).thenReturn(evento);
+    service.interaccion(jugador, new Casilla(2, "E", Tipo.EVENTO));
+
+    verify(hudController, times(1)).showBadEvent(anyString(), anyString());
+    assertTrue(service.getIrACarcel(), "Debe activar irACarcel");
+  }
+
+  @Test
+  void testInteraccion_Evento_AccionNoGana_NoModificaDinero() throws SQLException {
+    // Caso de una Acción que no modifica dinero (p. ej., IR_A_LA_CARCEL)
+    TarjetaEvento evento =
+        createMockTarjeta("Ir a la Cárcel", "Tienes multa", Accion.IR_A_LA_CARCEL);
+
+    when(tarjetaEventoRepository.getRandomTarjetaEvento()).thenReturn(evento);
+    service.interaccion(jugador, new Casilla(2, "E", Tipo.EVENTO));
+
+    // 1. Verifica la interacción con el HUD (Debe ser Bad Event)
+    verify(hudController, times(1)).showBadEvent(eq("Ir a la Cárcel"), eq("Tienes multa"));
+
+    // 2. Verifica la acción específica (Se activa la bandera irACarcel)
+    assertTrue(service.getIrACarcel(), "La acción debe activar la bandera irACarcel.");
+
+    // 3. Verifica que NO se llamó a ninguna acción de dinero (cubriendo el default/acciones sin DB)
+    verify(jugadorRepository, never()).updateDinero(anyInt(), anyInt());
+
+    // 4. Verifica que se deshabilitó la interacción
+    verify(diceService, times(1)).enableInteract(false);
+  }
+
+  @Test
+  void testInteraccion_Evento_GANA_100_ConExcepcion_ManejoError() throws SQLException {
+    // Caso de prueba para cubrir el bloque 'catch (SQLException e)'
+    TarjetaEvento evento = createMockTarjeta("Error", "Gana 100", Accion.GANA_100);
+    when(tarjetaEventoRepository.getRandomTarjetaEvento()).thenReturn(evento);
+
+    // Simula que la llamada a DB lanza SQLException
+    doThrow(new SQLException("Error de DB"))
+        .when(jugadorRepository)
+        .updateDinero(anyInt(), anyInt());
+
+    // El método no debe lanzar la excepción, solo loggearla.
+    assertDoesNotThrow(() -> service.interaccion(jugador, new Casilla(2, "E", Tipo.EVENTO)));
+
+    // Verifica que el flujo de HUD y deshabilitar dados se ejecutó
+    verify(hudController, times(1)).showGoodEvent(anyString(), anyString());
+    verify(diceService, times(1)).enableInteract(false);
+  }
+
+  @Test
+  void testInteraccion_Evento_TarjetaNula() throws SQLException {
+    Casilla eventoCasilla = new Casilla(10, "Evento", Tipo.EVENTO);
+    // Simula que el repositorio retorna null (cubre 'if (evento != null)')
+    when(tarjetaEventoRepository.getRandomTarjetaEvento()).thenReturn(null);
+
+    service.interaccion(jugador, eventoCasilla);
+
+    // Debe retornar inmediatamente, sin llamar a ninguna interacción del HUD o DiceService
+    verify(hudController, never()).showGoodEvent(anyString(), anyString());
+    verify(hudController, never()).showBadEvent(anyString(), anyString());
+    verify(diceService, never()).enableInteract(anyBoolean());
+  }
+
+  @Test
+  void testInteraccion_Evento_PIERDE_50_SinPropiedades_ListaVacia() throws SQLException {
+    // Cubre la rama 'if (propiedades == null || propiedades.isEmpty())' en pierde50PorPropiedad
+    TarjetaEvento evento =
+        createMockTarjeta("Impuesto", "Pagas 50/prop", Accion.PIERDE_50_POR_PROPIEDAD);
+
+    when(tarjetaEventoRepository.getRandomTarjetaEvento()).thenReturn(evento);
+    when(propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId()))
+        .thenReturn(Collections.emptyList());
+
+    service.interaccion(jugador, new Casilla(2, "E", Tipo.EVENTO));
+
+    verify(jugadorRepository, never()).updateDinero(anyInt(), anyInt());
+  }
+
+  @Test
+  void testInteraccion_Evento_PROPIEDAD_A_NIVEL_5_SinPropiedades_ListaNula() throws SQLException {
+    // Cubre la rama 'if (propiedades == null || propiedades.isEmpty())' en cambiarNivelPropiedad
+    TarjetaEvento evento = createMockTarjeta("Nivel Fijo", "Nivel 5", Accion.PROPIEDAD_A_NIVEL_5);
+
+    when(tarjetaEventoRepository.getRandomTarjetaEvento()).thenReturn(evento);
+    when(propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId())).thenReturn(null);
+
+    service.interaccion(jugador, new Casilla(2, "E", Tipo.EVENTO));
+
+    verify(propiedadRepository, never()).updateAdquisicionNivel(anyInt(), anyInt(), anyInt());
+  }
+
+  @Test
+  void testInteraccion_Evento_PROPIEDAD_NIVEL_PLUS_1_SinPropiedades_ListaNula()
+      throws SQLException {
+    // Cubre la rama 'if (propiedades == null || propiedades.isEmpty())' en mejorarPropiedad
+    TarjetaEvento evento = createMockTarjeta("Mejora", "Nivel +1", Accion.PROPIEDAD_NIVEL_PLUS_1);
+
+    when(tarjetaEventoRepository.getRandomTarjetaEvento()).thenReturn(evento);
+    when(propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId())).thenReturn(null);
+
+    service.interaccion(jugador, new Casilla(2, "E", Tipo.EVENTO));
+
+    verify(propiedadRepository, never()).updateAdquisicionNivel(anyInt(), anyInt(), anyInt());
   }
 }

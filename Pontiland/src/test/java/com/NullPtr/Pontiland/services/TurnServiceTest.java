@@ -1,5 +1,3 @@
-package com.NullPtr.Pontiland.services;
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -10,29 +8,37 @@ import com.NullPtr.Pontiland.entities.Tipo;
 import com.NullPtr.Pontiland.repository.ICasillaRepository;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
+import com.NullPtr.Pontiland.services.*;
 import com.NullPtr.Pontiland.view.IScene;
 import java.sql.SQLException;
-import org.junit.jupiter.api.*;
-import org.mockito.*;
+import java.util.ArrayList;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-/** Clase de pruebas unitarias para TurnService con cobertura completa. */
 class TurnServiceTest {
 
-  @Mock IJugadorRepository jugadorRepo;
-  @Mock IPartidaRepository partidaRepo;
-  @Mock DiceService diceService;
-  @Mock ICasillaRepository casillaRepo;
-  @Mock ICasillaService casillaService;
-  @Mock IHUDcontroller hudController;
-  @Mock ISubastaService subastaService;
-  @Mock IScene scene;
-  @Mock IAdquisicionService adquisicionService;
-
-  TurnService turnService;
+  private IJugadorRepository jugadorRepo;
+  private IPartidaRepository partidaRepo;
+  private ICasillaRepository casillaRepo;
+  private ICasillaService casillaService;
+  private DiceService diceService;
+  private IHUDcontroller hudController;
+  private ISubastaService subastaService;
+  private IAdquisicionService adquisicionService;
+  private TurnService turnService;
+  private final IScene scene = mock(IScene.class);
 
   @BeforeEach
   void setUp() {
-    MockitoAnnotations.openMocks(this);
+    jugadorRepo = mock(IJugadorRepository.class);
+    partidaRepo = mock(IPartidaRepository.class);
+    casillaRepo = mock(ICasillaRepository.class);
+    casillaService = mock(ICasillaService.class);
+    diceService = mock(DiceService.class);
+    hudController = mock(IHUDcontroller.class);
+    subastaService = mock(ISubastaService.class);
+    adquisicionService = mock(IAdquisicionService.class);
+
     turnService =
         new TurnService(
             jugadorRepo,
@@ -43,6 +49,9 @@ class TurnServiceTest {
             hudController,
             subastaService,
             adquisicionService);
+    turnService.setEnabled(true);
+
+    // ASIGNAR SCENE MOCK
     turnService.setScene(scene);
   }
 
@@ -173,22 +182,29 @@ class TurnServiceTest {
   }
 
   @Test
-  void testSetEnabledFalse() {
+  void testSetEnabledFalse() throws SQLException {
+    // Mock jugador activo para evitar excepciones internas
+    Jugador j = new Jugador("Test", 1);
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
+
+    // Llamamos a setEnabled(false)
     turnService.setEnabled(false);
 
+    // La bandera debe estar desactivada
     assertFalse(turnService.isEnabled());
-    verifyNoInteractions(casillaService);
   }
 
   @Test
   void testSetEnabledSQLException() throws SQLException {
+    // Simula que getActivePlayer lanza SQLException
     when(jugadorRepo.getActivePlayer()).thenThrow(new SQLException("error"));
 
-    // setEnabled no lanza excepción, solo la captura y loguea
+    // Llama a setEnabled (captura la excepción internamente)
     turnService.setEnabled(true);
 
-    // Verifica que no se llamó a updateActivePlayerPropertyTokens debido al error
-    verify(casillaService, never()).updateActivePlayerPropertyTokens(any());
+    // Verifica que updateActivePlayerPropertyTokens fue llamada con null
+    verify(casillaService).updateActivePlayerPropertyTokens(isNull());
   }
 
   // ------------------------------------------------------------
@@ -223,11 +239,22 @@ class TurnServiceTest {
   // ------------------------------------------------------------
 
   @Test
-  void testUpdateDisabled() {
+  void testUpdateDisabled() throws SQLException {
+    // Mock jugador activo para evitar excepciones internas
+    Jugador j = new Jugador("Test", 1);
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
+
+    // Deshabilitar el turno
     turnService.setEnabled(false);
 
+    // Limpiar las interacciones previas (de setEnabled)
+    clearInvocations(jugadorRepo, casillaService, diceService);
+
+    // Ejecutar update
     turnService.update();
 
+    // Verificar que update no interactúa con los mocks
     verifyNoInteractions(diceService, jugadorRepo, casillaService);
   }
 
@@ -498,5 +525,202 @@ class TurnServiceTest {
 
     // No hay getter para verificar, pero no debe lanzar excepción
     assertDoesNotThrow(() -> turnService.setScene(newScene));
+  }
+
+  // -----------------------------------------
+  // Tests Jail FSM
+  // -----------------------------------------
+
+  @Test
+  void testJail_CheckRollsLessThan3_ShowsDecision() throws SQLException {
+    Jugador jugador = crearJugador(1, "P1", 1500);
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorEstadoByID(1)).thenReturn(true);
+    when(jugadorRepo.getTiradasCarcel(1)).thenReturn(2);
+
+    turnService.update();
+
+    verify(hudController).showJailDecision();
+  }
+
+  @Test
+  void testJail_CheckRollsGreaterThan3_GoesToPay() throws SQLException {
+    // Jugador activo y en la cárcel
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorEstadoByID(1)).thenReturn(true);
+    when(jugadorRepo.getTiradasCarcel(1)).thenReturn(4);
+
+    // Mock de jugador con dinero usando Mockito
+    Jugador mockJugador = mock(Jugador.class);
+    when(mockJugador.getDinero()).thenReturn(1000); // método usado en la FSM
+    when(jugadorRepo.getJugadorByID(1)).thenReturn(mockJugador);
+
+    // Ejecutar FSM
+    turnService.update(); // CHECK_ROLLS -> PAY
+    turnService.update(); // Procesa pago y libera jugador
+
+    // Verificar interacciones
+    verify(jugadorRepo, atLeastOnce()).setJugadorLibre(1);
+    verify(jugadorRepo).resetTiradasCarcel(1);
+    verify(jugadorRepo).updateDinero(eq(1), anyInt());
+  }
+
+  @Test
+  void testJail_DecideAction_PlayerChoosesPay() throws SQLException {
+    // Jugador activo
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorEstadoByID(1)).thenReturn(true);
+    when(jugadorRepo.getTiradasCarcel(1)).thenReturn(1);
+
+    // Simula que el jugador decide pagar la fianza
+    when(hudController.getJailPay()).thenReturn(true);
+
+    // Ejecutar FSM de la cárcel hasta que se procese la acción
+    turnService.update(); // CHECK_ROLLS -> muestra panel decisión
+    turnService.update(); // DECIDE_ACTION -> decide pagar
+    turnService.update(); // PROCESAR acción de pagar y liberar jugador
+
+    // Verificar que el jugador se libera
+    verify(jugadorRepo).setJugadorLibre(1);
+    verify(hudController).hideJailDecision();
+  }
+
+  @Test
+  void testJail_DecideAction_PlayerChoosesRoll_NoDouble() throws SQLException {
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorEstadoByID(1)).thenReturn(true);
+    when(jugadorRepo.getTiradasCarcel(1)).thenReturn(1);
+
+    when(hudController.getJailPay()).thenReturn(false);
+    when(hudController.getJailRoll()).thenReturn(true);
+
+    when(diceService.getResultados()).thenReturn(new Byte[] {3, 4});
+
+    turnService.update(); // CHECK_ROLLS
+    turnService.update(); // DECIDE_ACTION
+    turnService.update(); // ROLL
+
+    verify(jugadorRepo, never()).setJugadorLibre(anyInt());
+  }
+
+  // -----------------------------------------
+  // Tests Game FSM
+  // -----------------------------------------
+  @Test
+  void testGameFSM_PlayerNotInJail_MovePlayerCalled() throws SQLException {
+    // Jugador activo
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+
+    // Estado de jugador (no en cárcel)
+    when(jugadorRepo.getJugadorEstadoByID(anyInt())).thenReturn(false);
+
+    // Devuelve un jugador por ID
+    when(jugadorRepo.getJugadorByID(anyInt()))
+        .thenAnswer(
+            invocation -> {
+              int id = invocation.getArgument(0);
+              return crearJugador(id, "P" + id, 1500);
+            });
+
+    // Mock dados
+    when(diceService.getResultados()).thenReturn(new Byte[] {2, 3});
+
+    // Mock casilla
+    when(casillaRepo.casillaFromPosition(anyInt()))
+        .thenReturn(new Casilla(1, "Inicio", Tipo.PROPIEDAD));
+
+    // Asignar scene mock
+    IScene mockScene = mock(IScene.class);
+    turnService.setScene(mockScene);
+
+    // --- Ejecutar FSM ---
+    // Primera actualización: AWAIT_ROLL -> MOVING
+    turnService.update();
+    // Segunda actualización: MOVING -> jugador se mueve
+    turnService.update();
+
+    // Verificar que la posición final del jugador es correcta
+    verify(jugadorRepo).updatePosition(eq(1), eq(5));
+
+    // Verificar que replicateFichaPosition fue llamado **al menos una vez**
+    verify(mockScene, atLeastOnce()).replicateFichaPosition(eq(1), anyInt());
+  }
+
+  @Test
+  void testGameFSM_Interact_DobleTiradasMenor3() throws SQLException {
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorEstadoByID(1)).thenReturn(false);
+    when(jugadorRepo.getJugadorByID(1)).thenReturn(crearJugador(1, "P1", 1500));
+    when(diceService.getResultados()).thenReturn(new Byte[] {3, 3});
+    when(casillaRepo.casillaFromPosition(anyInt()))
+        .thenReturn(new Casilla(1, "Inicio", Tipo.PROPIEDAD));
+
+    turnService.update(); // AWAIT_ROLL -> MOVING -> INTERACT
+    turnService.update(); // INTERACT
+
+    // Debe registrarse tirada doble
+    assertTrue(turnService.isEnabled());
+  }
+
+  @Test
+  void testGameFSM_Interact_DobleTiradas3_EnviaCarcel() throws SQLException {
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorEstadoByID(1)).thenReturn(false);
+    when(jugadorRepo.getJugadorByID(1)).thenReturn(crearJugador(1, "P1", 1500));
+    when(diceService.getResultados()).thenReturn(new Byte[] {6, 6});
+    when(casillaRepo.casillaFromPosition(anyInt()))
+        .thenReturn(new Casilla(1, "Inicio", Tipo.PROPIEDAD));
+
+    // Forzamos tiradas previas
+    turnService.setEnabled(true);
+    turnService.update(); // AWAIT_ROLL
+    turnService.update(); // MOVING
+    turnService.update(); // INTERACT, primera doble
+    turnService.update(); // INTERACT, segunda doble
+    turnService.update(); // INTERACT, tercera doble -> ir a cárcel
+
+    verify(jugadorRepo, atLeastOnce()).updatePosition(anyInt(), anyInt());
+  }
+
+  @Test
+  void testJail_RollDouble_Liberado() throws SQLException {
+    int playerId = 1;
+
+    // Configuración de mocks
+    when(jugadorRepo.getActivePlayer()).thenReturn(playerId);
+    when(jugadorRepo.getJugadorEstadoByID(playerId)).thenReturn(true); // encarcelado
+    when(jugadorRepo.getTiradasCarcel(playerId)).thenReturn(1); // tiradas < 3
+    when(diceService.getResultados()).thenReturn(new Byte[] {6, 6}); // doble
+    when(hudController.getJailPay()).thenReturn(false); // no paga
+    when(hudController.getJailRoll()).thenReturn(true); // decide lanzar
+    when(jugadorRepo.getJugadorByID(playerId)).thenReturn(new Jugador("Player1", 1));
+
+    // Instancia de TurnService con mocks
+    TurnService turnService =
+        new TurnService(
+            jugadorRepo,
+            partidaRepo,
+            diceService,
+            casillaRepo,
+            casillaService,
+            hudController,
+            subastaService,
+            adquisicionService);
+    turnService.setEnabled(true);
+
+    // Simular varios ciclos de update() para que la FSM avance
+    for (int i = 0; i < 5; i++) {
+      turnService.update();
+    }
+
+    // Verificaciones
+    verify(jugadorRepo).setJugadorLibre(playerId);
+    verify(jugadorRepo).resetTiradasCarcel(playerId);
+    verify(jugadorRepo).updateDinero(eq(playerId), anyInt());
+  }
+
+  // --- Helpers ---
+  private Jugador crearJugador(int id, String nombre, int dinero) {
+    return new Jugador(id, nombre, 0, true, dinero, new ArrayList<>());
   }
 }

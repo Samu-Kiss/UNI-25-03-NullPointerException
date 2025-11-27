@@ -28,7 +28,7 @@ public class TurnService implements ITurnService {
   private static Logger logger = LogManager.getLogger(TurnService.class);
 
   // FSM principal de turno
-  private enum TurnState {
+  public enum TurnState {
     AWAIT_ROLL,
     MOVING,
     INTERACT,
@@ -36,7 +36,7 @@ public class TurnService implements ITurnService {
     NEXT_TURN
   }
 
-  private enum JailState {
+  public enum JailState {
     CHECK_ROLLS,
     DECIDE_ACTION,
     ROLL,
