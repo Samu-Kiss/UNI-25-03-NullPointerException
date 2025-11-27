@@ -4,12 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.NullPtr.Pontiland.entities.Jugador;
+import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import com.NullPtr.Pontiland.view.Scene;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -151,37 +153,119 @@ class StartGameServiceTest {
   // loadingOldGame()
   // ------------------------------------------------------------
 
-  /**
-   * Verifica que loadingOldGame llama al servicio de datos para cargar la base de datos con el
-   * archivo especificado.
-  */
+  /** Verifica que loadingOldGame configura correctamente los IDs de partida en los repositorios. */
   @Test
-  void testLoadingOldGameCallsDataService() {
-    String archivo = "partida_guardada.db";
+  void testLoadingOldGameSuccess() throws SQLException {
+    String partidaId = "123";
 
-    startGameService.loadingOldGame(archivo);
+    startGameService.loadingOldGame(partidaId);
 
-    // Verifica que se llamó al método loadDataBase del servicio de datos
-    verify(dataService, times(1)).loadDataBase(archivo);
+    // Verifica que se configuró el ID de partida en todos los repositorios
+    verify(partidaRepository, times(1)).setPartidaID(123L);
+    verify(jugadorRepository, times(1)).setPartidaID(123L);
+    verify(propiedadRepository, times(1)).setPartidaID(123L);
   }
 
-  /** Verifica que loadingOldGame funciona con diferentes nombres de archivo.*/
+  /** Verifica que loadingOldGame funciona con diferentes IDs de partida. */
   @Test
-  void testLoadingOldGameWithDifferentFiles() {
-    String[] archivos = {"partida1.db", "partida2.db", "save_20250101.db"};
+  void testLoadingOldGameWithDifferentIds() throws SQLException {
+    String[] partidaIds = {"456", "789", "1000"};
 
-    for (String archivo : archivos) {
-      reset(dataService);
-      startGameService.loadingOldGame(archivo);
-      verify(dataService, times(1)).loadDataBase(archivo);
+    for (String partidaId : partidaIds) {
+      reset(partidaRepository, jugadorRepository, propiedadRepository);
+
+      startGameService.loadingOldGame(partidaId);
+
+      long expectedId = Long.parseLong(partidaId);
+      verify(partidaRepository, times(1)).setPartidaID(expectedId);
+      verify(jugadorRepository, times(1)).setPartidaID(expectedId);
+      verify(propiedadRepository, times(1)).setPartidaID(expectedId);
     }
   }
 
-  /** Verifica que loadingOldGame funciona con archivo null. */
+  /** Verifica que loadingOldGame lanza NumberFormatException con ID inválido. */
   @Test
-  void testLoadingOldGameWithNullFile() {
-    assertDoesNotThrow(() -> startGameService.loadingOldGame(null));
-    verify(dataService, times(1)).loadDataBase(null);
+  void testLoadingOldGameWithInvalidId() {
+    String invalidId = "not_a_number";
+
+    assertThrows(
+        NumberFormatException.class,
+        () -> startGameService.loadingOldGame(invalidId),
+        "Debe lanzar NumberFormatException con ID inválido");
+  }
+
+  /** Verifica que loadingOldGame lanza NumberFormatException con ID null. */
+  @Test
+  void testLoadingOldGameWithNullId() {
+    // Long.parseLong(null) lanza NumberFormatException, no NullPointerException
+    assertThrows(
+        NumberFormatException.class,
+        () -> startGameService.loadingOldGame(null),
+        "Debe lanzar NumberFormatException con ID null");
+  }
+
+  /**
+   * Verifica que loadingOldGame completa exitosamente incluso si setPartidaID no lanza excepción.
+   */
+  @Test
+  void testLoadingOldGameCompletesSuccessfully() throws SQLException {
+    String partidaId = "123";
+
+    // Configurar mocks para que no lancen excepciones
+    doNothing().when(partidaRepository).setPartidaID(123L);
+    doNothing().when(jugadorRepository).setPartidaID(123L);
+    doNothing().when(propiedadRepository).setPartidaID(123L);
+
+    // Ejecutar sin lanzar excepción
+    assertDoesNotThrow(
+        () -> startGameService.loadingOldGame(partidaId),
+        "No debe lanzar excepción en operación normal");
+
+    // Verificar que se llamaron todos los setPartidaID
+    verify(partidaRepository, times(1)).setPartidaID(123L);
+    verify(jugadorRepository, times(1)).setPartidaID(123L);
+    verify(propiedadRepository, times(1)).setPartidaID(123L);
+  }
+
+  // ------------------------------------------------------------
+  // listPastGames()
+  // ------------------------------------------------------------
+
+  /** Verifica que listPastGames devuelve la lista de partidas guardadas. */
+  @Test
+  void testListPastGamesSuccess() throws SQLException {
+    List<SavedGame> expectedGames = new ArrayList<>();
+    expectedGames.add(new SavedGame("1", "2025-01-01"));
+    expectedGames.add(new SavedGame("2", "2025-01-02"));
+
+    when(partidaRepository.getAllPartidaIDs()).thenReturn(expectedGames);
+
+    List<SavedGame> result = startGameService.listPastGames();
+
+    assertEquals(expectedGames, result, "Debe devolver la lista de partidas guardadas");
+    verify(partidaRepository, times(1)).getAllPartidaIDs();
+  }
+
+  /** Verifica que listPastGames devuelve lista vacía en caso de error. */
+  @Test
+  void testListPastGamesReturnsEmptyOnException() throws SQLException {
+    when(partidaRepository.getAllPartidaIDs()).thenThrow(new SQLException("Error de BD"));
+
+    List<SavedGame> result = startGameService.listPastGames();
+
+    assertNotNull(result, "No debe devolver null");
+    assertTrue(result.isEmpty(), "Debe devolver lista vacía en caso de error");
+  }
+
+  /** Verifica que listPastGames maneja correctamente lista vacía. */
+  @Test
+  void testListPastGamesEmptyList() throws SQLException {
+    when(partidaRepository.getAllPartidaIDs()).thenReturn(new ArrayList<>());
+
+    List<SavedGame> result = startGameService.listPastGames();
+
+    assertNotNull(result, "No debe devolver null");
+    assertTrue(result.isEmpty(), "Debe devolver lista vacía cuando no hay partidas");
   }
 
   // ------------------------------------------------------------
