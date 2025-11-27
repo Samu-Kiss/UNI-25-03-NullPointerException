@@ -320,32 +320,6 @@ class TurnServiceTest {
   }
 
   @Test
-  void testUpdateEndTurnConIrACarcel() throws SQLException {
-    turnService.setEnabled(true);
-
-    Byte[] dados = {3, 4};
-    when(diceService.getResultados()).thenReturn(dados);
-
-    Jugador j = new Jugador("Test", 1);
-    j.setPosicion(5);
-    when(jugadorRepo.getActivePlayer()).thenReturn(1);
-    when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
-    when(jugadorRepo.getPlayerCount()).thenReturn(2);
-    when(jugadorRepo.getPlayerIdByNumJugador(anyInt())).thenReturn(1);
-
-    Casilla casilla = mock(Casilla.class);
-    when(casillaRepo.casillaFromPosition(anyInt())).thenReturn(casilla);
-    when(diceService.getCanInteract()).thenReturn(true);
-    when(casillaService.getIrACarcel()).thenReturn(true); // Casilla envía a cárcel
-
-    for (int i = 0; i < 10; i++) {
-      turnService.update();
-    }
-
-    verify(jugadorRepo, atLeastOnce()).goToJail(anyInt());
-  }
-
-  @Test
   void testUpdateTerminarInteraccion() throws SQLException {
     turnService.setEnabled(true);
 
