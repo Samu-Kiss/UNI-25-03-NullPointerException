@@ -294,6 +294,7 @@ public class TurnService implements ITurnService {
                 jailState = JailState.END_TURN;
                 lastD1 = null;
                 lastD2 = null;
+                tiradas = 1;
               } else {
                 logger.debug("[JAIL] ROLL: menos de 3 intentos locales -> END_TURN");
                 jailState = JailState.ROLL;
