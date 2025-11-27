@@ -70,7 +70,6 @@ public class CasillaService implements ICasillaService {
         hudController.terminarTurno();
         break;
       case EVENTO:
-        onEvento(jugador, casilla);
         hudController.terminarTurno();
         break;
       case PROPIEDAD:
