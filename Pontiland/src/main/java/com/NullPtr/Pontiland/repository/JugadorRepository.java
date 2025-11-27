@@ -265,7 +265,7 @@ public class JugadorRepository implements IJugadorRepository {
         int index = 0;
         while (rs.next()) {
           fichas[index] =
-              new Ficha(rs.getInt("JugadorID"), rs.getInt("IconoID"), rs.getString("IconoNombre"));
+              new Ficha(rs.getInt("IconoID"), rs.getInt("JugadorID"), rs.getString("IconoNombre"));
           index++;
         }
       }
