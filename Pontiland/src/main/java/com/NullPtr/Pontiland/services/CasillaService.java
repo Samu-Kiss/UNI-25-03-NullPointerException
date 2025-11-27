@@ -21,6 +21,9 @@ public class CasillaService implements ICasillaService {
   private TarjetaEventoRepository tarjetaEventoRepository;
   private IJugadorRepository jugadorRepository;
 
+  private boolean debugRealizado = false;
+  private boolean debugRealizado2 = false;
+
   // Logger
   private static Logger logger = LogManager.getLogger(CasillaService.class);
 
@@ -64,6 +67,8 @@ public class CasillaService implements ICasillaService {
 
   @Override
   public void terminarInteraccion(Jugador jugador, Casilla casilla) {
+    debugRealizado = false;
+    debugRealizado2 = false;
     if (hudController == null) return;
     switch (casilla.getTipoCasilla()) {
       case PARADALIBRE:
@@ -297,7 +302,10 @@ public class CasillaService implements ICasillaService {
     }
 
     if (propiedades == null || propiedades.isEmpty()) {
-      logger.debug("El jugador {} no tiene propiedades", jugador.getJugadorId());
+      if (!debugRealizado) {
+        logger.debug("El jugador {} no tiene propiedades", jugador.getJugadorId());
+        debugRealizado = true;
+      }
       hudController.updatePropertyTokens(new String[0]);
       return;
     }
@@ -309,7 +317,10 @@ public class CasillaService implements ICasillaService {
       String nivel = String.valueOf(p.getNivelPropiedad());
       int grupo = p.getGrupo();
       tokens[i] = propNum + "|" + nivel + "|" + grupo;
-      logger.debug("Token creado -> propiedad={}, nivel= {}, grupo={}", propNum, nivel, grupo);
+      if (!debugRealizado2) {
+        logger.debug("Token creado -> propiedad={}, nivel= {}, grupo={}", propNum, nivel, grupo);
+        debugRealizado2 = true;
+      }
     }
 
     hudController.updatePropertyTokens(tokens);
