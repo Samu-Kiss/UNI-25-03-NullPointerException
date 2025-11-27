@@ -123,6 +123,10 @@ public class Launcher extends SimpleApplication {
     MenuController menuController =
         new MenuController(this, startGameService, dataService, hudController, turnService);
 
+    // Inyectar dependencias circulares mediante setters
+    menuController.setPartidaRepository((PartidaRepository) partidaRepository);
+    turnService.setMenuActions(menuController);
+
     InputManager inputManager = getInputManager();
 
     menuPausaController =

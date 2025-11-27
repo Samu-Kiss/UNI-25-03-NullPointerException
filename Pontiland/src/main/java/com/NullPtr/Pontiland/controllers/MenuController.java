@@ -3,9 +3,11 @@ package com.NullPtr.Pontiland.controllers;
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.SavedGame;
+import com.NullPtr.Pontiland.repository.PartidaRepository;
 import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
 import com.NullPtr.Pontiland.services.ITurnService;
+import com.NullPtr.Pontiland.view.FinDeJuego;
 import com.NullPtr.Pontiland.view.MenuCarga;
 import com.NullPtr.Pontiland.view.MenuCreditos;
 import com.NullPtr.Pontiland.view.MenuJugadores;
@@ -33,11 +35,13 @@ public class MenuController implements IMenuActions {
   private MenuCarga menuCarga;
   private MenuCreditos menuCreditos;
   private MenuSeleccion menuSeleccion;
+  private FinDeJuego finDeJuego;
   private boolean gameStarted = false;
   private int selectedPlayerCount = 0;
 
   private final IStartGameService startGameService;
   private final IDataService dataService;
+  private PartidaRepository partidaRepository;
 
   // HUD controller para mostrar la UI del juego
   private final IHUDcontroller hudController;
@@ -246,6 +250,43 @@ public class MenuController implements IMenuActions {
 
   public boolean isGameStarted() {
     return gameStarted;
+  }
+
+  // ============ Setters para inyección de dependencias ============
+  /**
+   * Establece el repositorio de partidas para obtener resultados finales.
+   *
+   * @param partidaRepository repositorio de partidas
+   */
+  public void setPartidaRepository(PartidaRepository partidaRepository) {
+    this.partidaRepository = partidaRepository;
+  }
+
+  // ============ Pantalla de fin de juego ============
+  @Override
+  public void showFinDeJuego() {
+    logger.info("Mostrando pantalla de fin de juego");
+
+    // Detach todos los menús y HUD
+    detachIfAttached(menuPrincipal);
+    detachIfAttached(menuJugadores);
+    detachIfAttached(menuCarga);
+    detachIfAttached(menuCreditos);
+    detachIfAttached(menuSeleccion);
+    detachIfAttached(finDeJuego);
+
+    if (hudController != null) hudController.detachHUD();
+
+    try {
+      java.util.Map<String, java.util.Map.Entry<Integer, Long>> resultados =
+          partidaRepository.finalResults();
+      finDeJuego = new FinDeJuego(resultados, this, partidaRepository);
+      if (!stateManager().hasState(finDeJuego)) {
+        stateManager().attach(finDeJuego);
+      }
+    } catch (java.sql.SQLException e) {
+      logger.error("Error al obtener los resultados finales de la partida", e);
+    }
   }
 
   // ============ Utilidades internas ============

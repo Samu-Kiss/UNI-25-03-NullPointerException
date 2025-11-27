@@ -1,6 +1,7 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.controllers.IHUDcontroller;
+import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.NullPtr.Pontiland.entities.Casilla;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.ICasillaRepository;
@@ -24,6 +25,7 @@ public class TurnService implements ITurnService {
   private ISubastaService subastaService;
   private boolean irACarcel = false;
   private IAdquisicionService adquisicionService;
+  private IMenuActions menuActions;
 
   private static Logger logger = LogManager.getLogger(TurnService.class);
 
@@ -336,7 +338,8 @@ public class TurnService implements ITurnService {
                 logger.info(
                     "{} -> capital={} (dinero+propiedades)", j.getNombreJugador(), j.getDinero());
               }
-              // TODO: finalizar partida (deshabilitar turnos/inputs)
+              finalizarPartida();
+              return;
             }
           }
           nextTurn();
@@ -456,7 +459,8 @@ public class TurnService implements ITurnService {
               logger.info(
                   "{} -> capital={} (dinero+propiedades)", j.getNombreJugador(), j.getDinero());
             }
-            // TODO: finalizar partida
+            finalizarPartida();
+            return;
           }
         }
         updateHUDAndTokens();
@@ -574,12 +578,32 @@ public class TurnService implements ITurnService {
             logger.info(
                 "{} -> capital={} (dinero+propiedades)", j.getNombreJugador(), j.getDinero());
           }
-          // TODO: finalizar partida
+          finalizarPartida();
+          return;
         }
       }
       updateHUDAndTokens();
     } catch (SQLException e) {
       logger.error("Error al aplicar costo del sistema al jugador activo", e);
+    }
+  }
+
+  @Override
+  public void setMenuActions(IMenuActions menuActions) {
+    this.menuActions = menuActions;
+  }
+
+  @Override
+  public void finalizarPartida() {
+    logger.info("Finalizando partida - deshabilitando turnos e inputs");
+    enabled = false;
+    if (diceService != null) {
+      diceService.enableInteract(false);
+    }
+    if (menuActions != null) {
+      menuActions.showFinDeJuego();
+    } else {
+      logger.warn("menuActions es null, no se puede mostrar pantalla de fin de juego");
     }
   }
 }
