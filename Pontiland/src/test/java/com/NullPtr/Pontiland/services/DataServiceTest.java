@@ -8,7 +8,6 @@ import com.NullPtr.Pontiland.utils.PropertiesReader;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.sql.*;
 import java.util.List;
@@ -53,6 +52,18 @@ class DataServiceTest {
     savesDirPath = Paths.get("target/test-classes/saves/");
     Files.createDirectories(savesDirPath);
 
+    // Limpiar archivos existentes
+    Files.walk(savesDirPath)
+        .filter(Files::isRegularFile)
+        .forEach(
+            p -> {
+              try {
+                Files.delete(p);
+              } catch (IOException e) {
+                // Ignorar errores de limpieza
+              }
+            });
+
     // Crear DataService real y convertirlo en spy
     dataService = spy(new DataService("jdbc:h2:mem:testdb"));
 
@@ -64,17 +75,39 @@ class DataServiceTest {
     when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
   }
 
+  /** Limpia los archivos de prueba después de cada test. */
+  @AfterEach
+  void tearDown() throws Exception {
+    if (Files.exists(savesDirPath)) {
+      Files.walk(savesDirPath)
+          .filter(Files::isRegularFile)
+          .forEach(
+              p -> {
+                try {
+                  Files.delete(p);
+                } catch (IOException e) {
+                  // Ignorar errores de limpieza
+                }
+              });
+    }
+  }
+
   /**
    * Verifica que crear una conexión mediante createConnection() no lance excepción y devuelva un
    * objeto no nulo.
    */
   @Test
   void testCreateConnection() {
-    assertDoesNotThrow(
-        () -> {
-          Connection conn = dataService.createConnection();
-          assertNotNull(conn, "La conexión creada no debe ser null");
-        });
+    Connection conn = dataService.createConnection();
+    assertNotNull(conn, "La conexión creada no debe ser null");
+  }
+
+  /** Verifica que createConnection() devuelva null cuando ocurre un SQLException. */
+  @Test
+  void testCreateConnection_SQLException() throws Exception {
+    DataService realService = new DataService("jdbc:invalid:url");
+    Connection conn = realService.createConnection();
+    assertNull(conn, "Debe retornar null cuando hay un error de conexión");
   }
 
   /**
@@ -84,7 +117,7 @@ class DataServiceTest {
   @Test
   void testConstructorInitializesProperties() throws Exception {
     try (MockedStatic<PropertiesReader> mockedProps = mockStatic(PropertiesReader.class)) {
-      mockedProps.when(() -> PropertiesReader.getProperty("saves")).thenReturn("mock/savesDir");
+      mockedProps.when(() -> PropertiesReader.getProperty("saves")).thenReturn("mock/savesDir/");
       mockedProps
           .when(() -> PropertiesReader.getProperty("nuevaPartida.ddl"))
           .thenReturn("mock/ddl.sql");
@@ -96,7 +129,7 @@ class DataServiceTest {
 
       Field savesDirField = DataService.class.getDeclaredField("savesDir");
       savesDirField.setAccessible(true);
-      assertEquals("mock/savesDir", savesDirField.get(ds));
+      assertEquals("mock/savesDir/", savesDirField.get(ds));
 
       Field ddlResourceField = DataService.class.getDeclaredField("ddlResource");
       ddlResourceField.setAccessible(true);
@@ -112,11 +145,7 @@ class DataServiceTest {
     }
   }
 
-  /**
-   * Verifica que setUrl() actualice el campo privado 'url'.
-   *
-   * @throws Exception si reflexión falla.
-   */
+  /** Verifica que setUrl() actualice el campo privado 'url'. */
   @Test
   void testSetUrlUpdatesField() throws Exception {
     DataService ds = new DataService("jdbc:h2:mem:testdb");
@@ -137,54 +166,107 @@ class DataServiceTest {
     assertEquals("jdbc:h2:mem:newdb", ds.getUrl());
   }
 
-  /**
-   * Verifica que loadDataBase() no lance excepción cuando el archivo no existe. Debe simplemente
-   * ignorar la operación.
-   */
+  /** Verifica que newDataBase() ejecute correctamente los scripts DDL e INSERT. */
   @Test
-  void testLoadDataBaseFileDoesNotExist() {
-    assertDoesNotThrow(() -> dataService.loadDataBase("archivo_inexistente.sql"));
-  }
+  void testNewDatabase_success() throws Exception {
+    // Crear recursos temporales para DDL e INSERT
+    Path tempDir = Paths.get("target/test-classes/temp-resources/");
+    Files.createDirectories(tempDir);
 
-  /**
-   * Verifica que newDataBase() lance excepción cuando los recursos (DDL e inserts) no existen. Se
-   * logra mockeando PropertiesReader para devolver rutas inválidas.
-   */
-  @Test
-  void testNewDatabase_resourcesMissing() throws Exception {
+    Path ddlFile = tempDir.resolve("test-ddl.sql");
+    Path insertFile = tempDir.resolve("test-insert.sql");
+
+    Files.writeString(ddlFile, "CREATE TABLE TEST(ID INT);");
+    Files.writeString(insertFile, "INSERT INTO TEST VALUES(1);");
 
     try (MockedStatic<PropertiesReader> mockedProps = mockStatic(PropertiesReader.class)) {
-
       mockedProps
           .when(() -> PropertiesReader.getProperty("nuevaPartida.ddl"))
-          .thenReturn("/archivo_inexistente_ddl.sql");
-
+          .thenReturn("/temp-resources/test-ddl.sql");
       mockedProps
           .when(() -> PropertiesReader.getProperty("nuevaPartida.inserts"))
-          .thenReturn("/archivo_inexistente_inserts.sql");
+          .thenReturn("/temp-resources/test-insert.sql");
 
-      DataService ds = new DataService("jdbc:h2:mem:testdb");
+      DataService ds = spy(new DataService("jdbc:h2:mem:testdb"));
+      doReturn(mockConnection).when(ds).createConnection();
 
-      assertThrows(RuntimeException.class, ds::newDataBase);
+      assertDoesNotThrow(ds::newDataBase);
+
+      verify(mockStatement, times(2)).execute(anyString());
+    } finally {
+      // Limpiar archivos temporales
+      Files.deleteIfExists(ddlFile);
+      Files.deleteIfExists(insertFile);
+      Files.deleteIfExists(tempDir);
     }
   }
 
   /**
-   * Verifica que loadDataBase() no intente preparar un statement cuando el archivo no existe en el
-   * sistema de archivos.
+   * Verifica que newDataBase() lance AssertionError cuando los recursos no existen. El código usa
+   * assert que lanza AssertionError en producción si los recursos son null.
    */
   @Test
-  void testLoadDatabase_fileNotExists() throws Exception {
-    assertDoesNotThrow(() -> dataService.loadDataBase("noexiste.sql"));
+  void testNewDatabase_resourcesMissing() throws Exception {
+    try (MockedStatic<PropertiesReader> mockedProps = mockStatic(PropertiesReader.class)) {
+      mockedProps
+          .when(() -> PropertiesReader.getProperty("nuevaPartida.ddl"))
+          .thenReturn("/archivo_inexistente_ddl.sql");
+      mockedProps
+          .when(() -> PropertiesReader.getProperty("nuevaPartida.inserts"))
+          .thenReturn("/archivo_inexistente_inserts.sql");
+
+      DataService ds = spy(new DataService("jdbc:h2:mem:testdb"));
+      doReturn(mockConnection).when(ds).createConnection();
+
+      // El método lanza AssertionError cuando los recursos no existen
+      assertThrows(AssertionError.class, ds::newDataBase);
+    }
+  }
+
+  /** Verifica que newDataBase() maneje SQLException correctamente. */
+  @Test
+  void testNewDatabase_SQLException() throws Exception {
+    when(mockStatement.execute(anyString())).thenThrow(new SQLException("Test error"));
+
+    Path tempDir = Paths.get("target/test-classes/temp-resources/");
+    Files.createDirectories(tempDir);
+
+    Path ddlFile = tempDir.resolve("test-ddl.sql");
+    Path insertFile = tempDir.resolve("test-insert.sql");
+
+    Files.writeString(ddlFile, "CREATE TABLE TEST(ID INT);");
+    Files.writeString(insertFile, "INSERT INTO TEST VALUES(1);");
+
+    try (MockedStatic<PropertiesReader> mockedProps = mockStatic(PropertiesReader.class)) {
+      mockedProps
+          .when(() -> PropertiesReader.getProperty("nuevaPartida.ddl"))
+          .thenReturn("/temp-resources/test-ddl.sql");
+      mockedProps
+          .when(() -> PropertiesReader.getProperty("nuevaPartida.inserts"))
+          .thenReturn("/temp-resources/test-insert.sql");
+
+      DataService ds = spy(new DataService("jdbc:h2:mem:testdb"));
+      doReturn(mockConnection).when(ds).createConnection();
+
+      // El método no lanza excepción, solo registra el error
+      assertDoesNotThrow(ds::newDataBase);
+    } finally {
+      Files.deleteIfExists(ddlFile);
+      Files.deleteIfExists(insertFile);
+      Files.deleteIfExists(tempDir);
+    }
+  }
+
+  /** Verifica que loadDataBase() no lance excepción cuando el archivo no existe. */
+  @Test
+  void testLoadDataBase_fileDoesNotExist() throws Exception {
+    assertDoesNotThrow(() -> dataService.loadDataBase("archivo_inexistente.sql"));
     verify(mockConnection, never()).prepareStatement(anyString());
   }
 
-  /**
-   * Verifica que loadDataBase() procese correctamente un archivo SQL existente y ejecute las
-   * sentencias sobre un PreparedStatement mockeado.
-   */
+  /** Verifica que loadDataBase() procese correctamente un archivo SQL existente. */
   @Test
-  void testLoadDatabase_success() throws Exception {
+  void testLoadDataBase_success() throws Exception {
     Path file = savesDirPath.resolve("testload.sql");
     Files.writeString(file, "SELECT 1;");
 
@@ -198,60 +280,77 @@ class DataServiceTest {
     verify(mockPreparedStatement).executeUpdate();
   }
 
-  /**
-   * Verifica que saveDataBase() lance excepción cuando preparar el statement SQL falla.
-   *
-   * @throws Exception si la configuración mock falla.
-   */
+  /** Verifica que loadDataBase() maneje SQLException correctamente. */
   @Test
-  void testSaveDatabase_error() throws Exception {
-    when(mockConnection.prepareStatement(anyString())).thenThrow(new SQLException("fail"));
-    assertThrows(RuntimeException.class, () -> dataService.saveDataBase(22));
+  void testLoadDataBase_SQLException() throws Exception {
+    Path file = savesDirPath.resolve("testload.sql");
+    Files.writeString(file, "SELECT 1;");
+
+    Field savesDirField = DataService.class.getDeclaredField("savesDir");
+    savesDirField.setAccessible(true);
+    savesDirField.set(dataService, savesDirPath.toAbsolutePath().toString() + File.separator);
+
+    when(mockPreparedStatement.executeUpdate()).thenThrow(new SQLException("Test error"));
+
+    // El método no lanza excepción, solo registra el error
+    assertDoesNotThrow(() -> dataService.loadDataBase("testload.sql"));
   }
 
-  /**
-   * Verifica que deleteDataBase() ejecute correctamente la operación de borrado total de objetos.
-   */
+  /** Verifica que saveDataBase() ejecute correctamente el comando SCRIPT TO. */
   @Test
-  void testDeleteDatabase_success() throws Exception {
+  void testSaveDataBase_success() throws Exception {
+    Field savesDirField = DataService.class.getDeclaredField("savesDir");
+    savesDirField.setAccessible(true);
+    savesDirField.set(dataService, savesDirPath.toAbsolutePath().toString() + File.separator);
+
+    assertDoesNotThrow(() -> dataService.saveDataBase(12345L));
+
+    verify(mockPreparedStatement).setString(eq(1), contains("12345.sql"));
+    verify(mockPreparedStatement).execute();
+  }
+
+  /** Verifica que saveDataBase() maneje SQLException correctamente. */
+  @Test
+  void testSaveDataBase_SQLException() throws Exception {
+    when(mockConnection.prepareStatement(anyString())).thenThrow(new SQLException("Test error"));
+
+    // El método no lanza excepción, solo registra el error
+    assertDoesNotThrow(() -> dataService.saveDataBase(22L));
+  }
+
+  /** Verifica que deleteDataBase() ejecute correctamente DROP ALL OBJECTS. */
+  @Test
+  void testDeleteDataBase_success() throws Exception {
     assertDoesNotThrow(() -> dataService.deleteDataBase());
     verify(mockStatement).execute("DROP ALL OBJECTS");
   }
 
-  /** Verifica que deleteDataBase() lance excepción en caso de fallo SQL. */
+  /** Verifica que deleteDataBase() maneje SQLException correctamente. */
   @Test
-  void testDeleteDatabase_error() throws Exception {
-    when(mockConnection.createStatement()).thenThrow(new SQLException("fail"));
-    assertThrows(RuntimeException.class, () -> dataService.deleteDataBase());
+  void testDeleteDataBase_SQLException() throws Exception {
+    when(mockConnection.createStatement()).thenThrow(new SQLException("Test error"));
+
+    // El método no lanza excepción, solo registra el error
+    assertDoesNotThrow(() -> dataService.deleteDataBase());
   }
 
   /** Verifica que se devuelve una lista vacía cuando no existen archivos de partidas guardadas. */
   @Test
   void testListarPartidasPasadas_noFiles() throws Exception {
     try (MockedStatic<PropertiesReader> mocked = mockStatic(PropertiesReader.class)) {
-
-      // Hacer que "saves" apunte a la carpeta de test que ya usamos
-      mocked.when(() -> PropertiesReader.getProperty("saves")).thenReturn("/saves");
-
-      // Asegurar que la carpeta esté vacía
-      Files.walk(savesDirPath).filter(Files::isRegularFile).forEach(p -> p.toFile().delete());
+      mocked.when(() -> PropertiesReader.getProperty("saves")).thenReturn("/saves/");
 
       List<SavedGame> list = dataService.listarPartidasPasadas();
       assertTrue(list.isEmpty(), "Debe devolver lista vacía al no haber archivos");
     }
   }
 
-  /**
-   * Verifica que un archivo válido yyyyMMddHHmmss.sql sea formateado correctamente y convertido en
-   * un SavedGame.
-   */
+  /** Verifica que un archivo válido yyyyMMddHHmmss.sql sea formateado correctamente. */
   @Test
   void testListarPartidasPasadas_validDate() throws Exception {
     try (MockedStatic<PropertiesReader> mocked = mockStatic(PropertiesReader.class)) {
+      mocked.when(() -> PropertiesReader.getProperty("saves")).thenReturn("/saves/");
 
-      mocked.when(() -> PropertiesReader.getProperty("saves")).thenReturn("/saves");
-
-      // Crear archivo válido
       Path valid = savesDirPath.resolve("20250101123000.sql");
       Files.writeString(valid, "-- OK");
 
@@ -260,22 +359,70 @@ class DataServiceTest {
       assertEquals(1, list.size(), "Debe encontrar un archivo válido");
 
       SavedGame sg = list.get(0);
-
       assertEquals("20250101123000.sql", sg.id, "El ID debe ser el nombre del archivo");
-
       assertEquals("2025-01-01 12:30:00", sg.titulo, "El título debe ser la fecha formateada");
     }
   }
 
+  /** Verifica que archivos con formato de nombre inválido sean ignorados. */
+  @Test
+  void testListarPartidasPasadas_invalidFormat() throws Exception {
+    try (MockedStatic<PropertiesReader> mocked = mockStatic(PropertiesReader.class)) {
+      mocked.when(() -> PropertiesReader.getProperty("saves")).thenReturn("/saves/");
+
+      // Crear archivos con formatos inválidos
+      Files.writeString(savesDirPath.resolve("invalid.sql"), "-- invalid");
+      Files.writeString(savesDirPath.resolve("20250101.sql"), "-- too short");
+      Files.writeString(savesDirPath.resolve("notasqlfile.txt"), "-- not sql");
+
+      List<SavedGame> list = dataService.listarPartidasPasadas();
+
+      assertTrue(list.isEmpty(), "No debe encontrar archivos con formato inválido");
+    }
+  }
+
+  /** Verifica que múltiples archivos válidos se listen correctamente. */
+  @Test
+  void testListarPartidasPasadas_multipleFiles() throws Exception {
+    try (MockedStatic<PropertiesReader> mocked = mockStatic(PropertiesReader.class)) {
+      mocked.when(() -> PropertiesReader.getProperty("saves")).thenReturn("/saves/");
+
+      Files.writeString(savesDirPath.resolve("20250101120000.sql"), "-- file 1");
+      Files.writeString(savesDirPath.resolve("20250102150000.sql"), "-- file 2");
+      Files.writeString(savesDirPath.resolve("20250103180000.sql"), "-- file 3");
+
+      List<SavedGame> list = dataService.listarPartidasPasadas();
+
+      assertEquals(3, list.size(), "Debe encontrar 3 archivos válidos");
+    }
+  }
+
   /**
-   * Crea un archivo dentro de target/test-classes con contenido específico.
-   *
-   * @param name Nombre del archivo.
-   * @param content Contenido escrito en el archivo.
-   * @throws IOException si ocurre un error al escribir.
+   * Verifica que listarPartidasPasadas() devuelva lista vacía cuando no hay archivos SQL válidos.
    */
-  private void createResourceFile(String name, String content) throws IOException {
-    Path path = Paths.get("target/test-classes/" + name);
-    Files.write(path, content.getBytes(StandardCharsets.UTF_8));
+  @Test
+  void testListarPartidasPasadas_emptyDirectory() throws Exception {
+    try (MockedStatic<PropertiesReader> mocked = mockStatic(PropertiesReader.class)) {
+      mocked.when(() -> PropertiesReader.getProperty("saves")).thenReturn("/saves/");
+
+      // Asegurarse de que no hay archivos .sql
+      Files.walk(savesDirPath)
+          .filter(Files::isRegularFile)
+          .filter(p -> p.toString().endsWith(".sql"))
+          .forEach(
+              p -> {
+                try {
+                  Files.delete(p);
+                } catch (IOException e) {
+                  // Ignorar
+                }
+              });
+
+      // Crear un archivo que no sea .sql
+      Files.writeString(savesDirPath.resolve("readme.txt"), "not a sql file");
+
+      List<SavedGame> list = dataService.listarPartidasPasadas();
+      assertTrue(list.isEmpty(), "Debe retornar lista vacía cuando no hay archivos .sql válidos");
+    }
   }
 }

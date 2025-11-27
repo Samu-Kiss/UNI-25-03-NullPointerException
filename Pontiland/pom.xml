@@ -85,7 +85,6 @@
       <scope>test</scope>
     </dependency>
 
-
     <!-- Log4j for logging -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>

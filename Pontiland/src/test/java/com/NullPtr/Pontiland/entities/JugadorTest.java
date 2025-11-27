@@ -34,11 +34,11 @@ class JugadorTest {
   /** Verifica el constructor por defecto. */
   @Test
   void defaultConstructorTest() {
-    Jugador jugador = new Jugador(1000, "Pontiland", 2);
+    Jugador jugador = new Jugador("Pontiland", 2);
 
     assertEquals(2, jugador.getJugadorId(), "El jugadorId debe ser 2");
     assertEquals("Pontiland", jugador.getNombreJugador(), "El nombre debe ser Pontiland");
-    assertEquals(1000, jugador.getDinero(), "El dinero debe ser 1000");
+    assertEquals(1500, jugador.getDinero(), "El dinero debe ser 1000");
     assertEquals(1, jugador.getPosicion(), "La posición inicial debe ser 1");
     assertFalse(jugador.getEstado(), "El jugador no debe estar en cárcel");
     assertNotNull(jugador.getPropiedades(), "La lista de propiedades no debe ser nula");
@@ -62,7 +62,7 @@ class JugadorTest {
   /** Verifica setters y getters con valores válidos. */
   @Test
   void settersAndGettersTest() {
-    Jugador jugador = new Jugador(500, "Fantasma", 1);
+    Jugador jugador = new Jugador("Fantasma", 1);
 
     jugador.setNombreJugador("NuevoNombre");
     assertEquals(
@@ -86,7 +86,7 @@ class JugadorTest {
   /** Verifica que setNombreJugador lance excepción si se pasa null */
   @Test
   void setNombreJugadorNullTest() {
-    Jugador jugador = new Jugador(100, "NombreValido", 1);
+    Jugador jugador = new Jugador("NombreValido", 1);
 
     IllegalArgumentException exception =
         assertThrows(
@@ -102,7 +102,7 @@ class JugadorTest {
   /** Verifica que setJugadorId lance excepción si el ID es menor que 0 */
   @Test
   void setJugadorIdBelowZeroTest() {
-    Jugador jugador = new Jugador(100, "NombreValido", 1);
+    Jugador jugador = new Jugador("NombreValido", 1);
 
     IllegalArgumentException exception =
         assertThrows(
@@ -118,7 +118,7 @@ class JugadorTest {
   /** Verifica que setJugadorId lance excepción si el ID es mayor que 4 */
   @Test
   void setJugadorIdAboveFourTest() {
-    Jugador jugador = new Jugador(100, "NombreValido", 1);
+    Jugador jugador = new Jugador("NombreValido", 1);
 
     IllegalArgumentException exception =
         assertThrows(
@@ -134,7 +134,7 @@ class JugadorTest {
   /** Verifica que setJugadorId funcione con valores válidos (0 a 4) */
   @Test
   void setJugadorIdValidTest() {
-    Jugador jugador = new Jugador(100, "NombreValido", 1);
+    Jugador jugador = new Jugador("NombreValido", 1);
 
     for (byte id = 0; id <= 4; id++) {
       jugador.setJugadorId(id);
@@ -146,7 +146,7 @@ class JugadorTest {
   /** Verifica que setNombreJugador lance excepción si el nombre es vacío */
   @Test
   void setNombreJugadorEmptyTest() {
-    Jugador jugador = new Jugador(100, "NombreValido", 1);
+    Jugador jugador = new Jugador("NombreValido", 1);
 
     IllegalArgumentException exception =
         assertThrows(
@@ -162,7 +162,7 @@ class JugadorTest {
   /** Verifica que setNombreJugador funcione con un nombre válido */
   @Test
   void setNombreJugadorValidTest() {
-    Jugador jugador = new Jugador(100, "NombreValido", 1);
+    Jugador jugador = new Jugador("NombreValido", 1);
 
     jugador.setNombreJugador("NuevoNombre");
     assertEquals(
@@ -172,20 +172,15 @@ class JugadorTest {
   /** Verifica que los constructores y setters lancen excepciones con argumentos inválidos. */
   @Test
   void invalidArgumentsTest() {
-    Jugador jugador = new Jugador(100, "ValidName", 1);
+    Jugador jugador = new Jugador("ValidName", 1);
 
-    // Constructor por defecto inválido
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(-1, "Nombre", 1),
-        "Debe lanzar excepción si el dinero es negativo");
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> new Jugador(100, "", 1),
+        () -> new Jugador("", 1),
         "Debe lanzar excepción si el nombre está vacío");
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(100, "Nombre", 5),
+        () -> new Jugador("Nombre", 5),
         "Debe lanzar excepción si el jugadorId está fuera de rango");
 
     // Constructor completo inválido
@@ -257,11 +252,11 @@ class JugadorTest {
   void defaultConstructorJugadorIdFueraDeRango() {
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(100, "Jugador", 0),
+        () -> new Jugador("Jugador", 0),
         "JugadorId no puede ser menor que 1");
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(100, "Jugador", 5),
+        () -> new Jugador("Jugador", 5),
         "JugadorId no puede ser mayor que 4");
   }
 
@@ -270,18 +265,18 @@ class JugadorTest {
   void defaultConstructorNombreJugadorInvalido() {
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(100, null, 1),
+        () -> new Jugador(null, 1),
         "El nombre del jugador no puede ser null");
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(100, "", 1),
+        () -> new Jugador("", 1),
         "El nombre del jugador no puede estar vacío");
   }
 
   /** Verifica que setNombreJugador lanza excepción si se pasa null o vacío */
   @Test
   void setNombreJugadorInvalido() {
-    Jugador jugador = new Jugador(100, "Valido", 1);
+    Jugador jugador = new Jugador("Valido", 1);
     assertThrows(
         IllegalArgumentException.class,
         () -> jugador.setNombreJugador(null),
@@ -295,7 +290,7 @@ class JugadorTest {
   /** Verifica que el constructor y setter de nombre */
   @Test
   void setNombreJugadorBranchCoverage() {
-    Jugador jugador = new Jugador(100, "Valido", 1);
+    Jugador jugador = new Jugador("Valido", 1);
 
     assertThrows(
         IllegalArgumentException.class,
@@ -314,15 +309,11 @@ class JugadorTest {
   void constructorNombreJugadorBranchCoverage() {
 
     assertThrows(
-        IllegalArgumentException.class,
-        () -> new Jugador(100, null, 1),
-        "Nombre no puede ser null");
+        IllegalArgumentException.class, () -> new Jugador(null, 1), "Nombre no puede ser null");
     assertThrows(
-        IllegalArgumentException.class,
-        () -> new Jugador(100, "", 1),
-        "Nombre no puede estar vacío");
+        IllegalArgumentException.class, () -> new Jugador("", 1), "Nombre no puede estar vacío");
 
-    Jugador jugador = new Jugador(100, "Valido", 1);
+    Jugador jugador = new Jugador("Valido", 1);
     assertEquals("Valido", jugador.getNombreJugador(), "Nombre inicial correcto");
   }
 }

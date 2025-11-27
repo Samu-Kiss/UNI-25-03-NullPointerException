@@ -122,9 +122,9 @@ class PartidaRepositoryTest {
       stmt.execute("ALTER TABLE Partida RENAME TO Partida_Backup");
     }
 
-    // Esperar RuntimeException
+    // Esperar SQLException
     assertThrows(
-        RuntimeException.class,
+        SQLException.class,
         () -> repository.newPartida(4),
         "Debe lanzar RuntimeException por fallo en la consulta SQL, cubriendo el catch block.");
 
@@ -141,21 +141,21 @@ class PartidaRepositoryTest {
    */
   @Test
   void testGetNumJugadores_NotFound_ThrowsException() {
-    // La tabla Partida está vacía (asegurado por setUp)
-    // repository.partidaID es testPartidaID (no existe)
+    repository.partidaID = 999999L;
 
-    // Esperar RuntimeException
-    RuntimeException exception =
+    SQLException exception =
         assertThrows(
-            RuntimeException.class,
+            SQLException.class,
             () -> repository.getNumJugadores(),
-            "Debe lanzar RuntimeException si la partidaID no se encuentra, cubriendo la rama 'else'.");
+            "Debe lanzar SQLException si la partidaID no se encuentra, cubriendo la rama 'else'.");
 
+    String expectedMessagePart =
+        "Error al intentar tomar el numero de jugadores de la partida con Id="
+            + repository.partidaID;
     assertTrue(
-        exception
-            .getMessage()
-            .contains("No se encontró un jugador activo para la partida: " + testPartidaID),
-        "El mensaje de excepción debe indicar que la partida no fue encontrada.");
+        exception.getMessage().contains(expectedMessagePart),
+        "El mensaje de excepción debe indicar que la partida no fue encontrada. Mensaje real: "
+            + exception.getMessage());
   }
 
   /**
@@ -172,7 +172,7 @@ class PartidaRepositoryTest {
 
     // Esperar RuntimeException
     assertThrows(
-        RuntimeException.class,
+        SQLException.class,
         () -> repository.getNumJugadores(),
         "Debe lanzar RuntimeException por fallo en la consulta SQL, cubriendo el catch block.");
 

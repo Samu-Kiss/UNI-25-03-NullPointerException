@@ -104,15 +104,15 @@ class JugadorRepositoryTest {
    */
   @Test
   void testNewPlayer_ThrowsExceptionOnForeignKeyViolation() {
-    // Crear un objeto Jugador e intentar usar un IconoID (99) que no existe.
+    // Constructor válido: posición en 1–40
     Jugador jugador = new Jugador(3, 3, "Duplicado", 3, 1, false, 1500, partidaID);
-    int nonExistentIconoID = 99; // Iconos válidos son 1, 2, 3.
 
-    // Se espera una RuntimeException debido a la violación de clave foránea (FK).
+    int nonExistentIconoID = 99; // no existe en la BD
+
     assertThrows(
-        RuntimeException.class,
+        SQLException.class,
         () -> repository.newPlayer(jugador, nonExistentIconoID),
-        "Debe lanzar RuntimeException por violación de clave foránea (IconoID=99), cubriendo el catch block de newPlayer.");
+        "Debe lanzar SQLException por violación de clave foránea (IconoID=99)");
   }
 
   /**
@@ -121,14 +121,14 @@ class JugadorRepositoryTest {
    */
   @Test
   void testNewActivePlayer_ThrowsExceptionOnForeignKeyViolation() {
-    // Intentar establecer como activo un JugadorID (99) que no existe.
+    // Intentar establecer como activo un JugadorID inexistente
     int nonExistentJugadorID = 99;
 
-    // Se espera una RuntimeException debido a la violación de FK.
+    // Se espera que newActivePlayer lance SQLException por violar la FK
     assertThrows(
-        RuntimeException.class,
+        SQLException.class,
         () -> repository.newActivePlayer(nonExistentJugadorID),
-        "Debe lanzar RuntimeException por violación de clave foránea (JugadorID=99), cubriendo el catch block de newActivePlayer.");
+        "Debe lanzar SQLException por violación de clave foránea (JugadorID=99), cubriendo el catch block de newActivePlayer.");
   }
 
   /**
@@ -144,29 +144,34 @@ class JugadorRepositoryTest {
     int nonExistentJugadorID = 99;
 
     assertThrows(
-        RuntimeException.class,
+        SQLException.class,
         () -> repository.changeActivePlayer(nonExistentJugadorID),
-        "Debe lanzar RuntimeException por violación de clave foránea (JugadorID=99), cubriendo el catch block de changeActivePlayer.");
+        "Debe lanzar SQLException por violación de clave foránea (JugadorID=99), cubriendo el catch block de changeActivePlayer.");
   }
 
   /**
-   * Prueba que el método goToJail lance una RuntimeException al fallar la actualización (violación
-   * de FK). Cubre el bloque 'catch' de goToJail.
+   * Prueba que el método goToJail lance SQLException al fallar la actualización (violación de FK).
+   * Cubre el bloque 'catch' de goToJail.
    */
   @Test
   void testGoToJail_ThrowsExceptionOnUpdateFailure() throws SQLException {
-    //  Eliminar la posición de la cárcel (11) de la tabla Casilla.
-    // Esto asegura que al intentar actualizar Jugador.Posicion = 11, se viole la FK.
+    // Renombrar tabla Jugador para provocar fallo en UPDATE
     try (Connection conn = dataService.createConnection();
         Statement stmt = conn.createStatement()) {
-      stmt.execute("DELETE FROM Casilla WHERE PosicionTablero = 11");
+      stmt.execute("ALTER TABLE Jugador RENAME TO Jugador_Backup");
     }
 
-    //  Intentar enviar al Jugador 1 a la cárcel (posición 11).
+    // Intentar enviar a la cárcel → debe lanzar SQLException
     assertThrows(
-        RuntimeException.class,
+        SQLException.class,
         () -> repository.goToJail(1),
-        "Debe lanzar RuntimeException si la operación de UPDATE falla (ej. violación de FK en Posicion), cubriendo el catch block de goToJail.");
+        "Debe lanzar SQLException si goToJail falla (tabla Jugador renombrada).");
+
+    // Restaurar la tabla para no romper otros tests
+    try (Connection conn = dataService.createConnection();
+        Statement stmt = conn.createStatement()) {
+      stmt.execute("ALTER TABLE Jugador_Backup RENAME TO Jugador");
+    }
   }
 
   /**
@@ -175,21 +180,25 @@ class JugadorRepositoryTest {
    */
   @Test
   void testUpdateJugador_ThrowsExceptionOnUpdateFailure() throws SQLException {
-    // Eliminar una posición válida (5) de la tabla Casilla.
+    // Renombrar tabla para provocar fallo en UPDATE
     try (Connection conn = dataService.createConnection();
         Statement stmt = conn.createStatement()) {
-      stmt.execute("DELETE FROM Casilla WHERE PosicionTablero = 5");
+      stmt.execute("ALTER TABLE Jugador RENAME TO Jugador_Backup");
     }
 
-    // Modificar el jugador en memoria a la posición 5 (la eliminada)
-    Jugador jugador = repository.getJugadorByID(1);
-    jugador.setPosicion(5);
-
-    // Intentar actualizar al jugador a la posición 5.
-    assertThrows(
-        RuntimeException.class,
-        () -> repository.updateJugador(jugador),
-        "Debe lanzar RuntimeException si la operación de UPDATE falla (ej. violación de FK en Posicion), cubriendo el catch block de updateJugador.");
+    try {
+      // Intentar actualizar → debe lanzar RuntimeException
+      assertThrows(
+          SQLException.class,
+          () -> repository.updateDinero(1, 999),
+          "Debe lanzar RuntimeException si updateDinero falla, cubriendo el catch block.");
+    } finally {
+      // Restaurar la tabla para no romper otros tests, siempre se ejecuta
+      try (Connection conn = dataService.createConnection();
+          Statement stmt = conn.createStatement()) {
+        stmt.execute("ALTER TABLE Jugador_Backup RENAME TO Jugador");
+      }
+    }
   }
 
   /**
@@ -206,7 +215,7 @@ class JugadorRepositoryTest {
 
     // Se espera una RuntimeException al intentar consultar la tabla renombrada
     assertThrows(
-        RuntimeException.class,
+        SQLException.class,
         () -> repository.getJugadorByID(1),
         "Debe lanzar RuntimeException si la consulta SQL de getJugadorByID falla (ej. tabla renombrada), cubriendo el catch block de excepción.");
 
@@ -225,7 +234,7 @@ class JugadorRepositoryTest {
   void testGetJugadorByID_NotFound() {
     // Se espera una RuntimeException (asumiendo que el repositorio la lanza si no encuentra)
     assertThrows(
-        RuntimeException.class,
+        SQLException.class,
         () -> repository.getJugadorByID(99),
         "Debe lanzar RuntimeException si el JugadorID 99 no se encuentra, cubriendo el catch block.");
   }
@@ -238,7 +247,7 @@ class JugadorRepositoryTest {
   void testGetPlayerIdByNumJugador_NotFound() {
     // Se espera una RuntimeException al buscar NumJugador 99
     assertThrows(
-        RuntimeException.class,
+        SQLException.class,
         () -> repository.getPlayerIdByNumJugador(99),
         "Debe lanzar RuntimeException si el NumJugador 99 no se encuentra, cubriendo el catch block.");
   }
@@ -251,7 +260,7 @@ class JugadorRepositoryTest {
   void testGetNumJugadorByPlayerId_NotFound() {
     // Se espera una RuntimeException al buscar JugadorID 99
     assertThrows(
-        RuntimeException.class,
+        SQLException.class,
         () -> repository.getNumJugadorByPlayerId(99),
         "Debe lanzar RuntimeException si el JugadorID 99 no se encuentra, cubriendo el catch block de getNumJugadorByPlayerId.");
   }
@@ -271,7 +280,7 @@ class JugadorRepositoryTest {
 
     // Intentar obtener las fichas.
     assertThrows(
-        RuntimeException.class,
+        SQLException.class,
         () -> repository.getFichas(2),
         "Debe lanzar RuntimeException si la consulta SQL de getFichas falla (ej. tabla renombrada), cubriendo el catch block.");
 
@@ -281,41 +290,6 @@ class JugadorRepositoryTest {
       stmt.execute("ALTER TABLE Icono_Backup RENAME TO Icono");
     }
   }
-
-  /**
-   * Prueba que rentPaymentTransaction lance la excepción original (SQLException) después de un
-   * rollback. Esto asegura que el bloque catch y el rollback se ejecuten.
-   */
-  @Test
-  void testRentPaymentTransaction_ThrowsExceptionAndRollback() throws SQLException {
-    // Jugador existente
-    Jugador j1 = repository.getJugadorByID(1); // Pagador: 1500
-    Jugador j2 = repository.getJugadorByID(2); // Cobrador: 1500
-
-    // Renombrar temporalmente la tabla Jugador para forzar el fallo de la transacción (los UPDATEs
-    // fallarán).
-    // Esto evita la violación de clave foránea al intentar eliminar la tabla.
-    try (Connection conn = dataService.createConnection();
-        Statement stmt = conn.createStatement()) {
-      // Renombrar la tabla para que los UPDATEs de la transacción fallen
-      stmt.execute("ALTER TABLE Jugador RENAME TO Jugador_Backup");
-    }
-
-    // Se espera que el método lance una SQLException (o RuntimeException si el repositorio la
-    // envuelve)
-    assertThrows(
-        SQLException.class,
-        () -> repository.rentPaymentTransaction(j1, j2),
-        "Debe lanzar una SQLException (o la excepción envuelta) y asegurar que se intenta el rollback.");
-
-    // Volver a renombrar la tabla para que el tearDown no falle (opcional, pero buena práctica)
-    try (Connection conn = dataService.createConnection();
-        Statement stmt = conn.createStatement()) {
-      stmt.execute("ALTER TABLE Jugador_Backup RENAME TO Jugador");
-    }
-  }
-
-  // --- TESTS DE FUNCIONALIDAD ---
 
   /**
    * Prueba la funcionalidad de insertar un nuevo jugador en la base de datos y verifica que sus
@@ -410,11 +384,14 @@ class JugadorRepositoryTest {
     jugador.setPosicion(5);
     jugador.setEstado(true);
 
-    // Actualizar en la base de datos
-    repository.updateJugador(jugador);
+    // Actualizar en la base de datos usando los métodos reales del repositorio
+    repository.updateDinero(jugador.getJugadorId(), jugador.getDinero());
+    repository.updatePosition(jugador.getJugadorId(), jugador.getPosicion());
+    repository.updateEstado(jugador.getJugadorId(), String.valueOf(jugador.getEstado()));
 
     // Leer de nuevo y comprobar los valores actualizados
     Jugador jugadorDB = repository.getJugadorByID(1);
+
     assertEquals(
         1200,
         jugadorDB.getDinero(),
@@ -480,37 +457,5 @@ class JugadorRepositoryTest {
         "Balon",
         fichas[1].getNombreFicha(),
         "El Nombre del Icono de la segunda ficha debe ser 'Balon'.");
-  }
-
-  /**
-   * Prueba la atomicidad y la corrección de la transacción de pago de renta, verificando que el
-   * dinero se reste del pagador y se sume al cobrador.
-   */
-  @Test
-  void testRentPaymentTransaction() throws SQLException {
-    // Obtener los jugadores iniciales
-    Jugador j1 = repository.getJugadorByID(1); // Pagador
-    Jugador j2 = repository.getJugadorByID(2); // Cobrador
-    int renta = 200;
-
-    // Modificar los objetos en memoria para simular el resultado esperado
-    j1.setDinero(j1.getDinero() - renta); // Esperado: 1300
-    j2.setDinero(j2.getDinero() + renta); // Esperado: 1700
-
-    // Ejecutar la transacción
-    repository.rentPaymentTransaction(j1, j2);
-
-    // Leer los jugadores de la base de datos y comprobar saldos
-    Jugador j1DB = repository.getJugadorByID(1);
-    Jugador j2DB = repository.getJugadorByID(2);
-
-    assertEquals(
-        1300,
-        j1DB.getDinero(),
-        "El jugador pagador (J1) debe tener 1300 después del pago de la renta.");
-    assertEquals(
-        1700,
-        j2DB.getDinero(),
-        "El jugador cobrador (J2) debe tener 1700 después de recibir la renta.");
   }
 }

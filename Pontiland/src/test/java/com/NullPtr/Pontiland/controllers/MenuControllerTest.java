@@ -8,6 +8,7 @@ import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.services.IDataService;
 import com.NullPtr.Pontiland.services.IStartGameService;
+import com.NullPtr.Pontiland.services.ITurnService;
 import com.NullPtr.Pontiland.view.*;
 import com.jme3.app.state.AppState;
 import com.jme3.app.state.AppStateManager;
@@ -35,6 +36,8 @@ class MenuControllerTest {
   private IStartGameService startGameService;
   private IDataService dataService;
   private MenuController controller;
+  private IHUDcontroller hudController;
+  private ITurnService turnService;
 
   /**
    * Antes de cada prueba, se crean los mocks y se inicializa el controlador. Esto garantiza que
@@ -46,10 +49,12 @@ class MenuControllerTest {
     stateManager = mock(AppStateManager.class);
     startGameService = mock(IStartGameService.class);
     dataService = mock(IDataService.class);
+    hudController = mock(IHUDcontroller.class);
+    turnService = mock(ITurnService.class);
 
     when(app.getStateManager()).thenReturn(stateManager);
 
-    controller = new MenuController(app, startGameService, dataService);
+    controller = new MenuController(app, startGameService, dataService, hudController, turnService);
   }
 
   // --- Pruebas de constructor ---
@@ -60,9 +65,12 @@ class MenuControllerTest {
    */
   @Test
   void testConstructorThrowsIfAppIsNull() {
+    IHUDcontroller hudController = mock(IHUDcontroller.class);
+    ITurnService turnService = mock(ITurnService.class);
+
     assertThrows(
         IllegalArgumentException.class,
-        () -> new MenuController(null, startGameService, dataService));
+        () -> new MenuController(null, startGameService, dataService, hudController, turnService));
   }
 
   // --- Pruebas de mostrar pantalla principal ---

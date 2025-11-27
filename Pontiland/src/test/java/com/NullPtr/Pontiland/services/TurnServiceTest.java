@@ -3,21 +3,19 @@ package com.NullPtr.Pontiland.services;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.NullPtr.Pontiland.controllers.IHUDcontroller;
 import com.NullPtr.Pontiland.entities.Casilla;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.Tipo;
 import com.NullPtr.Pontiland.repository.ICasillaRepository;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
+import com.NullPtr.Pontiland.view.IScene;
 import java.sql.SQLException;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 
-/**
- * Clase de pruebas unitarias para TurnService. Contiene tests para los métodos nextTurn,
- * movePlayer, update, consumeLastMove y moveToJail. Se usan mocks para repositorios y servicios
- * auxiliares.
- */
+/** Clase de pruebas unitarias para TurnService con cobertura completa. */
 class TurnServiceTest {
 
   @Mock IJugadorRepository jugadorRepo;
@@ -25,19 +23,31 @@ class TurnServiceTest {
   @Mock DiceService diceService;
   @Mock ICasillaRepository casillaRepo;
   @Mock ICasillaService casillaService;
+  @Mock IHUDcontroller hudController;
+  @Mock ISubastaService subastaService;
+  @Mock IScene scene;
 
-  @InjectMocks TurnService turnService;
+  TurnService turnService;
 
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
+    turnService =
+        new TurnService(
+            jugadorRepo,
+            partidaRepo,
+            diceService,
+            casillaRepo,
+            casillaService,
+            hudController,
+            subastaService);
+    turnService.setScene(scene);
   }
 
   // ------------------------------------------------------------
   // nextTurn()
   // ------------------------------------------------------------
 
-  /** Verifica que nextTurn cambia correctamente el jugador activo cuando no ocurre ningún error. */
   @Test
   void testNextTurnSuccess() throws SQLException {
     when(jugadorRepo.getActivePlayer()).thenReturn(1);
@@ -46,102 +56,40 @@ class TurnServiceTest {
 
     turnService.nextTurn();
 
-    // Verifica que se haya cambiado el jugador activo al siguiente
     verify(jugadorRepo, times(1)).changeActivePlayer(20);
   }
 
-  /** Verifica que nextTurn lanza RuntimeException cuando ocurre un SQLException. */
   @Test
-  void testNextTurnThrowsSQLException() throws SQLException {
-    when(jugadorRepo.getActivePlayer()).thenThrow(new SQLException("err"));
+  void testNextTurnWithModuloWrap() throws SQLException {
+    // Caso donde el jugador activo es el último y debe volver al primero
+    when(jugadorRepo.getActivePlayer()).thenReturn(4);
+    when(partidaRepo.getNumJugadores()).thenReturn(4);
+    when(jugadorRepo.getPlayerIdByNumJugador(1)).thenReturn(10);
 
-    RuntimeException ex =
-        assertThrows(
-            RuntimeException.class,
-            () -> turnService.nextTurn(),
-            "Debe lanzar RuntimeException al fallar SQL");
-    // Comprueba que el mensaje de la excepción contenga "err"
-    assertTrue(ex.getMessage().contains("err"), "Mensaje de excepción debe contener 'err'");
+    turnService.nextTurn();
+
+    verify(jugadorRepo, times(1)).changeActivePlayer(10);
+  }
+
+  @Test
+  void testNextTurnSQLException() throws SQLException {
+    when(jugadorRepo.getActivePlayer()).thenThrow(new SQLException("error"));
+
+    assertDoesNotThrow(() -> turnService.nextTurn());
+    verify(jugadorRepo, never()).changeActivePlayer(anyInt());
   }
 
   // ------------------------------------------------------------
   // movePlayer()
   // ------------------------------------------------------------
 
-  /**
-   * Verifica que movePlayer mueve correctamente al jugador activo y deja el movimiento pendiente
-   * para ser consumido.
-   */
   @Test
   void testMovePlayerSuccess() throws SQLException {
-    Jugador j = new Jugador(1000, "Test", 1);
+    Jugador j = new Jugador("Test", 1);
+    j.setDinero(1000);
     j.setPosicion(10);
 
     when(jugadorRepo.getActivePlayer()).thenReturn(1);
-    when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
-
-    Casilla mockCasilla = mock(Casilla.class);
-    when(mockCasilla.getNombreCasilla()).thenReturn("Terreno");
-    when(mockCasilla.getTipoCasilla()).thenReturn(Tipo.PROPIEDAD);
-    when(casillaRepo.casillaFromPosition(12)).thenReturn(mockCasilla);
-    when(casillaRepo.casillaFromPosition(10)).thenReturn(mockCasilla);
-
-    turnService.movePlayer(2);
-
-    // Verifica que hay movimiento pendiente
-    assertTrue(turnService.hasMovePending(), "Debe haber movimiento pendiente");
-    int[] move = turnService.consumeLastMove();
-    // Verifica que el movimiento no sea null
-    assertNotNull(move, "El movimiento consumido no debe ser null");
-    // Verifica que el movimiento sea desde la posición 1 hasta la 12
-    assertArrayEquals(new int[] {1, 12}, move, "El movimiento debe ser [1,12]");
-
-    // Verifica que se actualizó al jugador
-    verify(jugadorRepo).updateJugador(j);
-  }
-
-  /**
-   * Verifica que movePlayer lanza RuntimeException si ocurre un SQLException al obtener el jugador
-   * activo.
-   */
-  @Test
-  void testMovePlayerSQLException() throws SQLException {
-    when(jugadorRepo.getActivePlayer()).thenThrow(new SQLException("boom"));
-
-    RuntimeException ex =
-        assertThrows(
-            RuntimeException.class,
-            () -> turnService.movePlayer(3),
-            "Debe lanzar RuntimeException si falla SQL al mover jugador");
-    // Verifica que el mensaje contenga "boom"
-    assertTrue(ex.getMessage().contains("boom"), "Mensaje de excepción debe contener 'boom'");
-  }
-
-  // ------------------------------------------------------------
-  // update()
-  // ------------------------------------------------------------
-
-  /** Verifica que update no hace nada si los dados son null. */
-  @Test
-  void testUpdateDadosNull_NoAction() {
-    when(diceService.getResultados()).thenReturn(null);
-
-    turnService.update();
-
-    // Verifica que no hubo interacción con repositorios ni servicios
-    verifyNoInteractions(jugadorRepo, casillaRepo, casillaService);
-  }
-
-  /** Verifica que update cambia el jugador activo si no se sacan dobles. */
-  @Test
-  void testUpdateNonDoublesChangesTurn() throws SQLException {
-    Byte[] dados = {3, 4};
-    when(diceService.getResultados()).thenReturn(dados);
-    when(jugadorRepo.getActivePlayer()).thenReturn(1);
-    when(partidaRepo.getNumJugadores()).thenReturn(4);
-
-    Jugador j = new Jugador(1500, "TestJugador", 1);
-    j.setPosicion(5);
     when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
 
     Casilla mockCasilla = mock(Casilla.class);
@@ -149,100 +97,294 @@ class TurnServiceTest {
     when(mockCasilla.getTipoCasilla()).thenReturn(Tipo.PROPIEDAD);
     when(casillaRepo.casillaFromPosition(anyInt())).thenReturn(mockCasilla);
 
-    turnService.update();
+    turnService.movePlayer(2);
 
-    // Verifica que se cambió el jugador activo al no haber dobles
-    verify(jugadorRepo, atLeastOnce()).changeActivePlayer(anyInt());
+    assertEquals(12, j.getPosicion());
+    verify(jugadorRepo, times(1)).updatePosition(j.getJugadorId(), 12);
+    verify(scene, times(1)).replicateFichaPosition(j.getJugadorId(), 11);
   }
 
-  /** Verifica que update no cambia el jugador activo si se sacan dobles. */
   @Test
-  void testUpdateDoublesExtraTurn() throws SQLException {
-    Byte[] dados = {2, 2};
-    when(diceService.getResultados()).thenReturn(dados);
-    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+  void testMovePlayerPasaPorSalida() throws SQLException {
+    Jugador j = new Jugador("Test", 1);
+    j.setDinero(1000);
+    j.setPosicion(38); // Cerca del final
 
-    Jugador j = new Jugador(1500, "TestJugador", 1);
-    j.setPosicion(5);
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
     when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
+
+    Casilla mockCasilla = mock(Casilla.class);
+    when(mockCasilla.getNombreCasilla()).thenReturn("ParadaLibre");
+    when(mockCasilla.getTipoCasilla()).thenReturn(Tipo.PARADALIBRE);
+    when(casillaRepo.casillaFromPosition(anyInt())).thenReturn(mockCasilla);
+
+    turnService.movePlayer(5); // 38 + 5 = 43 -> pasa por salida
+
+    // Verifica que cobró 200 por pasar por salida
+    assertEquals(1200, j.getDinero());
+    verify(jugadorRepo, times(1)).updateDinero(j.getJugadorId(), 1200);
+  }
+
+  @Test
+  void testMovePlayerCaeEnSalida() throws SQLException {
+    Jugador j = new Jugador("Test", 1);
+    j.setDinero(1000);
+    j.setPosicion(39);
+
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
+
+    Casilla mockCasilla = mock(Casilla.class);
+    when(mockCasilla.getNombreCasilla()).thenReturn("ParadaLibre");
+    when(mockCasilla.getTipoCasilla()).thenReturn(Tipo.PARADALIBRE);
+    when(casillaRepo.casillaFromPosition(anyInt())).thenReturn(mockCasilla);
+
+    turnService.movePlayer(2); // Cae exactamente en posición 1 (salida)
+
+    assertEquals(1, j.getPosicion());
+    assertEquals(1200, j.getDinero()); // Cobra 200
+    verify(jugadorRepo, times(1)).updateDinero(j.getJugadorId(), 1200);
+  }
+
+  @Test
+  void testMovePlayerSQLExceptionGetJugador() throws SQLException {
+    when(jugadorRepo.getActivePlayer()).thenThrow(new SQLException("error"));
+
+    assertDoesNotThrow(() -> turnService.movePlayer(3));
+    verify(scene, never()).replicateFichaPosition(anyInt(), anyInt());
+  }
+
+  // ------------------------------------------------------------
+  // setEnabled() / isEnabled()
+  // ------------------------------------------------------------
+
+  @Test
+  void testSetEnabledTrue() throws SQLException {
+    Jugador j = new Jugador("Test", 1);
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
+
+    turnService.setEnabled(true);
+
+    assertTrue(turnService.isEnabled());
+    verify(casillaService, times(1)).updateActivePlayerPropertyTokens(j);
+  }
+
+  @Test
+  void testSetEnabledFalse() {
+    turnService.setEnabled(false);
+
+    assertFalse(turnService.isEnabled());
+    verifyNoInteractions(casillaService);
+  }
+
+  @Test
+  void testSetEnabledSQLException() throws SQLException {
+    when(jugadorRepo.getActivePlayer()).thenThrow(new SQLException("error"));
+
+    // setEnabled no lanza excepción, solo la captura y loguea
+    turnService.setEnabled(true);
+
+    // Verifica que no se llamó a updateActivePlayerPropertyTokens debido al error
+    verify(casillaService, never()).updateActivePlayerPropertyTokens(any());
+  }
+
+  // ------------------------------------------------------------
+  // terminarTurno()
+  // ------------------------------------------------------------
+
+  @Test
+  void testTerminarTurno() {
+    turnService.terminarTurno();
+
+    verify(diceService, times(1)).enableInteract(true);
+  }
+
+  @Test
+  void testTerminarTurnoConDiceServiceNulo() {
+    TurnService serviceConDiceNulo =
+        new TurnService(
+            jugadorRepo,
+            partidaRepo,
+            null,
+            casillaRepo,
+            casillaService,
+            hudController,
+            subastaService);
+
+    assertDoesNotThrow(() -> serviceConDiceNulo.terminarTurno());
+  }
+
+  // ------------------------------------------------------------
+  // update() - FSM completa
+  // ------------------------------------------------------------
+
+  @Test
+  void testUpdateDisabled() {
+    turnService.setEnabled(false);
+
+    turnService.update();
+
+    verifyNoInteractions(diceService, jugadorRepo, casillaService);
+  }
+
+  @Test
+  void testUpdateMovingState() throws SQLException {
+    turnService.setEnabled(true);
+
+    // Estado AWAIT_ROLL -> MOVING
+    Byte[] dados = {3, 4};
+    when(diceService.getResultados()).thenReturn(dados);
+
+    Jugador j = new Jugador("Test", 1);
+    j.setPosicion(5);
+    j.setDinero(1000);
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
+    when(jugadorRepo.getPlayerCount()).thenReturn(2);
+    when(jugadorRepo.getPlayerIdByNumJugador(anyInt())).thenReturn(1);
+
+    Casilla casilla = mock(Casilla.class);
+    when(casilla.getNombreCasilla()).thenReturn("Terreno");
+    when(casilla.getTipoCasilla()).thenReturn(Tipo.PROPIEDAD);
+    when(casillaRepo.casillaFromPosition(anyInt())).thenReturn(casilla);
+
+    when(diceService.getCanInteract()).thenReturn(false); // Bloquea en MOVING
+
+    // Primera actualización: lanza dados
+    turnService.update();
+    // Segunda actualización: mueve jugador
+    turnService.update();
+
+    verify(scene, times(1)).resetCamera();
+    verify(scene, times(1)).replicateFichaPosition(anyInt(), anyInt());
+  }
+
+  @Test
+  void testUpdateInteractNoDoble() throws SQLException {
+    turnService.setEnabled(true);
+
+    Byte[] dados = {3, 4}; // No dobles
+    when(diceService.getResultados()).thenReturn(dados);
+
+    Jugador j = new Jugador("Test", 1);
+    j.setPosicion(5);
+    j.setDinero(1000);
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
+    when(jugadorRepo.getPlayerCount()).thenReturn(2);
+    when(jugadorRepo.getPlayerIdByNumJugador(anyInt())).thenReturn(1);
 
     Casilla casilla = mock(Casilla.class);
     when(casillaRepo.casillaFromPosition(anyInt())).thenReturn(casilla);
+    when(diceService.getCanInteract()).thenReturn(true);
+    when(casillaService.getIrACarcel()).thenReturn(false);
 
-    turnService.update();
+    // Ejecutar FSM completa
+    for (int i = 0; i < 10; i++) {
+      turnService.update();
+    }
 
-    // Verifica que no se cambió el jugador activo
+    verify(casillaService, atLeastOnce()).interaccion(eq(j), any(Casilla.class));
+  }
+
+  @Test
+  void testUpdateInteractDobleUnaVez() throws SQLException {
+    turnService.setEnabled(true);
+
+    Byte[] dados = {3, 3}; // Dobles
+    when(diceService.getResultados()).thenReturn(dados);
+
+    Jugador j = new Jugador("Test", 1);
+    j.setPosicion(5);
+    when(jugadorRepo.getActivePlayer()).thenReturn(1);
+    when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
+    when(jugadorRepo.getPlayerCount()).thenReturn(2);
+    when(jugadorRepo.getPlayerIdByNumJugador(anyInt())).thenReturn(1);
+
+    Casilla casilla = mock(Casilla.class);
+    when(casillaRepo.casillaFromPosition(anyInt())).thenReturn(casilla);
+    when(diceService.getCanInteract()).thenReturn(true);
+    when(casillaService.getIrACarcel()).thenReturn(false);
+
+    // Ejecutar múltiples updates
+    for (int i = 0; i < 10; i++) {
+      turnService.update();
+    }
+
+    // Con dobles, no debe cambiar de jugador
     verify(jugadorRepo, never()).changeActivePlayer(anyInt());
   }
 
-  /** Verifica que update llama a la interacción de la casilla si el jugador puede interactuar. */
   @Test
-  void testUpdateInteractWhenAllowed() throws SQLException {
-    Byte[] dados = {1, 2};
+  void testUpdateEndTurnConIrACarcel() throws SQLException {
+    turnService.setEnabled(true);
+
+    Byte[] dados = {3, 4};
     when(diceService.getResultados()).thenReturn(dados);
+
+    Jugador j = new Jugador("Test", 1);
+    j.setPosicion(5);
     when(jugadorRepo.getActivePlayer()).thenReturn(1);
-    when(partidaRepo.getNumJugadores()).thenReturn(4);
-
-    Jugador j = new Jugador(1500, "TestJugador", 1);
-    j.setPosicion(3);
     when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
+    when(jugadorRepo.getPlayerCount()).thenReturn(2);
+    when(jugadorRepo.getPlayerIdByNumJugador(anyInt())).thenReturn(1);
 
-    Casilla c = mock(Casilla.class);
-    when(c.getNombreCasilla()).thenReturn("Terreno");
-    when(c.getTipoCasilla()).thenReturn(Tipo.PROPIEDAD);
-    when(casillaRepo.casillaFromPosition(anyInt())).thenReturn(c);
-
+    Casilla casilla = mock(Casilla.class);
+    when(casillaRepo.casillaFromPosition(anyInt())).thenReturn(casilla);
     when(diceService.getCanInteract()).thenReturn(true);
+    when(casillaService.getIrACarcel()).thenReturn(true); // Casilla envía a cárcel
 
-    turnService.update();
+    for (int i = 0; i < 10; i++) {
+      turnService.update();
+    }
 
-    // Verifica que se llamó a la interacción de la casilla exactamente una vez
-    verify(casillaService, times(1)).interaccion(j, c);
+    verify(jugadorRepo, atLeastOnce()).goToJail(anyInt());
   }
 
-  /** Verifica que update manda al jugador a la cárcel si la bandera getIrACarcel es verdadera. */
   @Test
-  void testUpdateGoToJailFlag() throws SQLException {
-    Byte[] dados = {3, 3};
+  void testUpdateTerminarInteraccion() throws SQLException {
+    turnService.setEnabled(true);
+
+    Byte[] dados = {3, 4};
     when(diceService.getResultados()).thenReturn(dados);
+
+    Jugador j = new Jugador("Test", 1);
+    j.setPosicion(5);
     when(jugadorRepo.getActivePlayer()).thenReturn(1);
-
-    Jugador j = new Jugador(1500, "TestJugador", 1);
-    j.setPosicion(10);
     when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
-    when(jugadorRepo.getNumJugadorByPlayerId(1)).thenReturn(1);
+    when(jugadorRepo.getPlayerCount()).thenReturn(2);
+    when(jugadorRepo.getPlayerIdByNumJugador(anyInt())).thenReturn(1);
 
-    Casilla c = mock(Casilla.class);
-    when(c.getNombreCasilla()).thenReturn("Terreno");
-    when(c.getTipoCasilla()).thenReturn(Tipo.PROPIEDAD);
-    when(casillaRepo.casillaFromPosition(anyInt())).thenReturn(c);
+    Casilla casilla = mock(Casilla.class);
+    when(casillaRepo.casillaFromPosition(anyInt())).thenReturn(casilla);
+    when(diceService.getCanInteract()).thenReturn(true);
+    when(casillaService.getIrACarcel()).thenReturn(false);
 
-    when(casillaService.getIrACarcel()).thenReturn(true);
+    for (int i = 0; i < 15; i++) {
+      turnService.update();
+    }
 
-    turnService.update();
-
-    // Verifica que se llamó a goToJail del jugador activo
-    verify(jugadorRepo, times(1)).goToJail(1);
+    verify(casillaService, atLeastOnce()).terminarInteraccion(eq(j), any(Casilla.class));
   }
 
-  // ------------------------------------------------------------
-  // consumeLastMove()
-  // ------------------------------------------------------------
-
-  /** Verifica que consumeLastMove devuelve null si no hay movimientos pendientes. */
   @Test
-  void testConsumeLastMove_NoPending() {
-    assertNull(turnService.consumeLastMove(), "No debe haber movimiento pendiente");
+  void testUpdateFSMException() throws SQLException {
+    turnService.setEnabled(true);
+
+    when(diceService.getResultados()).thenThrow(new RuntimeException("error"));
+
+    // No debe propagar la excepción
+    assertDoesNotThrow(() -> turnService.update());
   }
 
   // ------------------------------------------------------------
   // moveToJail()
   // ------------------------------------------------------------
 
-  /** Verifica que moveToJail manda al jugador activo a la cárcel y deja un movimiento pendiente. */
   @Test
   void testMoveToJailSuccess() throws SQLException {
-    Jugador j = new Jugador(1500, "TestJugador", 1);
+    Jugador j = new Jugador("Test", 1);
 
     when(jugadorRepo.getActivePlayer()).thenReturn(1);
     when(jugadorRepo.getJugadorByID(1)).thenReturn(j);
@@ -251,37 +393,131 @@ class TurnServiceTest {
     turnService.moveToJail();
 
     verify(jugadorRepo, times(1)).goToJail(1);
-    // Verifica que haya movimiento pendiente
-    assertTrue(
-        turnService.hasMovePending(), "Debe quedar movimiento pendiente tras ir a la cárcel");
+    verify(scene, times(1)).replicateFichaPosition(1, 10);
   }
 
-  /**
-   * Verifica que moveToJail lanza RuntimeException si ocurre un SQLException al obtener el jugador
-   * activo.
-   */
   @Test
   void testMoveToJailSQLException() throws SQLException {
-    when(jugadorRepo.getActivePlayer()).thenThrow(new SQLException("fail"));
+    when(jugadorRepo.getActivePlayer()).thenThrow(new SQLException("error"));
 
-    RuntimeException ex =
-        assertThrows(
-            RuntimeException.class,
-            () -> turnService.moveToJail(),
-            "Debe lanzar RuntimeException si falla SQL al ir a la cárcel");
-    // Verifica que el mensaje contenga "fail"
-    assertTrue(ex.getMessage().contains("fail"), "Mensaje de excepción debe contener 'fail'");
+    assertDoesNotThrow(() -> turnService.moveToJail());
+    verify(scene, never()).replicateFichaPosition(anyInt(), anyInt());
   }
 
-  /** Verifica que update no lanza excepción si ocurre SQLException al obtener el jugador activo. */
+  // ------------------------------------------------------------
+  // Métodos de subasta
+  // ------------------------------------------------------------
+
   @Test
-  void testUpdateSQLExceptionInGetActivePlayer() throws SQLException {
-    when(jugadorRepo.getActivePlayer()).thenThrow(new SQLException("boom"));
+  void testIniciarSubastaExitoso() {
+    when(subastaService.iniciarSubasta()).thenReturn(true);
 
-    // Verifica que update no lance ninguna excepción
-    assertDoesNotThrow(() -> turnService.update());
+    boolean resultado = turnService.iniciarSubasta();
 
-    // Verifica que no se haya interactuado con los servicios de casilla
-    verifyNoInteractions(casillaRepo, casillaService);
+    assertTrue(resultado);
+    verify(subastaService, times(1)).iniciarSubasta();
+  }
+
+  @Test
+  void testIniciarSubastaFallido() {
+    when(subastaService.iniciarSubasta()).thenReturn(false);
+
+    boolean resultado = turnService.iniciarSubasta();
+
+    assertFalse(resultado);
+  }
+
+  @Test
+  void testIniciarSubastaConSubastaServiceNulo() {
+    TurnService serviceConSubastaNula =
+        new TurnService(
+            jugadorRepo,
+            partidaRepo,
+            diceService,
+            casillaRepo,
+            casillaService,
+            hudController,
+            null);
+
+    boolean resultado = serviceConSubastaNula.iniciarSubasta();
+
+    assertFalse(resultado);
+  }
+
+  @Test
+  void testIncreaseAuctionExitoso() {
+    when(subastaService.aumentarPrecio(50)).thenReturn(true);
+
+    boolean resultado = turnService.increaseAuction(50);
+
+    assertTrue(resultado);
+    verify(subastaService, times(1)).aumentarPrecio(50);
+  }
+
+  @Test
+  void testIncreaseAuctionDeltaNegativo() {
+    boolean resultado = turnService.increaseAuction(-10);
+
+    assertFalse(resultado);
+    verifyNoInteractions(subastaService);
+  }
+
+  @Test
+  void testIncreaseAuctionDeltaCero() {
+    boolean resultado = turnService.increaseAuction(0);
+
+    assertFalse(resultado);
+    verifyNoInteractions(subastaService);
+  }
+
+  @Test
+  void testIncreaseAuctionConSubastaServiceNulo() {
+    TurnService serviceConSubastaNula =
+        new TurnService(
+            jugadorRepo,
+            partidaRepo,
+            diceService,
+            casillaRepo,
+            casillaService,
+            hudController,
+            null);
+
+    boolean resultado = serviceConSubastaNula.increaseAuction(50);
+
+    assertFalse(resultado);
+  }
+
+  @Test
+  void testExitAuction() {
+    turnService.exitAuction();
+
+    verify(subastaService, times(1)).salirSubasta();
+  }
+
+  // ------------------------------------------------------------
+  // Métodos stub (buyProperty, payRent)
+  // ------------------------------------------------------------
+
+  @Test
+  void testBuyProperty() {
+    assertDoesNotThrow(() -> turnService.buyProperty());
+  }
+
+  @Test
+  void testPayRent() {
+    assertDoesNotThrow(() -> turnService.payRent());
+  }
+
+  // ------------------------------------------------------------
+  // setScene()
+  // ------------------------------------------------------------
+
+  @Test
+  void testSetScene() {
+    IScene newScene = mock(IScene.class);
+    turnService.setScene(newScene);
+
+    // No hay getter para verificar, pero no debe lanzar excepción
+    assertDoesNotThrow(() -> turnService.setScene(newScene));
   }
 }

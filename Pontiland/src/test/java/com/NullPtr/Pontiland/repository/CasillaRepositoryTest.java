@@ -53,7 +53,7 @@ class CasillaRepositoryTest {
    * <p>Verifica que la posición 1 esté correctamente insertada en los inserts.
    */
   @Test
-  void testCasillaFromPositionValid() {
+  void testCasillaFromPositionValid() throws SQLException {
     Casilla casilla = repository.casillaFromPosition(1);
 
     assertNotNull(casilla, "La casilla obtenida no debe ser null");
@@ -65,27 +65,19 @@ class CasillaRepositoryTest {
   /** Test para posición menor a 1, debe lanzar RuntimeException. */
   @Test
   void testCasillaFromPositionInvalidLow() {
-    RuntimeException exception =
-        assertThrows(
-            RuntimeException.class,
-            () -> repository.casillaFromPosition(0),
-            "Debería lanzar RuntimeException para posición menor que 1");
-    assertTrue(
-        exception.getMessage().contains("No existen casillas antes de 0"),
-        "El mensaje de la excepción debe indicar que la posición es menor a 1");
+    assertThrows(
+        SQLException.class,
+        () -> repository.casillaFromPosition(0),
+        "Debe lanzar SQLException para posición menor que 1");
   }
 
   /** Test para posición mayor a 40, debe lanzar RuntimeException. */
   @Test
   void testCasillaFromPositionInvalidHigh() {
-    RuntimeException exception =
-        assertThrows(
-            RuntimeException.class,
-            () -> repository.casillaFromPosition(41),
-            "Debería lanzar RuntimeException para posición mayor que 40");
-    assertTrue(
-        exception.getMessage().contains("No existen casillas"),
-        "El mensaje de la excepción debe indicar que la posición es mayor a 40");
+    assertThrows(
+        SQLException.class,
+        () -> repository.casillaFromPosition(41),
+        "Debe lanzar SQLException para posición mayor que 40");
   }
 
   /**
