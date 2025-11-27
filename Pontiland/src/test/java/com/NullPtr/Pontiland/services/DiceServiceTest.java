@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
  *   <li>Que los métodos de los dados sean invocados correctamente.
  * </ul>
  */
-public class DiceServiceTest {
+class DiceServiceTest {
 
   /** Instancia del servicio de dados a probar */
   private DiceService diceService;

@@ -120,7 +120,7 @@ class CasillaServiceTest {
   }
 
   @Test
-  void testTerminarInteraccion_Propiedad_PuedeComprar_Exitoso() throws Exception {
+  void testTerminarInteraccion_Propiedad_PuedeComprar_Exitoso() {
     Casilla propiedad = new Casilla(3, "Propiedad Central", Tipo.PROPIEDAD);
 
     // Simula que el jugador puede comprar
@@ -140,7 +140,7 @@ class CasillaServiceTest {
   }
 
   @Test
-  void testTerminarInteraccion_Propiedad_NoPuedeComprar() throws Exception {
+  void testTerminarInteraccion_Propiedad_NoPuedeComprar() {
     Casilla propiedad = new Casilla(3, "Propiedad Central", Tipo.PROPIEDAD);
 
     // Simula que el jugador NO puede comprar
@@ -157,7 +157,7 @@ class CasillaServiceTest {
   }
 
   @Test
-  void testTerminarInteraccion_Propiedad_ExcepcionAlComprar() throws Exception {
+  void testTerminarInteraccion_Propiedad_ExcepcionAlComprar() {
     Casilla propiedad = new Casilla(3, "Propiedad Central", Tipo.PROPIEDAD);
 
     // Simula que el jugador puede comprar
@@ -273,7 +273,7 @@ class CasillaServiceTest {
   }
 
   @Test
-  void testUpdateActivePlayerPropertyTokens_NullHudController() throws SQLException {
+  void testUpdateActivePlayerPropertyTokens_NullHudController() {
 
     IAdquisicionService adquisicion = mock(IAdquisicionService.class);
     TarjetaEventoRepository eventos = mock(TarjetaEventoRepository.class);
@@ -345,7 +345,7 @@ class CasillaServiceTest {
 
   /** Prueba la lógica cuando el hudController es null (rama de cobertura inicial). */
   @Test
-  void testInteraccion_Propiedad_NullHudController() throws Exception {
+  void testInteraccion_Propiedad_NullHudController() {
     IAdquisicionService adquisicion = mock(IAdquisicionService.class);
     TarjetaEventoRepository eventos = mock(TarjetaEventoRepository.class);
     // Usamos el mock de DiceService y PropertyRepository existentes

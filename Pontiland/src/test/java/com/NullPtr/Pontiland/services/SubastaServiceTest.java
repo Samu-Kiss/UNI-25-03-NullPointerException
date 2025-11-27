@@ -80,7 +80,7 @@ class SubastaServiceTest {
 
   // --- Helpers ---
   /** Ejecuta el inicio de subasta con el jugador activo por defecto. */
-  private void setupSubastaActiva() throws SQLException {
+  private void setupSubastaActiva() {
     when(adquisicionService.prepararSubasta(anyInt())).thenReturn(propiedadMock);
     service.iniciarSubasta();
     clearInvocations(hudController, jugadorRepository, adquisicionService);
@@ -105,7 +105,7 @@ class SubastaServiceTest {
   }
 
   @Test
-  void testIniciarSubasta_YaActiva() throws SQLException {
+  void testIniciarSubasta_YaActiva() {
     when(adquisicionService.prepararSubasta(anyInt())).thenReturn(propiedadMock);
     boolean primera = service.iniciarSubasta();
     assertTrue(primera);
@@ -119,7 +119,7 @@ class SubastaServiceTest {
   }
 
   @Test
-  void testIniciarSubasta_PropiedadNula() throws SQLException {
+  void testIniciarSubasta_PropiedadNula() {
     when(adquisicionService.prepararSubasta(anyInt())).thenReturn(null);
 
     boolean resultado = service.iniciarSubasta();
@@ -139,7 +139,7 @@ class SubastaServiceTest {
   }
 
   @Test
-  void testIniciarSubasta_HudControllerNulo() throws SQLException {
+  void testIniciarSubasta_HudControllerNulo() {
     service = new SubastaService(adquisicionService, jugadorRepository, null, propiedadRepository);
     when(adquisicionService.prepararSubasta(anyInt())).thenReturn(propiedadMock);
 
@@ -175,7 +175,7 @@ class SubastaServiceTest {
   }
 
   @Test
-  void testAvanzarAlSiguienteJugador_HudControllerNulo() throws SQLException {
+  void testAvanzarAlSiguienteJugador_HudControllerNulo() {
     service = new SubastaService(adquisicionService, jugadorRepository, null, propiedadRepository);
     when(adquisicionService.prepararSubasta(anyInt())).thenReturn(propiedadMock);
     service.iniciarSubasta();
@@ -195,7 +195,7 @@ class SubastaServiceTest {
   }
 
   @Test
-  void testAumentarPrecio_DeltaInvalido() throws SQLException {
+  void testAumentarPrecio_DeltaInvalido() {
     setupSubastaActiva();
 
     boolean resultado = service.aumentarPrecio(0);

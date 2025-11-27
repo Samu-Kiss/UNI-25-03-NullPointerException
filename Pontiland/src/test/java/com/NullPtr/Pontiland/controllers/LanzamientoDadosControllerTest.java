@@ -60,10 +60,10 @@ class LanzamientoDadosControllerTest {
    */
   private static Stream<Arguments> keyEventParameters() {
     return Stream.of(
-            Arguments.of(false, true),  // No permitido lanzar
-            Arguments.of(true, false),  // Tecla liberada
-            Arguments.of(true, false)   // Evento no presionado (similar al anterior)
-    );
+        Arguments.of(false, true), // No permitido lanzar
+        Arguments.of(true, false), // Tecla liberada
+        Arguments.of(true, false) // Evento no presionado (similar al anterior)
+        );
   }
 
   /**
@@ -168,5 +168,22 @@ class LanzamientoDadosControllerTest {
     var listener = field.get(controller);
     Method method = listener.getClass().getMethod("onKeyEvent", KeyInputEvent.class);
     method.invoke(listener, event);
+  }
+
+  /**
+   * Verifica que un evento con isPressed() = false sea ignorado.
+   *
+   * <p>Incluso si la tecla es 'Y' y el jugador puede lanzar dados, si el evento indica que la tecla
+   * fue soltada, no debe invocarse lanzamientoDados().
+   */
+  @Test
+  void testKeyEventNotPressedIsIgnored() throws Exception {
+    when(diceService.getCanThrowDice()).thenReturn(true);
+
+    KeyInputEvent event = new KeyInputEvent(KeyInput.KEY_Y, 'Y', false, false);
+
+    invokeKeyListener(event);
+
+    verify(diceService, never()).lanzamientoDados();
   }
 }
