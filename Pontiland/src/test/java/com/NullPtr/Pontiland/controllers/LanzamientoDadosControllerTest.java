@@ -6,8 +6,14 @@ import com.NullPtr.Pontiland.services.DiceService;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.event.KeyInputEvent;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Clase de pruebas unitarias para {@link LanzamientoDadosController}.
@@ -36,108 +42,83 @@ class LanzamientoDadosControllerTest {
   /**
    * Verifica que {@code lanzamientoDados()} se invoque cuando se presiona la tecla 'Y' y el jugador
    * tiene permitido lanzar los dados.
-   *
-   * <p>Se simula un evento de teclado (KeyInputEvent) con la tecla 'Y' presionada. Se invoca el
-   * listener privado mediante reflexión. Finalmente, se verifica que el método del servicio se
-   * llame exactamente una vez con {@code verify(..., times(1))}.
    */
   @Test
-  void testThrowsDiceWhenPressingY() {
-    when(diceService.getCanThrowDice()).thenReturn(true); // Simula que se puede lanzar el dado
+  void testThrowsDiceWhenPressingY() throws Exception {
+    when(diceService.getCanThrowDice()).thenReturn(true);
 
     KeyInputEvent event = new KeyInputEvent(KeyInput.KEY_Y, 'Y', true, false);
+    invokeKeyListener(event);
 
-    try {
-      var field = LanzamientoDadosController.class.getDeclaredField("rawKeys");
-      field.setAccessible(true);
-      var listener = field.get(controller);
-      var method = listener.getClass().getMethod("onKeyEvent", KeyInputEvent.class);
-      method.invoke(listener, event); // Simula la pulsación de 'Y'
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    // Verifica que lanzamientoDados() se haya llamado exactamente una vez
     verify(diceService, times(1)).lanzamientoDados();
   }
 
   /**
-   * Verifica que NO se lance el dado si el jugador no tiene permiso, incluso si presiona la tecla
-   * 'Y'.
+   * Parámetros para el test parametrizado: casos donde el dado **no debe lanzarse**.
    *
-   * <p>El evento de teclado se simula igual que antes, pero se fuerza que getCanThrowDice()
-   * devuelva false. Se usa {@code verify(..., never())} para asegurar que el método no se ejecutó.
+   * <p>Cada argumento contiene: canThrowDice, isPressed
    */
-  @Test
-  void testDoesNotThrowIfNotAllowed() throws Exception {
-    when(diceService.getCanThrowDice()).thenReturn(false);
+  private static Stream<Arguments> keyEventParameters() {
+    return Stream.of(
+            Arguments.of(false, true),  // No permitido lanzar
+            Arguments.of(true, false),  // Tecla liberada
+            Arguments.of(true, false)   // Evento no presionado (similar al anterior)
+    );
+  }
 
-    KeyInputEvent event = new KeyInputEvent(KeyInput.KEY_Y, 'Y', true, false);
+  /**
+   * Test parametrizado que verifica que distintos eventos de teclado no disparen el lanzamiento de
+   * dados.
+   */
+  @ParameterizedTest
+  @MethodSource("keyEventParameters")
+  void testKeyEventsDoNotTriggerThrow(boolean canThrowDice, boolean isPressed) throws Exception {
+    when(diceService.getCanThrowDice()).thenReturn(canThrowDice);
 
-    var field = LanzamientoDadosController.class.getDeclaredField("rawKeys");
-    field.setAccessible(true);
-    var listener = field.get(controller);
-    var method = listener.getClass().getMethod("onKeyEvent", KeyInputEvent.class);
-    method.invoke(listener, event);
+    KeyInputEvent event = new KeyInputEvent(KeyInput.KEY_Y, 'Y', isPressed, false);
+    invokeKeyListener(event);
 
-    // Verifica que lanzamientoDados() nunca se llame
     verify(diceService, never()).lanzamientoDados();
   }
 
   /**
    * Verifica que presionar una tecla distinta a 'Y' no lance los dados, incluso si está permitido
    * hacerlo.
-   *
-   * <p>Se simula la tecla 'A' y se espera que el servicio no reciba ninguna llamada a
-   * lanzamientoDados().
    */
   @Test
   void testDoesNotThrowWithOtherKey() throws Exception {
     when(diceService.getCanThrowDice()).thenReturn(true);
 
     KeyInputEvent event = new KeyInputEvent(KeyInput.KEY_A, 'A', true, false);
+    invokeKeyListener(event);
 
-    var field = LanzamientoDadosController.class.getDeclaredField("rawKeys");
-    field.setAccessible(true);
-    var listener = field.get(controller);
-    var method = listener.getClass().getMethod("onKeyEvent", KeyInputEvent.class);
-    method.invoke(listener, event);
-
-    // La tecla no es 'Y', por lo tanto no se debe lanzar dado
     verify(diceService, never()).lanzamientoDados();
   }
 
   /**
    * Verifica que {@code registerInputs()} registre correctamente el listener en el {@link
    * InputManager}.
-   *
-   * <p>Se simula un InputManager y se comprueba que addRawInputListener se invoque una vez.
    */
   @Test
   void testRegisterInputsAddsListener() {
     InputManager inputManager = mock(InputManager.class);
     controller.registerInputs(inputManager);
 
-    // Verifica que el listener se haya registrado exactamente una vez
     verify(inputManager, times(1)).addRawInputListener(any());
   }
 
   /**
    * Verifica que {@code enableThrow()} invoque la habilitación de interacción en el servicio.
-   *
-   * <p>Se comprueba que enableInteract() del servicio reciba el valor correcto.
    */
   @Test
   void testEnableThrowCallsService() {
     controller.enableThrow(true);
 
-    verify(diceService).enableInteract(true); // Debe invocarse con true
+    verify(diceService).enableInteract(true);
   }
 
   /**
    * Verifica que el controlador notifique al servicio la creación de los dados (spatials).
-   *
-   * <p>Se simulan dos spatials y se verifica que setDados() se llame con ellos.
    */
   @Test
   void testOnDadosCreadosCallsSetDados() {
@@ -151,8 +132,6 @@ class LanzamientoDadosControllerTest {
 
   /**
    * Verifica que {@code update()} invoque al método correspondiente en el servicio.
-   *
-   * <p>Se comprueba que update() del servicio se llame exactamente una vez.
    */
   @Test
   void testUpdateCallsServiceUpdate() {
@@ -163,56 +142,25 @@ class LanzamientoDadosControllerTest {
 
   /**
    * Verifica que pasar un {@code null} a registerInputs() no genere errores ni registre listeners.
-   *
-   * <p>Si se pasa null, el método no debe interactuar con el servicio ni provocar excepciones.
    */
   @Test
   void testRegisterInputsWithNullDoesNothing() {
     controller.registerInputs(null);
 
-    // Verifica que enableInteract() nunca se llame
     verify(diceService, never()).enableInteract(anyBoolean());
   }
 
   /**
-   * Verifica que soltar la tecla 'Y' no provoque un lanzamiento de dados.
+   * Método auxiliar para invocar el listener privado del controlador de forma reflejada.
    *
-   * <p>Se simula un KeyInputEvent con isPressed=false y se asegura que lanzamientoDados() no se
-   * invoque.
+   * @param event evento de teclado a simular
+   * @throws Exception si ocurre un error de reflexión
    */
-  @Test
-  void testKeyReleasedDoesNotTriggerThrow() throws Exception {
-    when(diceService.getCanThrowDice()).thenReturn(true);
-
-    KeyInputEvent event = new KeyInputEvent(KeyInput.KEY_Y, 'Y', false, false);
-
-    var field = LanzamientoDadosController.class.getDeclaredField("rawKeys");
+  private void invokeKeyListener(KeyInputEvent event) throws Exception {
+    Field field = LanzamientoDadosController.class.getDeclaredField("rawKeys");
     field.setAccessible(true);
     var listener = field.get(controller);
-    var method = listener.getClass().getMethod("onKeyEvent", KeyInputEvent.class);
+    Method method = listener.getClass().getMethod("onKeyEvent", KeyInputEvent.class);
     method.invoke(listener, event);
-
-    verify(diceService, never()).lanzamientoDados();
-  }
-
-  /**
-   * Verifica que un evento con isPressed() = false sea ignorado.
-   *
-   * <p>Incluso si la tecla es 'Y' y el jugador puede lanzar dados, si el evento indica que la tecla
-   * fue soltada, no debe invocarse lanzamientoDados().
-   */
-  @Test
-  void testKeyEventNotPressedIsIgnored() throws Exception {
-    when(diceService.getCanThrowDice()).thenReturn(true);
-
-    KeyInputEvent event = new KeyInputEvent(KeyInput.KEY_Y, 'Y', false, false);
-
-    var field = LanzamientoDadosController.class.getDeclaredField("rawKeys");
-    field.setAccessible(true);
-    var listener = field.get(controller);
-    var method = listener.getClass().getMethod("onKeyEvent", KeyInputEvent.class);
-    method.invoke(listener, event);
-
-    verify(diceService, never()).lanzamientoDados();
   }
 }
