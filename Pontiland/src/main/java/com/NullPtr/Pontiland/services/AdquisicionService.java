@@ -7,6 +7,7 @@ import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -35,7 +36,7 @@ public class AdquisicionService implements IAdquisicionService {
     }
 
     int propiedadId = propiedad.getIdPropiedad();
-    int precio = propiedad.getPrecioCompra() * 5;
+    int precio = propiedad.getPrecioCompra();
 
     Jugador jugadorPago;
     try {
@@ -232,7 +233,6 @@ public class AdquisicionService implements IAdquisicionService {
         logger.debug(
             "{} no cuenta con el patrimonio suficiente para continuar el juego y termina el juego",
             jugador.getNombreJugador());
-        // TODO: finalizar partida
         return;
       }
 
@@ -244,7 +244,6 @@ public class AdquisicionService implements IAdquisicionService {
 
       while (jugador.getDinero() < 0 && !props.isEmpty()) {
         jugador = jugadorRepository.getJugadorByID(jugador.getJugadorId());
-
         Propiedad propiedadMasCara = props.remove(0);
         venderPropiedad(propiedadMasCara, jugador);
         logger.debug(
@@ -260,6 +259,34 @@ public class AdquisicionService implements IAdquisicionService {
   }
 
   @Override
+  public List<Jugador> obtenerRankingJugadoresDesc() {
+    try {
+      int count = jugadorRepository.getPlayerCount();
+      List<Jugador> jugadores = new java.util.ArrayList<>();
+      for (int i = 1; i <= count; i++) {
+        Jugador j = jugadorRepository.getJugadorByID(jugadorRepository.getPlayerIdByNumJugador(i));
+        int patrimonio = propiedadRepository.getPatrimonioTotalJugador(j.getJugadorId());
+        // Capital total: dinero + valor propiedades
+        j =
+            new Jugador(
+                j.getJugadorId(),
+                j.getNombreJugador(),
+                j.getPosicion(),
+                j.getEstado(),
+                j.getDinero() + patrimonio,
+                j.getPropiedades());
+        jugadores.add(j);
+      }
+      return jugadores.stream()
+          .sorted(Comparator.comparingInt(Jugador::getDinero).reversed())
+          .collect(Collectors.toList());
+    } catch (SQLException e) {
+      logger.error("Error al calcular ranking de jugadores por capital", e);
+      return java.util.Collections.emptyList();
+    }
+  }
+
+  @Override
   public void liquidarDeudaEntreJugadores(Jugador deudor, Jugador acreedor) {
     try {
       List<Propiedad> props = propiedadRepository.getPropiedadesByJugador(deudor.getJugadorId());
@@ -271,7 +298,7 @@ public class AdquisicionService implements IAdquisicionService {
             "{} no puede saldar la deuda con {} ni con todo su patrimonio",
             deudor.getNombreJugador(),
             acreedor.getNombreJugador());
-        // TODO: lógica de bancarrota frente a jugador
+        // TODO: lógica de finalizarPartida
         return;
       }
 
