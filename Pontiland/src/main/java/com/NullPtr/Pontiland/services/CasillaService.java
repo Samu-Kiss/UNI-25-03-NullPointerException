@@ -127,7 +127,7 @@ public class CasillaService implements ICasillaService {
         //TODO finalizar el juego
 
         hudController.terminarTurno();
-        return;
+
       } else {
         logger.debug(
             "{} cuenta con el patrimonio suficiente para continuar el juego, se vende la propiedad mas cara",
@@ -144,6 +144,7 @@ public class CasillaService implements ICasillaService {
 
               if (propiedadMasCara != null) {
                 adquisicionService.venderPropiedad(propiedadMasCara, jugador);
+                //TODO aumentar el dinero del jugador
                 props.remove(propiedadMasCara);
                 logger.debug(
                     "{} ha vendido la propiedad {} por {} monedas.",
