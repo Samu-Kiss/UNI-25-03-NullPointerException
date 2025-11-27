@@ -73,6 +73,7 @@ public class Scene implements IScene {
 
     // Cargar escena
     loadBoardModel();
+    loadAmbienteModel();
     loadConitoModel();
     loadDiceModels();
     setupSkyEnvironment();
@@ -138,6 +139,25 @@ public class Scene implements IScene {
       mat.setColor("ColorRojo", ColorRGBA.Red);
       geom.setMaterial(mat);
       rootNode.attachChild(geom);
+    }
+  }
+
+  /** Carga el modelo del ambiente (decoración exterior del tablero). */
+  private void loadAmbienteModel() {
+    try {
+      Spatial ambiente = assetManager.loadModel("graphics/models/Ambiente.glb");
+
+      ambiente.scale(5f);
+      ambiente.setLocalTranslation(0, 0, 0);
+      ambiente.setName("Ambiente");
+      rootNode.attachChild(ambiente);
+
+      // Añadir un RigidBodyControl con masa cero para que colisione pero no se mueva
+      RigidBodyControl ambientePhysics = new RigidBodyControl(0f);
+      ambiente.addControl(ambientePhysics);
+      bullet.getPhysicsSpace().add(ambientePhysics);
+    } catch (Exception ex) {
+      logger.error("Failed to load ambiente model", ex);
     }
   }
 

@@ -1,5 +1,6 @@
 package com.NullPtr.Pontiland.controllers;
 
+import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.services.ITurnService;
 import com.NullPtr.Pontiland.view.HUD;
 import java.util.List;
@@ -15,9 +16,11 @@ public interface IHUDcontroller {
 
   void detachHUD();
 
-  void setPlayerNames(List<String> names);
+  void setPlayers(List<Jugador> jugadores);
 
-  void updatePlayerCard(String playerName, String moneyText, boolean inJail, int playerIndex);
+  void updatePlayerCard(Jugador jugador, int playerIndex);
+
+  void setActivePlayerIndex(int playerIndex);
 
   void updatePropertyCard(String name, String priceText, String[] rentsText);
 
@@ -46,4 +49,10 @@ public interface IHUDcontroller {
   void exitAuction();
 
   void setAuctionPlayerName(String playerName);
+
+  void rollDice();
+
+  void setRollDiceButtonVisible(boolean visible);
+
+  void setPayBailButtonVisible(boolean visible);
 }

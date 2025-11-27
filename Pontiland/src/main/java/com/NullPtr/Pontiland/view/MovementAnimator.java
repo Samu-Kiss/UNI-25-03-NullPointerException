@@ -2,6 +2,7 @@ package com.NullPtr.Pontiland.view;
 
 import com.NullPtr.Pontiland.controllers.LanzamientoDadosController;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import java.util.ArrayList;
@@ -39,6 +40,19 @@ public class MovementAnimator {
       float ny = mvStart.y + (float) Math.sin(Math.PI * t) * mvJump;
 
       Vector3f pos = new Vector3f(nx, ny, nz);
+
+      Vector3f dir = target.subtract(mvStart);
+      dir.y = 0f;
+      if (dir.lengthSquared() > 1e-6f) {
+        dir.normalizeLocal();
+        Quaternion desired = new Quaternion();
+        desired.lookAt(dir, Vector3f.UNIT_Y);
+        if (mvRb != null) {
+          mvRb.setPhysicsRotation(desired);
+        } else {
+          mvSpatial.setLocalRotation(desired);
+        }
+      }
 
       if (mvRb != null) {
         mvRb.setPhysicsLocation(pos);

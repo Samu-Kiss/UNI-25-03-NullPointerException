@@ -25,4 +25,6 @@ public interface ITurnService {
   boolean increaseAuction(int delta);
 
   void exitAuction();
+
+  void rollDice();
 }

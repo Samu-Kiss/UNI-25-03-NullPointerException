@@ -162,10 +162,13 @@ public class MenuController implements IMenuActions {
     // Asegurar escena y mostrar HUD del juego
     startGameService.ensureSceneReady();
     if (hudController != null) hudController.showHUD();
-    // Poblar nombres de jugadores en las player cards
-    java.util.List<String> names = new java.util.ArrayList<>();
-    for (Jugador j : jugadores) names.add(j.getNombreJugador());
-    if (hudController != null) hudController.setPlayerNames(names);
+    // Setear iconoId en cada jugador y poblar las player cards
+    for (int i = 0; i < jugadores.size(); i++) {
+      Jugador j = jugadores.get(i);
+      int iconoId = personajeIds.size() > i ? personajeIds.get(i) : 1;
+      j.setIconoId(iconoId);
+    }
+    if (hudController != null) hudController.setPlayers(jugadores);
 
     logger.info("Juego iniciado con: {} jugadores", playerCount);
   }

@@ -135,8 +135,13 @@ public class TurnService implements ITurnService {
     this.enabled = enabled;
     if (enabled) {
       try {
+        // Actualizar indicador de turno activo al inicio del juego
+        int activePlayerId = jugadorRepository.getActivePlayer();
+        int activeNumJugador = jugadorRepository.getNumJugadorByPlayerId(activePlayerId);
+        hudController.setActivePlayerIndex(activeNumJugador);
+
         casillaService.updateActivePlayerPropertyTokens(
-            jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer()));
+            jugadorRepository.getJugadorByID(activePlayerId));
       } catch (SQLException e) {
         logger.error("Error actualizando property tokens al habilitar TurnService", e);
       }
@@ -171,6 +176,9 @@ public class TurnService implements ITurnService {
         lanzamientoDoble = false;
         if (scene != null) scene.resetCamera();
 
+        // Actualizar visibilidad de botones de acción
+        updateActionButtons();
+
         Byte[] dados = diceService.getResultados();
         if (dados == null) return;
 
@@ -186,8 +194,8 @@ public class TurnService implements ITurnService {
         break;
 
       case MOVING:
-        updateHUDAndTokens();
         if (pendingMovement > 0) {
+          updateHUDAndTokens();
           movePlayer(pendingMovement);
           pendingMovement = 0;
         }
@@ -243,12 +251,13 @@ public class TurnService implements ITurnService {
         break;
 
       case NEXT_TURN:
-        updateHUDAndTokens();
         terminarTurno = false;
         if (!lanzamientoDoble) {
           tiradas = 1;
           nextTurn();
         }
+        // Actualizar HUD después de cambiar de turno para que el indicador refleje el nuevo jugador
+        updateHUDAndTokens();
         state = TurnState.AWAIT_ROLL;
         break;
     }
@@ -282,15 +291,32 @@ public class TurnService implements ITurnService {
     for (int i = jugadorRepository.getPlayerCount(); i > 0; i--) {
       Jugador jugador =
           jugadorRepository.getJugadorByID(jugadorRepository.getPlayerIdByNumJugador(i));
-      hudController.updatePlayerCard(
-          jugador.getNombreJugador(), String.valueOf(jugador.getDinero()), jugador.getEstado(), i);
+      hudController.updatePlayerCard(jugador, i);
     }
+
+    // Actualizar indicador de turno activo
+    int activePlayerId = jugadorRepository.getActivePlayer();
+    int activeNumJugador = jugadorRepository.getNumJugadorByPlayerId(activePlayerId);
+    hudController.setActivePlayerIndex(activeNumJugador);
 
     try {
       casillaService.updateActivePlayerPropertyTokens(
           jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer()));
     } catch (SQLException e) {
       logger.error("Error actualizando property tokens", e);
+    }
+  }
+
+  private void updateActionButtons() {
+    try {
+      Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+      boolean canRoll = diceService != null && diceService.getCanThrowDice();
+      boolean inJail = jugadorActual != null && jugadorActual.getEstado();
+
+      hudController.setRollDiceButtonVisible(canRoll);
+      hudController.setPayBailButtonVisible(inJail && canRoll);
+    } catch (SQLException e) {
+      logger.error("Error actualizando botones de acción", e);
     }
   }
 
@@ -337,5 +363,15 @@ public class TurnService implements ITurnService {
   @Override
   public void exitAuction() {
     subastaService.salirSubasta();
+  }
+
+  @Override
+  public void rollDice() {
+    if (diceService != null && diceService.getCanThrowDice()) {
+      diceService.lanzamientoDados();
+      // Ocultar botones al lanzar
+      hudController.setRollDiceButtonVisible(false);
+      hudController.setPayBailButtonVisible(false);
+    }
   }
 }

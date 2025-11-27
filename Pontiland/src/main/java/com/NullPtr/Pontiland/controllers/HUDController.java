@@ -1,6 +1,7 @@
 package com.NullPtr.Pontiland.controllers;
 
 import com.NullPtr.Pontiland.Launcher;
+import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.services.ITurnService;
 import com.NullPtr.Pontiland.view.HUD;
 import com.jme3.app.state.AppStateManager;
@@ -84,20 +85,25 @@ public class HUDController implements IHUDcontroller {
   }
 
   @Override
-  public void setPlayerNames(List<String> names) {
+  public void setPlayers(List<Jugador> jugadores) {
     if (hud != null) {
-      hud.setPlayerNames(names);
+      hud.setPlayers(jugadores);
     }
   }
 
   // ==== Wrappers de actualización ====
 
   @Override
-  public void updatePlayerCard(
-      String playerName, String moneyText, boolean inJail, int playerIndex) {
-    String money = "$" + moneyText;
+  public void updatePlayerCard(Jugador jugador, int playerIndex) {
     if (hud != null) {
-      hud.updatePlayerCard(playerName, money, inJail, playerIndex);
+      hud.updatePlayerCard(jugador, playerIndex);
+    }
+  }
+
+  @Override
+  public void setActivePlayerIndex(int playerIndex) {
+    if (hud != null) {
+      hud.setActivePlayerIndex(playerIndex);
     }
   }
 
@@ -174,5 +180,26 @@ public class HUDController implements IHUDcontroller {
   @Override
   public void setAuctionPlayerName(String playerName) {
     if (hud != null) hud.setAuctionPlayerName(playerName);
+  }
+
+  @Override
+  public void rollDice() {
+    if (turnService != null) {
+      turnService.rollDice();
+    }
+  }
+
+  @Override
+  public void setRollDiceButtonVisible(boolean visible) {
+    if (hud != null) {
+      hud.setRollDiceButtonVisible(visible);
+    }
+  }
+
+  @Override
+  public void setPayBailButtonVisible(boolean visible) {
+    if (hud != null) {
+      hud.setPayBailButtonVisible(visible);
+    }
   }
 }
