@@ -199,7 +199,7 @@ public class JugadorRepository implements IJugadorRepository {
   @Override
   public Jugador getJugadorByID(int jugadorID) throws SQLException {
     String obtenerJugadores =
-        "SELECT JugadorID, NumJugador, NombreJugador, IconoID, Posicion, Encarcelado, Dinero, Partida FROM JUGADOR WHERE Partida = ? AND JugadorID = ?";
+        "SELECT JugadorID, NumJugador, NombreJugador, IconoID, Posicion, Encarcelado, Dinero, TiradasCarcel, Partida FROM JUGADOR WHERE Partida = ? AND JugadorID = ?";
 
     try (Connection conn = dataService.createConnection();
         PreparedStatement preparedStatement = conn.prepareStatement(obtenerJugadores)) {
@@ -219,7 +219,8 @@ public class JugadorRepository implements IJugadorRepository {
             rs.getInt("Posicion"),
             rs.getBoolean("Encarcelado"),
             rs.getInt("Dinero"),
-            rs.getLong("Partida"));
+            rs.getLong("Partida"),
+            rs.getInt("TiradasCarcel"));
       }
     } catch (SQLException e) {
       throw new SQLException("Error obteniendo el jugador con ID:" + jugadorID, e);
@@ -320,6 +321,88 @@ public class JugadorRepository implements IJugadorRepository {
       stmt.executeUpdate();
     } catch (SQLException e) {
       throw new SQLException("Error updating player state", e);
+    }
+  }
+
+  /**
+   * Obtiene el estado de un jugador (si está encarcelado o no) por su ID dentro de la partida
+   * actual.
+   *
+   * @param jugadorID ID del jugador cuyo estado se desea obtener.
+   * @return true si el jugador está encarcelado, false en caso contrario.
+   * @throws SQLException si ocurre un error al acceder a la base de datos o si el jugador no se
+   *     encuentra.
+   */
+  @Override
+  public boolean getJugadorEstadoByID(int jugadorID) throws SQLException {
+    String sql = "SELECT Encarcelado FROM Jugador WHERE Partida = ? AND JugadorID = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setLong(1, partidaID);
+      ps.setInt(2, jugadorID);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (!rs.next()) {
+          throw new SQLException(
+              "Jugador no encontrado (partida=" + partidaID + ", id=" + jugadorID + ")");
+        }
+        return rs.getBoolean("Encarcelado");
+      }
+    } catch (SQLException e) {
+      throw new SQLException("Error obteniendo el estado del jugador con ID:" + jugadorID, e);
+    }
+  }
+
+  @Override
+  public void setJugadorLibre(int jugadorID) throws SQLException {
+    String consulta = "UPDATE Jugador SET Encarcelado = ? WHERE JugadorID = ? AND Partida = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
+      stmt.setBoolean(1, false);
+      stmt.setInt(2, jugadorID);
+      stmt.setLong(3, partidaID);
+      stmt.executeUpdate();
+    } catch (SQLException e) {
+      throw new SQLException(
+          "Error al actualizar estado Encarcelado=false para jugador " + jugadorID, e);
+    }
+  }
+
+  @Override
+  public void incrementarTiradasCarcel(int jugadorID) throws SQLException {
+    String sql =
+        "UPDATE Jugador SET TiradasCarcel = TiradasCarcel + 1 WHERE JugadorID = ? AND Partida = ? AND Encarcelado = TRUE";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setInt(1, jugadorID);
+      ps.setLong(2, partidaID);
+      ps.executeUpdate();
+    }
+  }
+
+  @Override
+  public void resetTiradasCarcel(int jugadorID) throws SQLException {
+    String sql = "UPDATE Jugador SET TiradasCarcel = 0 WHERE JugadorID = ? AND Partida = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setInt(1, jugadorID);
+      ps.setLong(2, partidaID);
+      ps.executeUpdate();
+    }
+  }
+
+  @Override
+  public int getTiradasCarcel(int jugadorID) throws SQLException {
+    String sql = "SELECT TiradasCarcel FROM Jugador WHERE Partida = ? AND JugadorID = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement ps = conn.prepareStatement(sql)) {
+      ps.setLong(1, partidaID);
+      ps.setInt(2, jugadorID);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (!rs.next()) {
+          throw new SQLException("Jugador no encontrado (tiradas carcel) id=" + jugadorID);
+        }
+        return rs.getInt("TiradasCarcel");
+      }
     }
   }
 }

@@ -53,4 +53,19 @@ public interface IHUDcontroller {
   void showBadEvent(String title, String descriptionText);
 
   void hideEventCards();
+
+  // Jail decision overlay (Pay/Roll)
+  void showJailDecision();
+
+  void hideJailDecision();
+
+  // Set decision flags when JailDecision buttons are pressed
+  void chooseJailPay();
+
+  void chooseJailRoll();
+
+  // Poll decision via two booleans
+  boolean getJailPay();
+
+  boolean getJailRoll();
 }
