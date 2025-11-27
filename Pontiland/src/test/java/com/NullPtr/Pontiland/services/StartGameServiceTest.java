@@ -154,7 +154,7 @@ class StartGameServiceTest {
   /**
    * Verifica que loadingOldGame llama al servicio de datos para cargar la base de datos con el
    * archivo especificado.
-   */
+  */
   @Test
   void testLoadingOldGameCallsDataService() {
     String archivo = "partida_guardada.db";
@@ -165,7 +165,7 @@ class StartGameServiceTest {
     verify(dataService, times(1)).loadDataBase(archivo);
   }
 
-  /** Verifica que loadingOldGame funciona con diferentes nombres de archivo. */
+  /** Verifica que loadingOldGame funciona con diferentes nombres de archivo.*/
   @Test
   void testLoadingOldGameWithDifferentFiles() {
     String[] archivos = {"partida1.db", "partida2.db", "save_20250101.db"};

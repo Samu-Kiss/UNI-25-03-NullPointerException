@@ -8,6 +8,7 @@ import com.NullPtr.Pontiland.entities.Casilla;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.entities.Tipo;
+import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import com.NullPtr.Pontiland.repository.TarjetaEventoRepository;
 import java.sql.SQLException;
@@ -27,6 +28,7 @@ class CasillaServiceTest {
   private IPropiedadRepository propiedadRepository;
   private IAdquisicionService adquisicionService;
   private TarjetaEventoRepository tarjetaEventoRepository;
+  private IJugadorRepository jugadorRepository;
 
   @BeforeEach
   void setUp() {
@@ -36,6 +38,7 @@ class CasillaServiceTest {
     propiedadRepository = mock(IPropiedadRepository.class);
     adquisicionService = mock(IAdquisicionService.class); // Añadido para las pruebas de compra
     tarjetaEventoRepository = mock(TarjetaEventoRepository.class);
+    jugadorRepository = mock(IJugadorRepository.class);
 
     service =
         new CasillaService(
@@ -43,7 +46,8 @@ class CasillaServiceTest {
             diceService,
             propiedadRepository,
             adquisicionService,
-            tarjetaEventoRepository);
+            tarjetaEventoRepository,
+                jugadorRepository);
     jugador = new Jugador("JugadorTest", 1);
   }
 
@@ -182,7 +186,7 @@ class CasillaServiceTest {
     // Crea un servicio sin HUDController para probar la rama 'if (hudController == null)'
     CasillaService serviceNoHud =
         new CasillaService(
-            null, diceService, propiedadRepository, adquisicionService, tarjetaEventoRepository);
+            null, diceService, propiedadRepository, adquisicionService, tarjetaEventoRepository, jugadorRepository);
     Casilla libre = new Casilla(1, "Parada Libre", Tipo.PARADALIBRE);
 
     // Debería ejecutarse sin lanzar excepciones y salir inmediatamente.
@@ -279,7 +283,7 @@ class CasillaServiceTest {
     TarjetaEventoRepository eventos = mock(TarjetaEventoRepository.class);
 
     CasillaService serviceNoHud =
-        new CasillaService(null, diceService, propiedadRepository, adquisicion, eventos);
+        new CasillaService(null, diceService, propiedadRepository, adquisicion, eventos, jugadorRepository);
 
     Jugador jugadorActivo = new Jugador("JugadorTest", 1);
     assertDoesNotThrow(() -> serviceNoHud.updateActivePlayerPropertyTokens(jugadorActivo));
@@ -350,7 +354,7 @@ class CasillaServiceTest {
     TarjetaEventoRepository eventos = mock(TarjetaEventoRepository.class);
     // Usamos el mock de DiceService y PropertyRepository existentes
     CasillaService serviceNoHud =
-        new CasillaService(null, diceService, propiedadRepository, adquisicion, eventos);
+        new CasillaService(null, diceService, propiedadRepository, adquisicion, eventos, jugadorRepository);
 
     Casilla propiedadCasilla = new Casilla(10, "Calle Marina", Tipo.PROPIEDAD);
 

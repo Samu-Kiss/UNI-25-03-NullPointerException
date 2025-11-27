@@ -105,7 +105,7 @@ class JugadorRepositoryTest {
   @Test
   void testNewPlayer_ThrowsExceptionOnForeignKeyViolation() {
     // Constructor válido: posición en 1–40
-    Jugador jugador = new Jugador(3, 3, "Duplicado", 3, 1, false, 1500, partidaID);
+    Jugador jugador = new Jugador(3, 3, "Duplicado", 3, 1, false, 1500, partidaID,0);
 
     int nonExistentIconoID = 99; // no existe en la BD
 
@@ -298,7 +298,7 @@ class JugadorRepositoryTest {
   @Test
   void testNewPlayer() throws SQLException {
     // Crear un objeto Jugador nuevo (ID 3, NumJugador 3)
-    Jugador jugador = new Jugador(3, 3, "Jugador3", 3, 1, false, 1500, partidaID);
+    Jugador jugador = new Jugador(3, 3, "Jugador3", 3, 1, false, 1500, partidaID,0);
 
     // Insertar el nuevo jugador
     repository.newPlayer(jugador, 3);

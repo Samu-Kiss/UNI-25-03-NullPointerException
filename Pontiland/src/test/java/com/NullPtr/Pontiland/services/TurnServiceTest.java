@@ -26,6 +26,7 @@ class TurnServiceTest {
   @Mock IHUDcontroller hudController;
   @Mock ISubastaService subastaService;
   @Mock IScene scene;
+  @Mock IAdquisicionService adquisicionService;
 
   TurnService turnService;
 
@@ -40,7 +41,8 @@ class TurnServiceTest {
             casillaRepo,
             casillaService,
             hudController,
-            subastaService);
+            subastaService,
+                adquisicionService);
     turnService.setScene(scene);
   }
 
@@ -210,7 +212,8 @@ class TurnServiceTest {
             casillaRepo,
             casillaService,
             hudController,
-            subastaService);
+            subastaService,
+                adquisicionService);
 
     assertDoesNotThrow(() -> serviceConDiceNulo.terminarTurno());
   }
@@ -437,7 +440,8 @@ class TurnServiceTest {
             casillaRepo,
             casillaService,
             hudController,
-            null);
+            null,
+                adquisicionService);
 
     boolean resultado = serviceConSubastaNula.iniciarSubasta();
 
@@ -480,7 +484,8 @@ class TurnServiceTest {
             casillaRepo,
             casillaService,
             hudController,
-            null);
+            null,
+                adquisicionService);
 
     boolean resultado = serviceConSubastaNula.increaseAuction(50);
 
