@@ -109,6 +109,8 @@ class LanzamientoDadosControllerTest {
 
   /**
    * Verifica que {@code enableThrow()} invoque la habilitación de interacción en el servicio.
+   *
+   * <p>Se comprueba que enableInteract() del servicio reciba el valor correcto.
    */
   @Test
   void testEnableThrowCallsService() {
@@ -119,6 +121,8 @@ class LanzamientoDadosControllerTest {
 
   /**
    * Verifica que el controlador notifique al servicio la creación de los dados (spatials).
+   *
+   * <p>Se simulan dos spatials y se verifica que setDados() se llame con ellos.
    */
   @Test
   void testOnDadosCreadosCallsSetDados() {
@@ -132,6 +136,8 @@ class LanzamientoDadosControllerTest {
 
   /**
    * Verifica que {@code update()} invoque al método correspondiente en el servicio.
+   *
+   * <p>Se comprueba que update() del servicio se llame exactamente una vez.
    */
   @Test
   void testUpdateCallsServiceUpdate() {
