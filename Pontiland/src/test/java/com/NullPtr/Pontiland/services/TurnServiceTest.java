@@ -369,7 +369,7 @@ class TurnServiceTest {
   }
 
   @Test
-  void testUpdateFSMException() throws SQLException {
+  void testUpdateFSMException() {
     turnService.setEnabled(true);
 
     when(diceService.getResultados()).thenThrow(new RuntimeException("error"));

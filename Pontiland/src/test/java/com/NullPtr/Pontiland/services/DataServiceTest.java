@@ -104,7 +104,7 @@ class DataServiceTest {
 
   /** Verifica que createConnection() devuelva null cuando ocurre un SQLException. */
   @Test
-  void testCreateConnection_SQLException() throws Exception {
+  void testCreateConnection_SQLException() {
     DataService realService = new DataService("jdbc:invalid:url");
     Connection conn = realService.createConnection();
     assertNull(conn, "Debe retornar null cuando hay un error de conexión");
@@ -206,7 +206,7 @@ class DataServiceTest {
    * assert que lanza AssertionError en producción si los recursos son null.
    */
   @Test
-  void testNewDatabase_resourcesMissing() throws Exception {
+  void testNewDatabase_resourcesMissing() {
     try (MockedStatic<PropertiesReader> mockedProps = mockStatic(PropertiesReader.class)) {
       mockedProps
           .when(() -> PropertiesReader.getProperty("nuevaPartida.ddl"))
@@ -336,7 +336,7 @@ class DataServiceTest {
 
   /** Verifica que se devuelve una lista vacía cuando no existen archivos de partidas guardadas. */
   @Test
-  void testListarPartidasPasadas_noFiles() throws Exception {
+  void testListarPartidasPasadas_noFiles() {
     try (MockedStatic<PropertiesReader> mocked = mockStatic(PropertiesReader.class)) {
       mocked.when(() -> PropertiesReader.getProperty("saves")).thenReturn("/saves/");
 

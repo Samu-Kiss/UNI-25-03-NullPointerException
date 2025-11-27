@@ -65,12 +65,14 @@ class MenuControllerTest {
    */
   @Test
   void testConstructorThrowsIfAppIsNull() {
-    IHUDcontroller hudController = mock(IHUDcontroller.class);
-    ITurnService turnService = mock(ITurnService.class);
+    IHUDcontroller localHudController = mock(IHUDcontroller.class);
+    ITurnService localTurnService = mock(ITurnService.class);
 
     assertThrows(
         IllegalArgumentException.class,
-        () -> new MenuController(null, startGameService, dataService, hudController, turnService));
+        () ->
+            new MenuController(
+                null, startGameService, dataService, localHudController, localTurnService));
   }
 
   // --- Pruebas de mostrar pantalla principal ---
@@ -318,7 +320,6 @@ class MenuControllerTest {
 
     doAnswer(
             inv -> {
-              List<SavedGame> saves = inv.getArgument(0);
               Consumer<String> callback = inv.getArgument(1);
               callback.accept("s1"); // simula selección de la partida
               return null;
