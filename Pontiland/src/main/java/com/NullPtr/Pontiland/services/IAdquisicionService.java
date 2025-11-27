@@ -10,4 +10,6 @@ public interface IAdquisicionService {
   Propiedad prepararSubasta(int position);
 
   boolean comprarPropiedadEnSubasta(int position, Jugador jugador, int precioFinal);
+
+  void venderPropiedad(Propiedad idPropiedad, Jugador jugador);
 }

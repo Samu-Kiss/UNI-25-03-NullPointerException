@@ -70,6 +70,18 @@ public class CasillaService implements ICasillaService {
     debugRealizado = false;
     debugRealizado2 = false;
     if (hudController == null) return;
+
+    if (jugador.getDinero() < 0) {
+      logger.debug(
+          "{} esta endeudado. Se evalua si cuenta con el patrimonio suficiente para continuar el juego {}",
+          jugador.getNombreJugador(),
+          casilla.getTipoCasilla());
+
+      evaluateDeuda(jugador);
+
+      return;
+    }
+
     switch (casilla.getTipoCasilla()) {
       case PARADALIBRE:
         hudController.terminarTurno();
@@ -99,6 +111,57 @@ public class CasillaService implements ICasillaService {
         hudController.terminarTurno();
         onCarcel(false);
         break;
+    }
+  }
+
+  private void evaluateDeuda(Jugador jugador) {
+    try {
+      List<Propiedad> props = propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId());
+
+      int valorTotalPropiedades = propiedadRepository.getPatrimonioTotalJugador(jugador.getJugadorId());
+
+      if (jugador.getDinero() + valorTotalPropiedades < 0) {
+        logger.debug(
+            "{} no cuenta con el patrimonio suficiente para continuar el juego y termina el juego",
+            jugador.getNombreJugador());
+        //TODO finalizar el juego
+
+        hudController.terminarTurno();
+        return;
+      } else {
+        logger.debug(
+            "{} cuenta con el patrimonio suficiente para continuar el juego, se vende la propiedad mas cara",
+            jugador.getNombreJugador());
+
+            while (jugador.getDinero() < 0) {
+              jugador = jugadorRepository.getJugadorByID(jugador.getJugadorId());
+              Propiedad propiedadMasCara = null;
+              for (Propiedad p : props) {
+                if (propiedadMasCara == null || p.getPrecioCompra() > propiedadMasCara.getPrecioCompra()) {
+                  propiedadMasCara = p;
+                }
+              }
+
+              if (propiedadMasCara != null) {
+                adquisicionService.venderPropiedad(propiedadMasCara, jugador);
+                props.remove(propiedadMasCara);
+                logger.debug(
+                    "{} ha vendido la propiedad {} por {} monedas.",
+                    jugador.getNombreJugador(),
+                    propiedadMasCara.getIdPropiedad(),
+                    propiedadMasCara.getPrecioCompra());
+              } else {
+                logger.warn(
+                    "No se encontró ninguna propiedad para vender para el jugador {}",
+                    jugador.getJugadorId());
+                break;
+              }
+            }
+        hudController.hidePropertyCard();
+      }
+
+    } catch (SQLException e) {
+      logger.error("Error al evaluar la deuda del jugador {}", jugador.getJugadorId(), e);
     }
   }
 
@@ -269,8 +332,7 @@ public class CasillaService implements ICasillaService {
         "{} ha caido en Movimiento posicion de casilla {}",
         j.getNombreJugador(),
         c.getPosicionTablero());
-    // TODO
-    // q hay hacer aqui?
+    // TODO: Hacer la implementacion de la casilla de movimiento
     if (diceService != null) diceService.enableInteract(false);
   }
 

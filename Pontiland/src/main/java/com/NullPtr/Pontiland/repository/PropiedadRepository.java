@@ -348,6 +348,7 @@ public class PropiedadRepository implements IPropiedadRepository {
    * @return el patrimonio total (suma de precios de compra)
    * @throws SQLException si ocurre un error al ejecutar la consulta
    */
+  @Override
   public int getPatrimonioTotalJugador(int jugadorId) throws SQLException {
     String query =
         "SELECT SUM(Propiedad.PrecioCompra) AS PatrimonioTotal "
@@ -368,6 +369,19 @@ public class PropiedadRepository implements IPropiedadRepository {
     } catch (SQLException e) {
       throw new SQLException(
           "Error al intentar obtener el patrimonio total del jugador con id=" + jugadorId, e);
+    }
+  }
+
+  @Override
+  public void venderAdquisicion(int propiedadId, int jugadorId) throws SQLException {
+    String delete = "DELETE FROM Adquisiciones WHERE PropiedadID = ? AND JugadorID = ?";
+    try (Connection conex = dataService.createConnection();
+        PreparedStatement ps = conex.prepareStatement(delete)) {
+      ps.setInt(1, propiedadId);
+      ps.setInt(2, jugadorId);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      throw new SQLException("Error al intentar vender la adquisición de la propiedad", e);
     }
   }
 }

@@ -24,4 +24,8 @@ public interface IPropiedadRepository {
   void addAdquisicion(int jugadorId, int propiedadId, int nivel) throws SQLException;
 
   void updateAdquisicionNivel(int propiedadId, int jugadorId, int nuevoNivel) throws SQLException;
+
+  int getPatrimonioTotalJugador(int jugadorId) throws SQLException;
+
+  void venderAdquisicion(int propiedadId, int jugadorId) throws SQLException;
 }

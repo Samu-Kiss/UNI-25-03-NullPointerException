@@ -39,7 +39,7 @@ public class AdquisicionService implements IAdquisicionService {
       return false;
     }
 
-    Jugador jugadorPago = null;
+    Jugador jugadorPago;
     try {
       jugadorPago = propiedadRepository.propiedadHasOwner(propiedadId);
     } catch (SQLException e) {
@@ -188,5 +188,22 @@ public class AdquisicionService implements IAdquisicionService {
           e);
     }
     return false;
+  }
+
+  @Override
+  public void venderPropiedad(Propiedad propiedad, Jugador jugador) {
+    try {
+      int precioVenta = propiedad.getPrecioCompra();
+      int nuevoDinero = jugador.getDinero() + precioVenta;
+      jugador.setDinero(nuevoDinero);
+      jugadorRepository.updateDinero(jugador.getJugadorId(), nuevoDinero);
+      propiedadRepository.venderAdquisicion(propiedad.getIdPropiedad() ,jugador.getJugadorId());
+    } catch (SQLException e) {
+      logger.error(
+          "Error al vender la propiedad con Id={} del jugador con Id={}",
+          propiedad.getIdPropiedad(),
+          jugador.getJugadorId(),
+          e);
+    }
   }
 }
