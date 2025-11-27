@@ -114,8 +114,13 @@ public class MenuPausaController implements IMenuPausaActions {
     }
   }
 
-  /** Alterna la visibilidad del menú de pausa. */
+  /** Alterna la visibilidad del menú de pausa. Solo funciona si el juego está activo. */
   public void togglePauseMenu() {
+    // Solo permitir acceso al menú de pausa si el juego está en curso
+    if (menuController == null || !menuController.isGameStarted()) {
+      return;
+    }
+
     if (menuVisible) {
       resumeGame();
     } else {

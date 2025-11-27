@@ -2,6 +2,7 @@ package com.NullPtr.Pontiland.view;
 
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.controllers.IHUDcontroller;
+import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.view.HUDComponents.*;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
@@ -34,6 +35,9 @@ public class HUD extends AbstractAppState {
   private Container overlayPane;
 
   private Container playersBox; // contendrá varias PlayerCard apiladas
+  private Container playerActionsBox; // contendrá botones de acciones del jugador
+  private com.simsilica.lemur.Button rollDiceBtn;
+  private com.simsilica.lemur.Button payBailBtn;
 
   private List<PlayerCard> playerCards = new ArrayList<>();
   private PropertyCard propertyCard;
@@ -43,8 +47,14 @@ public class HUD extends AbstractAppState {
 
   private IHUDcontroller hudController;
 
-  // Nombres pendientes si se llaman antes de construir playersBox
-  private List<String> pendingPlayerNames;
+  // Jugadores pendientes si se llaman antes de construir playersBox
+  private List<Jugador> pendingPlayers;
+
+  // Animación indicador de turno: offset X del jugador activo
+  private static final float ACTIVE_PLAYER_OFFSET_X = 30f;
+  private static final float ANIMATION_SPEED = 8f;
+  private int activePlayerIndex = 1; // índice del jugador activo (1-based)
+  private List<Float> cardCurrentOffsets = new ArrayList<>();
 
   // Tokens pendientes si se reciben antes de construir la vista
   private String[] pendingTokens;
@@ -133,10 +143,10 @@ public class HUD extends AbstractAppState {
     playersBox = leftPane.addChild(new Container());
     playersBox.setBackground(null);
 
-    // Si había nombres pendientes, poblar ahora
-    if (pendingPlayerNames != null) {
-      populatePlayerNames(pendingPlayerNames);
-      pendingPlayerNames = null;
+    // Si había jugadores pendientes, poblar ahora
+    if (pendingPlayers != null) {
+      populatePlayers(pendingPlayers);
+      pendingPlayers = null;
     }
 
     // Right (PropertyCard)
@@ -296,6 +306,7 @@ public class HUD extends AbstractAppState {
   public void update(float tpf) {
     super.update(tpf);
     layoutComponents();
+    animateActivePlayerIndicator(tpf);
   }
 
   @Override
@@ -381,31 +392,85 @@ public class HUD extends AbstractAppState {
     }
   }
 
-  public void updatePlayerCard(
-      String playerName, String moneyText, boolean inJail, int playerIndex) {
+  /**
+   * Establece el índice del jugador activo para la animación del indicador de turno.
+   *
+   * @param playerIndex índice del jugador activo (1-based)
+   */
+  public void setActivePlayerIndex(int playerIndex) {
+    this.activePlayerIndex = Math.max(1, playerIndex);
+  }
 
+  /**
+   * Anima el desplazamiento de las tarjetas de jugador para indicar el turno activo. El jugador
+   * activo se desplaza hacia la derecha.
+   *
+   * @param tpf tiempo transcurrido desde el último frame
+   */
+  private void animateActivePlayerIndicator(float tpf) {
+    if (playerCards.isEmpty()) return;
+
+    // Asegurar que tenemos la lista de offsets inicializada
+    while (cardCurrentOffsets.size() < playerCards.size()) {
+      cardCurrentOffsets.add(0f);
+    }
+
+    for (int i = 0; i < playerCards.size(); i++) {
+      float targetOffset = (i + 1 == activePlayerIndex) ? ACTIVE_PLAYER_OFFSET_X : 0f;
+      float currentOffset = cardCurrentOffsets.get(i);
+
+      // Interpolación suave hacia el offset objetivo
+      float newOffset = currentOffset + (targetOffset - currentOffset) * ANIMATION_SPEED * tpf;
+
+      // Evitar oscilaciones mínimas
+      if (Math.abs(newOffset - targetOffset) < 0.5f) {
+        newOffset = targetOffset;
+      }
+
+      cardCurrentOffsets.set(i, newOffset);
+
+      // Aplicar el offset usando setLocalTranslation con la posición Y/Z preservada del layout
+      Container cardRoot = playerCards.get(i).getRoot();
+      Vector3f currentPos = cardRoot.getLocalTranslation();
+      // Solo modificar X, preservar Y y Z que Lemur calcula
+      cardRoot.setLocalTranslation(newOffset, currentPos.y, currentPos.z);
+    }
+  }
+
+  /**
+   * Actualiza la tarjeta de un jugador específico.
+   *
+   * @param player entidad Jugador con nombre, dinero, iconoId, etc.
+   * @param playerIndex índice del jugador (1-4)
+   */
+  public void updatePlayerCard(Jugador player, int playerIndex) {
     int idx = Math.max(1, playerIndex) - 1;
     if (idx >= 0 && idx < playerCards.size()) {
-      playerCards.get(idx).setInfo(playerName, moneyText, inJail, playerIndex);
+      playerCards.get(idx).setInfo(player, playerIndex);
     }
   }
 
-  public void setPlayerNames(List<String> names) {
+  /**
+   * Establece la lista de jugadores para mostrar en las PlayerCards.
+   *
+   * @param jugadores lista de entidades Jugador con nombre, dinero, iconoId, etc.
+   */
+  public void setPlayers(List<Jugador> jugadores) {
     if (playersBox == null) {
-      pendingPlayerNames = (names == null) ? null : new ArrayList<>(names);
+      pendingPlayers = (jugadores == null) ? null : new ArrayList<>(jugadores);
       return;
     }
-    populatePlayerNames(names);
+    populatePlayers(jugadores);
   }
 
-  private void populatePlayerNames(List<String> names) {
+  private void populatePlayers(List<Jugador> jugadores) {
     playerCards.clear();
     playersBox.detachAllChildren();
-    if (names == null) return;
+    if (jugadores == null) return;
 
-    for (int i = 0; i < names.size(); i++) {
+    for (int i = 0; i < jugadores.size(); i++) {
       PlayerCard card = new PlayerCard(app.getAssetManager());
-      card.setInfo(names.get(i), "$1500", false, i + 1);
+      card.setInfo(jugadores.get(i), i + 1);
       playerCards.add(card);
       playersBox.addChild(card.getRoot());
       // Añadir un pequeño separador

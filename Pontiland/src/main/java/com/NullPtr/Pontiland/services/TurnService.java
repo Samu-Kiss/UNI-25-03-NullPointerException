@@ -149,8 +149,13 @@ public class TurnService implements ITurnService {
     this.enabled = enabled;
     if (enabled) {
       try {
+        // Actualizar indicador de turno activo al inicio del juego
+        int activePlayerId = jugadorRepository.getActivePlayer();
+        int activeNumJugador = jugadorRepository.getNumJugadorByPlayerId(activePlayerId);
+        hudController.setActivePlayerIndex(activeNumJugador);
+
         casillaService.updateActivePlayerPropertyTokens(
-            jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer()));
+            jugadorRepository.getJugadorByID(activePlayerId));
       } catch (SQLException e) {
         logger.error("Error actualizando property tokens al habilitar TurnService", e);
       }
@@ -373,8 +378,8 @@ public class TurnService implements ITurnService {
         break;
 
       case MOVING:
-        updateHUDAndTokens();
         if (pendingMovement > 0) {
+          updateHUDAndTokens();
           movePlayer(pendingMovement);
           pendingMovement = 0;
         }
@@ -488,9 +493,13 @@ public class TurnService implements ITurnService {
     for (int i = jugadorRepository.getPlayerCount(); i > 0; i--) {
       Jugador jugador =
           jugadorRepository.getJugadorByID(jugadorRepository.getPlayerIdByNumJugador(i));
-      hudController.updatePlayerCard(
-          jugador.getNombreJugador(), String.valueOf(jugador.getDinero()), jugador.getEstado(), i);
+      hudController.updatePlayerCard(jugador, i);
     }
+
+    // Actualizar indicador de turno activo
+    int activePlayerId = jugadorRepository.getActivePlayer();
+    int activeNumJugador = jugadorRepository.getNumJugadorByPlayerId(activePlayerId);
+    hudController.setActivePlayerIndex(activeNumJugador);
 
     try {
       casillaService.updateActivePlayerPropertyTokens(
