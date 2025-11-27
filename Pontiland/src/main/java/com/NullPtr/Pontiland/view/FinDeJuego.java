@@ -54,7 +54,7 @@ public class FinDeJuego extends AbstractAppState {
   /** Color de subtítulo/texto secundario. */
   private static final ColorRGBA SUBTITLE_COLOR = new ColorRGBA(0.85f, 0.86f, 0.92f, 1f);
 
-  private static final Logger logger = LogManager.getLogger(FinDeJuego.class);
+  private static Logger logger = LogManager.getLogger(FinDeJuego.class);
 
   // Entradas externas
   private final Map<String, Map.Entry<Integer, Long>> resultados;
