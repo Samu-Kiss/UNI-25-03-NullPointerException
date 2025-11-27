@@ -72,6 +72,9 @@ public class HUD extends AbstractAppState {
   // Logger
   private static Logger logger = LogManager.getLogger(HUD.class);
 
+  // Nueva referencia a JailDecision
+  private JailDecision jailDecision;
+
   public HUD() {
     // No necesita implemetacion (Creo)
     // Comentario para evitar warning de sonar
@@ -155,6 +158,11 @@ public class HUD extends AbstractAppState {
     overlayPane.setBackground(new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.25f)));
     overlayPane.addChild(auction.getRoot());
     overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+
+    // Jail decision component
+    jailDecision = new JailDecision(app.getAssetManager());
+    jailDecision.setHudController(hudController);
+    guiNode.attachChild(jailDecision.getRoot());
 
     // Action bar debajo de la tarjeta
     actionBar = new Container();
@@ -273,6 +281,15 @@ public class HUD extends AbstractAppState {
     float ovY = (h + overlaySize.y) / 2f;
     overlayPane.setLocalTranslation(ovX, ovY, 10f);
     // overlayPane.setPreferredSize(overlaySize);
+
+    // Center JailDecision like Auction
+    if (jailDecision != null) {
+      Vector3f size = jailDecision.getPreferredSize();
+      if (size == null) size = new Vector3f(0f, 0f, 0f);
+      float jx = (camera.getWidth() - size.x) / 2f;
+      float jy = (camera.getHeight() + size.y) / 2f;
+      jailDecision.setLocalTranslation(jx, jy, 15f);
+    }
   }
 
   @Override
@@ -518,6 +535,16 @@ public class HUD extends AbstractAppState {
         return ColorRGBA.White;
       default:
         return ColorRGBA.White;
+    }
+  }
+
+  public void showJailDecision() {
+    if (jailDecision != null) jailDecision.setVisible(true);
+  }
+
+  public void hideJailDecision() {
+    if (jailDecision != null) {
+      jailDecision.setVisible(false);
     }
   }
 }

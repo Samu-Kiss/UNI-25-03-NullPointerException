@@ -94,8 +94,18 @@ public class AdquisicionService implements IAdquisicionService {
 
       try {
         jugadorRepository.updateDinero(jugador.getJugadorId(), jugador.getDinero() - precioNivel);
-        jugadorRepository.updateDinero(
-            jugadorPago.getJugadorId(), jugadorPago.getDinero() + precioNivel);
+
+        // Bloqueo: si el receptor está encarcelado (true), NO se le acredita dinero.
+        boolean receptorEncarcelado =
+            jugadorRepository.getJugadorEstadoByID(jugadorPago.getJugadorId());
+        if (!receptorEncarcelado) {
+          jugadorRepository.updateDinero(
+              jugadorPago.getJugadorId(), jugadorPago.getDinero() + precioNivel);
+        } else {
+          logger.debug(
+              "Pago bloqueado porque el jugador receptor está en cárcel (ID={})",
+              jugadorPago.getJugadorId());
+        }
       } catch (SQLException e) {
         logger.error(
             "Hubo un problema al actualizar el dinero del jugador con ID={}",

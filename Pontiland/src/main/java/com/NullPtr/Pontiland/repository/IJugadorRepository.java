@@ -32,4 +32,14 @@ public interface IJugadorRepository {
   void updateDinero(int jugadorID, int nuevoDinero) throws SQLException;
 
   void updateEstado(int jugadorID, String nuevoEstado) throws SQLException;
+
+  boolean getJugadorEstadoByID(int jugadorID) throws SQLException;
+
+  void setJugadorLibre(int jugadorID) throws SQLException;
+
+  void incrementarTiradasCarcel(int jugadorID) throws SQLException;
+
+  void resetTiradasCarcel(int jugadorID) throws SQLException;
+
+  int getTiradasCarcel(int jugadorID) throws SQLException;
 }
