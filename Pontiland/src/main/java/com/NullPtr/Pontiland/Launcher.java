@@ -108,7 +108,8 @@ public class Launcher extends SimpleApplication {
             casillaRepository,
             casillaService,
             hudController,
-            subastaService);
+            subastaService,
+            adquisicionService);
     lanzamientoDadosController = new LanzamientoDadosController(diceService);
     lanzamientoDadosController.registerInputs(getInputManager());
 

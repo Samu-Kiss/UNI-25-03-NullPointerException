@@ -23,6 +23,7 @@ public class TurnService implements ITurnService {
   private int tiradas = 1; // usadas para dobles fuera de cárcel
   private ISubastaService subastaService;
   private boolean irACarcel = false;
+  private IAdquisicionService adquisicionService;
 
   private static Logger logger = LogManager.getLogger(TurnService.class);
 
@@ -59,7 +60,8 @@ public class TurnService implements ITurnService {
       ICasillaRepository casillaRepository,
       ICasillaService casillaService,
       IHUDcontroller hudController,
-      ISubastaService subastaService) {
+      ISubastaService subastaService,
+      IAdquisicionService adquisicionService) {
     this.casillaService = casillaService;
     this.casillaRepository = casillaRepository;
     this.diceService = diceService;
@@ -67,6 +69,7 @@ public class TurnService implements ITurnService {
     this.partidaRepository = partidaRepository;
     this.hudController = hudController;
     this.subastaService = subastaService;
+    this.adquisicionService = adquisicionService;
   }
 
   @Override
@@ -175,7 +178,6 @@ public class TurnService implements ITurnService {
       }
 
       boolean encarcelado = jugadorRepository.getJugadorEstadoByID(activePlayerId);
-
       if (encarcelado) {
         jailFSM();
       } else {
@@ -317,6 +319,8 @@ public class TurnService implements ITurnService {
               activePlayerId, jugadorRepository.getJugadorByID(activePlayerId).getDinero() - 200);
           tiradas = 1;
           if (hudController != null) hudController.hideJailDecision();
+          Jugador jugador = jugadorRepository.getJugadorByID(activePlayerId);
+          if (jugador.getDinero() < 0) adquisicionService.liquidarDeudaConBanco(jugador);
           nextTurn();
           updateHUDAndTokens();
           jailState = JailState.CHECK_ROLLS;
@@ -422,6 +426,8 @@ public class TurnService implements ITurnService {
           tiradas = 1;
           nextTurn();
         }
+        Jugador jugador = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+        if (jugador.getDinero() < 0) adquisicionService.liquidarDeudaConBanco(jugador);
         updateHUDAndTokens();
         state = TurnState.AWAIT_ROLL;
         break;

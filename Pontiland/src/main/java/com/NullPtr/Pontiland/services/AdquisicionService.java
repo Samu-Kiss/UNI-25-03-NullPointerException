@@ -5,6 +5,8 @@ import com.NullPtr.Pontiland.entities.Propiedad;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import java.sql.SQLException;
+import java.util.Comparator;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,7 +35,7 @@ public class AdquisicionService implements IAdquisicionService {
     }
 
     int propiedadId = propiedad.getIdPropiedad();
-    int precio = propiedad.getPrecioCompra();
+    int precio = propiedad.getPrecioCompra() * 5;
 
     Jugador jugadorPago;
     try {
@@ -92,10 +94,16 @@ public class AdquisicionService implements IAdquisicionService {
 
         if (!jugadorRepository.getJugadorEstadoByID(jugadorPago.getJugadorId())) {
           if (jugador.getJugadorId() != jugadorPago.getJugadorId()) {
-            jugadorRepository.updateDinero(
-                jugador.getJugadorId(), jugador.getDinero() - precioNivel);
-            jugadorRepository.updateDinero(
-                jugadorPago.getJugadorId(), jugadorPago.getDinero() + precioNivel);
+            int saldoDeudor = jugador.getDinero() - precioNivel;
+            int saldoAcreedor = jugadorPago.getDinero() + precioNivel;
+            jugadorRepository.updateDinero(jugador.getJugadorId(), saldoDeudor);
+            jugadorRepository.updateDinero(jugadorPago.getJugadorId(), saldoAcreedor);
+
+            Jugador deudor = jugadorRepository.getJugadorByID(jugador.getJugadorId());
+            Jugador acreedor = jugadorRepository.getJugadorByID(jugadorPago.getJugadorId());
+            if (deudor.getDinero() < 0) {
+              liquidarDeudaEntreJugadores(deudor, acreedor);
+            }
           }
         } else {
           logger.debug(
@@ -209,6 +217,103 @@ public class AdquisicionService implements IAdquisicionService {
           "Error al vender la propiedad con Id={} del jugador con Id={}",
           propiedad.getIdPropiedad(),
           jugador.getJugadorId(),
+          e);
+    }
+  }
+
+  @Override
+  public void liquidarDeudaConBanco(Jugador jugador) {
+    try {
+      List<Propiedad> props = propiedadRepository.getPropiedadesByJugador(jugador.getJugadorId());
+      int valorTotalPropiedades =
+          propiedadRepository.getPatrimonioTotalJugador(jugador.getJugadorId());
+
+      if (jugador.getDinero() + valorTotalPropiedades < 0) {
+        logger.debug(
+            "{} no cuenta con el patrimonio suficiente para continuar el juego y termina el juego",
+            jugador.getNombreJugador());
+        // TODO: finalizar partida
+        return;
+      }
+
+      logger.debug(
+          "{} cuenta con patrimonio suficiente, se venderán propiedades hasta saldar la deuda",
+          jugador.getNombreJugador());
+
+      props.sort(Comparator.comparingInt(Propiedad::getPrecioCompra).reversed());
+
+      while (jugador.getDinero() < 0 && !props.isEmpty()) {
+        jugador = jugadorRepository.getJugadorByID(jugador.getJugadorId());
+
+        Propiedad propiedadMasCara = props.remove(0);
+        venderPropiedad(propiedadMasCara, jugador);
+        logger.debug(
+            "{} ha vendido la propiedad {} por {} monedas.",
+            jugador.getNombreJugador(),
+            propiedadMasCara.getIdPropiedad(),
+            propiedadMasCara.getPrecioCompra());
+      }
+    } catch (SQLException e) {
+      logger.error(
+          "Error al liquidar deuda con el banco del jugador {}", jugador.getJugadorId(), e);
+    }
+  }
+
+  @Override
+  public void liquidarDeudaEntreJugadores(Jugador deudor, Jugador acreedor) {
+    try {
+      List<Propiedad> props = propiedadRepository.getPropiedadesByJugador(deudor.getJugadorId());
+      int valorTotalPropiedades =
+          propiedadRepository.getPatrimonioTotalJugador(deudor.getJugadorId());
+
+      if (deudor.getDinero() + valorTotalPropiedades < 0) {
+        logger.debug(
+            "{} no puede saldar la deuda con {} ni con todo su patrimonio",
+            deudor.getNombreJugador(),
+            acreedor.getNombreJugador());
+        // TODO: lógica de bancarrota frente a jugador
+        return;
+      }
+
+      // Ordenar de mayor a menor valor
+      props.sort(Comparator.comparingInt(Propiedad::getPrecioCompra).reversed());
+
+      while (deudor.getDinero() < 0 && !props.isEmpty()) {
+        // Releer saldos actuales
+        deudor = jugadorRepository.getJugadorByID(deudor.getJugadorId());
+        Propiedad propiedad = props.remove(0);
+
+        // Transferir propiedad: quitar al deudor y asignar al acreedor manteniendo nivel
+        try {
+          propiedadRepository.venderAdquisicion(propiedad.getIdPropiedad(), deudor.getJugadorId());
+          propiedadRepository.addAdquisicion(
+              acreedor.getJugadorId(), propiedad.getIdPropiedad(), propiedad.getNivelPropiedad());
+        } catch (SQLException e) {
+          logger.error(
+              "Error al transferir la propiedad {} de {} a {}",
+              propiedad.getIdPropiedad(),
+              deudor.getJugadorId(),
+              acreedor.getJugadorId(),
+              e);
+          continue;
+        }
+
+        // El valor de la propiedad cubre deuda del deudor; no modifica saldo del acreedor
+        int nuevoSaldoDeudor = deudor.getDinero() + propiedad.getPrecioCompra();
+        jugadorRepository.updateDinero(deudor.getJugadorId(), nuevoSaldoDeudor);
+        logger.debug(
+            "Transferida propiedad {} (valor={}) de {} a {}. Saldo deudor: {}",
+            propiedad.getIdPropiedad(),
+            propiedad.getPrecioCompra(),
+            deudor.getJugadorId(),
+            acreedor.getJugadorId(),
+            nuevoSaldoDeudor);
+      }
+    } catch (SQLException e) {
+      logger.error(
+          "Error al liquidar deuda entre jugadores de {} a {}",
+          deudor.getJugadorId(),
+          acreedor.getJugadorId(),
           e);
     }
   }

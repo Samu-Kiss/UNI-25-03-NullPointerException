@@ -11,5 +11,9 @@ public interface IAdquisicionService {
 
   boolean comprarPropiedadEnSubasta(int position, Jugador jugador, int precioFinal);
 
-  void venderPropiedad(Propiedad idPropiedad, Jugador jugador);
+  void venderPropiedad(Propiedad propiedad, Jugador jugador);
+
+  void liquidarDeudaConBanco(Jugador jugador);
+
+  void liquidarDeudaEntreJugadores(Jugador deudor, Jugador acreedor);
 }
