@@ -26,11 +26,7 @@ class LanzamientoDadosControllerTest {
   /** Controlador bajo prueba. */
   private LanzamientoDadosController controller;
 
-  /**
-   * Se ejecuta antes de cada prueba. Inicializa el controlador con un servicio de dados simulado
-   * (mock). Esto permite interceptar y verificar llamadas a métodos del servicio sin ejecutar la
-   * lógica real de los dados.
-   */
+  /** Se ejecuta antes de cada prueba para inicializar el controlador con un mock del servicio. */
   @BeforeEach
   void setUp() {
     diceService = mock(DiceService.class);
