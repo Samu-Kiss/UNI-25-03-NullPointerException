@@ -26,6 +26,9 @@ public class HUDController implements IHUDcontroller {
   // dejaba asi
   // private com.NullPtr.Pontiland.services.IAdquisicionService adquisicionService;
 
+  private boolean jailPay = false;
+  private boolean jailRoll = false;
+
   public HUDController(Launcher app) {
     this.app = Objects.requireNonNull(app, "app no puede ser null");
   }
@@ -33,6 +36,7 @@ public class HUDController implements IHUDcontroller {
   @Override
   public void setHud(HUD hud) {
     this.hud = hud;
+    if (this.hud != null) this.hud.setHudController(this);
   }
 
   @Override
@@ -183,23 +187,59 @@ public class HUDController implements IHUDcontroller {
   }
 
   @Override
-  public void rollDice() {
-    if (turnService != null) {
-      turnService.rollDice();
+  public void showGoodEvent(String title, String descriptionText) {
+    if (hud != null) hud.showGoodEvent(title, descriptionText);
+  }
+
+  @Override
+  public void showBadEvent(String title, String descriptionText) {
+    if (hud != null) hud.showBadEvent(title, descriptionText);
+  }
+
+  @Override
+  public void hideEventCards() {
+    if (hud != null) hud.hideEventCards();
+  }
+
+  @Override
+  public void showJailDecision() {
+    if (hud != null) {
+      jailPay = false;
+      jailRoll = false;
+      hud.showJailDecision();
     }
   }
 
   @Override
-  public void setRollDiceButtonVisible(boolean visible) {
+  public void hideJailDecision() {
     if (hud != null) {
-      hud.setRollDiceButtonVisible(visible);
+      hud.hideJailDecision();
     }
   }
 
   @Override
-  public void setPayBailButtonVisible(boolean visible) {
-    if (hud != null) {
-      hud.setPayBailButtonVisible(visible);
-    }
+  public void chooseJailPay() {
+    jailPay = true;
+    jailRoll = false;
+  }
+
+  @Override
+  public void chooseJailRoll() {
+    jailRoll = true;
+    jailPay = false;
+  }
+
+  @Override
+  public boolean getJailPay() {
+    boolean v = jailPay;
+    jailPay = false;
+    return v;
+  }
+
+  @Override
+  public boolean getJailRoll() {
+    boolean v = jailRoll;
+    jailRoll = false;
+    return v;
   }
 }

@@ -72,6 +72,7 @@ public class Launcher extends SimpleApplication {
     bulletAppState.getPhysicsSpace().setMaxSubSteps(2);
 
     dataService = new DataService("jdbc:h2:mem:Pontiland;DB_CLOSE_DELAY=-1");
+    // dataService = new DataService("jdbc:h2:./data/PontilandDB;AUTO_SERVER=TRUE");
 
     partidaRepository = new PartidaRepository(dataService);
     jugadorRepository = new JugadorRepository(dataService);
@@ -97,7 +98,8 @@ public class Launcher extends SimpleApplication {
             diceService,
             propiedadRepository,
             adquisicionService,
-            new TarjetaEventoRepository(dataService));
+            new TarjetaEventoRepository(dataService),
+            jugadorRepository);
     turnService =
         new TurnService(
             jugadorRepository,
@@ -106,7 +108,8 @@ public class Launcher extends SimpleApplication {
             casillaRepository,
             casillaService,
             hudController,
-            subastaService);
+            subastaService,
+            adquisicionService);
     lanzamientoDadosController = new LanzamientoDadosController(diceService);
     lanzamientoDadosController.registerInputs(getInputManager());
 
@@ -119,6 +122,10 @@ public class Launcher extends SimpleApplication {
     turnService.setScene(scene);
     MenuController menuController =
         new MenuController(this, startGameService, dataService, hudController, turnService);
+
+    // Inyectar dependencias circulares mediante setters
+    menuController.setPartidaRepository((PartidaRepository) partidaRepository);
+    turnService.setMenuActions(menuController);
 
     InputManager inputManager = getInputManager();
 

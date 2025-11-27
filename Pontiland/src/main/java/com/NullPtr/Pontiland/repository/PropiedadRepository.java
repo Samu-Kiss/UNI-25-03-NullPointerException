@@ -323,4 +323,65 @@ public class PropiedadRepository implements IPropiedadRepository {
       throw new SQLException("Error al intentar agregar la adquisición de la propiedad", e);
     }
   }
+
+  @Override
+  public void updateAdquisicionNivel(int propiedadId, int jugadorId, int nuevoNivel)
+      throws SQLException {
+    String update =
+        "UPDATE Adquisiciones SET NivelPropiedad = ? WHERE PropiedadID = ? AND JugadorID = ?";
+    try (Connection conex = dataService.createConnection();
+        PreparedStatement ps = conex.prepareStatement(update)) {
+      ps.setInt(1, nuevoNivel);
+      ps.setInt(2, propiedadId);
+      ps.setInt(3, jugadorId);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      throw new SQLException("Error al intentar actualizar el nivel de la adquisición", e);
+    }
+  }
+
+  /**
+   * Calcula el patrimonio total de un jugador sumando los precios de compra de todas sus
+   * propiedades.
+   *
+   * @param jugadorId id del jugador
+   * @return el patrimonio total (suma de precios de compra)
+   * @throws SQLException si ocurre un error al ejecutar la consulta
+   */
+  @Override
+  public int getPatrimonioTotalJugador(int jugadorId) throws SQLException {
+    String query =
+        "SELECT SUM(Propiedad.PrecioCompra) AS PatrimonioTotal "
+            + "FROM Adquisiciones "
+            + "INNER JOIN Propiedad ON Adquisiciones.PropiedadID = Propiedad.PropiedadID "
+            + "WHERE Adquisiciones.JugadorID = ?";
+
+    try (Connection conex = dataService.createConnection();
+        PreparedStatement ps = conex.prepareStatement(query)) {
+      ps.setInt(1, jugadorId);
+      try (ResultSet rs = ps.executeQuery()) {
+        if (rs.next()) {
+          return rs.getInt("PatrimonioTotal");
+        } else {
+          return 0;
+        }
+      }
+    } catch (SQLException e) {
+      throw new SQLException(
+          "Error al intentar obtener el patrimonio total del jugador con id=" + jugadorId, e);
+    }
+  }
+
+  @Override
+  public void venderAdquisicion(int propiedadId, int jugadorId) throws SQLException {
+    String delete = "DELETE FROM Adquisiciones WHERE PropiedadID = ? AND JugadorID = ?";
+    try (Connection conex = dataService.createConnection();
+        PreparedStatement ps = conex.prepareStatement(delete)) {
+      ps.setInt(1, propiedadId);
+      ps.setInt(2, jugadorId);
+      ps.executeUpdate();
+    } catch (SQLException e) {
+      throw new SQLException("Error al intentar vender la adquisición de la propiedad", e);
+    }
+  }
 }

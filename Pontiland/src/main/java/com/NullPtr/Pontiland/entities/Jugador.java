@@ -16,6 +16,7 @@ public class Jugador {
   private boolean enCarcel = false;
   private int dinero = 0;
   private long partidaId = -1;
+  private int tiradasCarcel = 0;
   private List<Propiedad> propiedades;
 
   /**
@@ -78,6 +79,7 @@ public class Jugador {
    * @param enCarcel Estado del jugador (si está en la cárcel o no)
    * @param dinero Cantidad de dinero que posee el jugador
    * @param partidaId Identificador de la partida a la que pertenece el jugador
+   * @param tiradasCarcel Número de tiradas en cárcel
    * @throws IllegalArgumentException si algún argumento es inválido (dinero negativo, nombre vacío,
    *     posición fuera de rango, identificadores fuera de rango)
    */
@@ -89,11 +91,9 @@ public class Jugador {
       int posicion,
       boolean enCarcel,
       int dinero,
-      long partidaId) {
+      long partidaId,
+      int tiradasCarcel) {
 
-    if (dinero < 0) {
-      throw new IllegalArgumentException("El dinero no puede ser negativo");
-    }
     if (nombreJugador == null || nombreJugador.isEmpty()) {
       throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
     }
@@ -118,6 +118,7 @@ public class Jugador {
     this.enCarcel = enCarcel;
     this.dinero = dinero;
     this.partidaId = partidaId;
+    this.tiradasCarcel = tiradasCarcel;
   }
 
   public int getJugadorId() {
@@ -194,5 +195,13 @@ public class Jugador {
 
   public void setIconoId(int iconoId) {
     this.iconoId = iconoId;
+  }
+
+  public int getTiradasCarcel() {
+    return tiradasCarcel;
+  }
+
+  public void setTiradasCarcel(int tiradasCarcel) {
+    this.tiradasCarcel = Math.max(0, tiradasCarcel);
   }
 }

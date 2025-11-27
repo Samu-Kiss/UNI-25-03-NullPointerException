@@ -1,12 +1,16 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.entities.Jugador;
+import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.repository.IJugadorRepository;
 import com.NullPtr.Pontiland.repository.IPartidaRepository;
 import com.NullPtr.Pontiland.repository.IPropiedadRepository;
 import com.NullPtr.Pontiland.view.IScene;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Servicio encargado de iniciar y cargar partidas en el sistema Pontiland. Permite la creación de
@@ -26,6 +30,8 @@ public class StartGameService implements IStartGameService {
   private IPropiedadRepository propiedadRepository;
 
   private IScene scene;
+
+  private static Logger logger = LogManager.getLogger(StartGameService.class);
 
   /**
    * Constructor que permite la inyección de dependencias.
@@ -77,11 +83,39 @@ public class StartGameService implements IStartGameService {
   /**
    * Carga una partida existente desde un archivo seleccionado.
    *
-   * @param archivoSeleccionado Nombre o ruta del archivo de la partida a cargar.
+   * @param partidaSeleccionada Nombre o ruta del archivo de la partida a cargar.
    */
   @Override
-  public void loadingOldGame(String archivoSeleccionado) {
-    dataService.loadDataBase(archivoSeleccionado);
+  public void loadingOldGame(String partidaSeleccionada) throws SQLException {
+    Long partidaID = Long.parseLong(partidaSeleccionada);
+    partidaRepository.setPartidaID(partidaID);
+    jugadorRepository.setPartidaID(partidaID);
+    propiedadRepository.setPartidaID(partidaID);
+
+    // scene.loadFichasModels(jugadorRepository.getFichas(partidaRepository.getNumJugadores()));
+  }
+
+  /**
+   * Devuelve la lista de partidas guardadas disponibles.
+   *
+   * <p>Este método delega en {@code partidaRepository.getAllPartidaIDs()} para obtener el historial
+   * de partidas guardadas (objetos {@link SavedGame}).
+   *
+   * <p>Contratos y comportamientos: - Retorna una lista de {@link SavedGame} que representa las
+   * partidas guardadas. - Si no hay partidas, lo habitual es que se devuelva una lista vacía (según
+   * la implementación concreta del repositorio). - Si {@code partidaRepository} no ha sido
+   * inyectado, este método lanzará una {@link NullPointerException} al intentar delegar la llamada.
+   *
+   * @return lista de partidas guardadas ({@link SavedGame}), potencialmente vacía.
+   */
+  @Override
+  public List<SavedGame> listPastGames() {
+    try {
+      return partidaRepository.getAllPartidaIDs();
+    } catch (SQLException e) {
+      logger.error("Error buscando partidas pasadas", e);
+      return new ArrayList<>();
+    }
   }
 
   @Override

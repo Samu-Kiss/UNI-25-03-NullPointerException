@@ -1,12 +1,16 @@
 package com.NullPtr.Pontiland.repository;
 
+import com.NullPtr.Pontiland.entities.SavedGame;
 import com.NullPtr.Pontiland.services.IDataService;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 /**
  * Repositorio encargado de gestionar las operaciones relacionadas con la entidad Partida en la base
@@ -111,5 +115,78 @@ public class PartidaRepository implements IPartidaRepository {
    */
   public long getPartidaID() {
     return partidaID;
+  }
+
+  public List<SavedGame> getAllPartidaIDs() throws SQLException {
+    String consulta = "SELECT PartidaID FROM Partida WHERE Activa = TRUE";
+    Map<String, String> mapaArchivo = new LinkedHashMap<>();
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta);
+        ResultSet rs = stmt.executeQuery()) {
+      while (rs.next()) {
+        String fechaRepresentada = Long.toString(rs.getLong("PartidaID"));
+        SimpleDateFormat formatoEntrada = new SimpleDateFormat("yyyyMMddHHmmss");
+        Date date = formatoEntrada.parse(fechaRepresentada);
+        SimpleDateFormat formatoSalida = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String formattedDate = formatoSalida.format(date);
+        mapaArchivo.put(formattedDate, fechaRepresentada);
+      }
+    } catch (SQLException e) {
+      throw new SQLException("Error al intentar obtener los IDs de las partidas", e);
+    } catch (ParseException e) {
+      throw new RuntimeException(e);
+    }
+    List<SavedGame> listaPartidas = new ArrayList<>();
+
+    for (Map.Entry<String, String> entry : mapaArchivo.entrySet()) {
+      listaPartidas.add(new SavedGame(entry.getValue(), entry.getKey()));
+    }
+
+    return listaPartidas;
+  }
+
+  public Map<String, Map.Entry<Integer, Long>> finalResults() throws SQLException {
+    String consulta =
+        "SELECT JUGADOR.NOMBREJUGADOR, JUGADOR.JUGADORID, JUGADOR.ICONOID, DINERO, COALESCE(SUM(PROPIEDAD.PRECIOCOMPRA),0) AS PATRIMONIO "
+            + "FROM JUGADOR "
+            + "LEFT JOIN ADQUISICIONES "
+            + "ON JUGADOR.JUGADORID=ADQUISICIONES.JUGADORID "
+            + "LEFT JOIN PROPIEDAD ON ADQUISICIONES.PROPIEDADID=PROPIEDAD.PROPIEDADID "
+            + "WHERE JUGADOR.PARTIDA= ? "
+            + "GROUP BY JUGADOR.JUGADORID";
+    Map<String, Map.Entry<Integer, Long>> resFinales = new HashMap<>();
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement stmt = conn.prepareStatement(consulta)) {
+      stmt.setLong(1, partidaID);
+      try (ResultSet rs = stmt.executeQuery()) {
+        while (rs.next()) {
+          String nombreJugador = rs.getString("NOMBREJUGADOR");
+          int iconoID = rs.getInt("ICONOID");
+          long patrimonio = rs.getLong("DINERO") + rs.getLong("PATRIMONIO");
+          resFinales.put(nombreJugador, new AbstractMap.SimpleEntry<>(iconoID, patrimonio));
+        }
+      }
+    } catch (SQLException e) {
+      throw new SQLException("Error al calcular los resultados finales", e);
+    }
+    return resFinales;
+  }
+
+  @Override
+  public void updatePartidaActiveStatus() throws SQLException {
+    String updateQuery = "UPDATE PARTIDA SET Activa = ? WHERE PartidaID = ?";
+    try (Connection conn = dataService.createConnection();
+        PreparedStatement updateStmt = conn.prepareStatement(updateQuery)) {
+      updateStmt.setBoolean(1, false);
+      updateStmt.setLong(2, partidaID);
+      updateStmt.executeUpdate();
+    } catch (SQLException e) {
+      throw new SQLException(
+          "Error al actualizar el estado activo de la partida con Id=" + partidaID, e);
+    }
+  }
+
+  public void setPartidaID(long partidaID) {
+    this.partidaID = partidaID;
   }
 }

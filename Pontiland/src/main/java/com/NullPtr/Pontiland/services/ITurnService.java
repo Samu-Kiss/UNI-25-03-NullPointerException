@@ -26,5 +26,13 @@ public interface ITurnService {
 
   void exitAuction();
 
-  void rollDice();
+  /** Finaliza la partida: deshabilita turnos/inputs y muestra pantalla de fin de juego. */
+  void finalizarPartida();
+
+  /**
+   * Establece la referencia al controlador de menú para navegación al finalizar partida.
+   *
+   * @param menuActions referencia a las acciones del menú
+   */
+  void setMenuActions(com.NullPtr.Pontiland.controllers.IMenuActions menuActions);
 }

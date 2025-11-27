@@ -3,10 +3,7 @@ package com.NullPtr.Pontiland.view;
 import com.NullPtr.Pontiland.Launcher;
 import com.NullPtr.Pontiland.controllers.IHUDcontroller;
 import com.NullPtr.Pontiland.entities.Jugador;
-import com.NullPtr.Pontiland.view.HUDComponents.Auction;
-import com.NullPtr.Pontiland.view.HUDComponents.PlayerCard;
-import com.NullPtr.Pontiland.view.HUDComponents.PropertyCard;
-import com.NullPtr.Pontiland.view.HUDComponents.PropertyToken;
+import com.NullPtr.Pontiland.view.HUDComponents.*;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
@@ -46,6 +43,7 @@ public class HUD extends AbstractAppState {
   private PropertyCard propertyCard;
   private PropertyToken propertyToken;
   private Auction auction;
+  private EventCard eventCard;
 
   private IHUDcontroller hudController;
 
@@ -84,6 +82,9 @@ public class HUD extends AbstractAppState {
   // Logger
   private static Logger logger = LogManager.getLogger(HUD.class);
 
+  // Nueva referencia a JailDecision
+  private JailDecision jailDecision;
+
   public HUD() {
     // No necesita implemetacion (Creo)
     // Comentario para evitar warning de sonar
@@ -117,8 +118,6 @@ public class HUD extends AbstractAppState {
     this.propertyToken = new PropertyToken(app.getAssetManager());
     this.auction = new Auction(app.getAssetManager());
     this.auction.setHudController(hudController);
-
-    // Aplicar grupo o tokens pendientes si existieron llamadas tempranas
     if (pendingTokensGroup != null) {
       try {
         propertyToken.setGroup(pendingTokensGroup);
@@ -150,9 +149,6 @@ public class HUD extends AbstractAppState {
       pendingPlayers = null;
     }
 
-    // Player action buttons (below player cards)
-    buildPlayerActionButtons();
-
     // Right (PropertyCard)
     rightPane = new Container();
     rightPane.setBackground(new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0)));
@@ -172,6 +168,11 @@ public class HUD extends AbstractAppState {
     overlayPane.setBackground(new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.25f)));
     overlayPane.addChild(auction.getRoot());
     overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+
+    // Jail decision component
+    jailDecision = new JailDecision(app.getAssetManager());
+    jailDecision.setHudController(hudController);
+    guiNode.attachChild(jailDecision.getRoot());
 
     // Action bar debajo de la tarjeta
     actionBar = new Container();
@@ -202,11 +203,17 @@ public class HUD extends AbstractAppState {
             com.NullPtr.Pontiland.view.Button.Variant.MAIN);
     auctionBtn.addClickCommands(ignored -> hudController.iniciarSubasta());
 
+    // Event card (usada para mostrar eventos buenos y malos)
+    this.eventCard = new com.NullPtr.Pontiland.view.HUDComponents.EventCard(app.getAssetManager());
+    // El botón de la EventCard ocultará la carta al ser pulsado
+    eventCard.setCloseCommand(this::hideEventCards);
+
     actionRow.addChild(buyBtn);
     Container spacer = new Container();
     spacer.setBackground(null);
     spacer.setPreferredSize(new Vector3f(12f, 0f, 0));
     actionRow.addChild(spacer);
+
     actionRow.addChild(auctionBtn);
 
     guiNode.attachChild(leftPane);
@@ -214,74 +221,9 @@ public class HUD extends AbstractAppState {
     guiNode.attachChild(bottomPane);
     guiNode.attachChild(overlayPane);
     guiNode.attachChild(actionBar);
-  }
-
-  private void buildPlayerActionButtons() {
-    playerActionsBox = new Container();
-    playerActionsBox.setBackground(null);
-
-    Button renderer =
-        new Button(app.getAssetManager()).setDefaultFontSize(14f).setHoverScale(1.05f);
-
-    // Botón Lanzar Dados
-    rollDiceBtn = renderer.render(Button.Type.ACCENT, "Lanzar Dados", 0.45f, Button.Variant.MAIN);
-    rollDiceBtn.addClickCommands(ignored -> onRollDiceClicked());
-    playerActionsBox.addChild(rollDiceBtn);
-
-    // Espaciador
-    Container spacer = new Container();
-    spacer.setBackground(null);
-    spacer.setPreferredSize(new Vector3f(0, 8f, 0));
-    playerActionsBox.addChild(spacer);
-
-    // Botón Pagar Fianza
-    payBailBtn = renderer.render(Button.Type.POSITIVE, "Pagar Fianza", 0.45f, Button.Variant.MAIN);
-    payBailBtn.addClickCommands(ignored -> onPayBailClicked());
-    playerActionsBox.addChild(payBailBtn);
-
-    // Ocultar ambos por defecto
-    rollDiceBtn.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
-    payBailBtn.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
-
-    leftPane.addChild(playerActionsBox);
-  }
-
-  private void onRollDiceClicked() {
-    if (hudController != null) {
-      hudController.rollDice();
-    }
-  }
-
-  private void onPayBailClicked() {
-    logger.info("Función de pagar fianza está en desarrollo");
-  }
-
-  /**
-   * Muestra u oculta el botón de lanzar dados.
-   *
-   * @param visible true para mostrar, false para ocultar
-   */
-  public void setRollDiceButtonVisible(boolean visible) {
-    if (rollDiceBtn != null) {
-      rollDiceBtn.setCullHint(
-          visible
-              ? com.jme3.scene.Spatial.CullHint.Inherit
-              : com.jme3.scene.Spatial.CullHint.Always);
-    }
-  }
-
-  /**
-   * Muestra u oculta el botón de pagar fianza.
-   *
-   * @param visible true para mostrar, false para ocultar
-   */
-  public void setPayBailButtonVisible(boolean visible) {
-    if (payBailBtn != null) {
-      payBailBtn.setCullHint(
-          visible
-              ? com.jme3.scene.Spatial.CullHint.Inherit
-              : com.jme3.scene.Spatial.CullHint.Always);
-    }
+    // Event card overlay: añadir pero ocultar por defecto
+    guiNode.attachChild(eventCard.getRoot());
+    eventCard.getRoot().setCullHint(com.jme3.scene.Spatial.CullHint.Always);
   }
 
   private void layoutComponents() {
@@ -349,6 +291,15 @@ public class HUD extends AbstractAppState {
     float ovY = (h + overlaySize.y) / 2f;
     overlayPane.setLocalTranslation(ovX, ovY, 10f);
     // overlayPane.setPreferredSize(overlaySize);
+
+    // Center JailDecision like Auction
+    if (jailDecision != null) {
+      Vector3f size = jailDecision.getPreferredSize();
+      if (size == null) size = new Vector3f(0f, 0f, 0f);
+      float jx = (camera.getWidth() - size.x) / 2f;
+      float jy = (camera.getHeight() + size.y) / 2f;
+      jailDecision.setLocalTranslation(jx, jy, 15f);
+    }
   }
 
   @Override
@@ -394,12 +345,51 @@ public class HUD extends AbstractAppState {
     if (overlayPane != null) overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
   }
 
+  // Actualiza el nombre del jugador que participa en la subasta (vista).
   public void setAuctionPlayerName(String playerName) {
-    auction.setPlayerName(playerName);
+    if (auction != null) auction.setPlayerName(playerName);
   }
 
+  // Oculta la UI de subasta
   public void hideAuction() {
     if (overlayPane != null) overlayPane.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+  }
+
+  // Muestra una carta de evento "buena" en el centro con estilo por defecto.
+  public void showGoodEvent(String title, String descriptionText) {
+    if (eventCard == null) return;
+    eventCard.setInfo(title, descriptionText);
+    // usar sprite positivo
+    eventCard.setType(com.NullPtr.Pontiland.view.HUDComponents.EventCard.Type.POSITIVE);
+    // posicionar en el centro de la pantalla
+    layoutEventCard();
+    eventCard.getRoot().setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
+  }
+
+  // Muestra una carta de evento "mala" en el centro con estilo por defecto.
+  public void showBadEvent(String title, String descriptionText) {
+    if (eventCard == null) return;
+    eventCard.setInfo(title, descriptionText);
+    // usar sprite negativo
+    eventCard.setType(com.NullPtr.Pontiland.view.HUDComponents.EventCard.Type.NEGATIVE);
+    layoutEventCard();
+    eventCard.getRoot().setCullHint(com.jme3.scene.Spatial.CullHint.Inherit);
+  }
+
+  private void layoutEventCard() {
+    if (eventCard == null || camera == null) return;
+    Vector3f pref = eventCard.getRoot().getPreferredSize();
+    if (pref == null) pref = new Vector3f(300f, 160f, 0f);
+    float cx = (camera.getWidth() - pref.x) / 2f;
+    float cy = (camera.getHeight() + pref.y) / 2f;
+    eventCard.getRoot().setLocalTranslation(cx, cy, 20f);
+  }
+
+  // Oculta cualquier carta de evento visible
+  public void hideEventCards() {
+    if (eventCard != null) {
+      eventCard.getRoot().setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+    }
   }
 
   /**
@@ -450,13 +440,13 @@ public class HUD extends AbstractAppState {
   /**
    * Actualiza la tarjeta de un jugador específico.
    *
-   * @param jugador entidad Jugador con los datos actualizados
+   * @param player entidad Jugador con nombre, dinero, iconoId, etc.
    * @param playerIndex índice del jugador (1-4)
    */
-  public void updatePlayerCard(Jugador jugador, int playerIndex) {
+  public void updatePlayerCard(Jugador player, int playerIndex) {
     int idx = Math.max(1, playerIndex) - 1;
     if (idx >= 0 && idx < playerCards.size()) {
-      playerCards.get(idx).setInfo(jugador, playerIndex);
+      playerCards.get(idx).setInfo(player, playerIndex);
     }
   }
 
@@ -494,6 +484,7 @@ public class HUD extends AbstractAppState {
   public void updatePropertyCard(String name, String priceText, String[] rentsText) {
     propertyCard.setInfo(name, priceText, rentsText);
 
+    // No se usa aun
     /*if (name != null && !name.isBlank()) {
       currentPropertyName = name;
     }*/
@@ -609,6 +600,16 @@ public class HUD extends AbstractAppState {
         return ColorRGBA.White;
       default:
         return ColorRGBA.White;
+    }
+  }
+
+  public void showJailDecision() {
+    if (jailDecision != null) jailDecision.setVisible(true);
+  }
+
+  public void hideJailDecision() {
+    if (jailDecision != null) {
+      jailDecision.setVisible(false);
     }
   }
 }

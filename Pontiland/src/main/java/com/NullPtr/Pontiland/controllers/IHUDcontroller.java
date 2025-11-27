@@ -50,9 +50,25 @@ public interface IHUDcontroller {
 
   void setAuctionPlayerName(String playerName);
 
-  void rollDice();
+  // Eventos: mostrar carta buena, carta mala y ocultar cartas de evento
+  void showGoodEvent(String title, String descriptionText);
 
-  void setRollDiceButtonVisible(boolean visible);
+  void showBadEvent(String title, String descriptionText);
 
-  void setPayBailButtonVisible(boolean visible);
+  void hideEventCards();
+
+  // Jail decision overlay (Pay/Roll)
+  void showJailDecision();
+
+  void hideJailDecision();
+
+  // Set decision flags when JailDecision buttons are pressed
+  void chooseJailPay();
+
+  void chooseJailRoll();
+
+  // Poll decision via two booleans
+  boolean getJailPay();
+
+  boolean getJailRoll();
 }

@@ -48,7 +48,7 @@ class JugadorTest {
   /** Verifica el constructor completo con todos los parámetros. */
   @Test
   void fullConstructorAllParamsTest() {
-    Jugador jugador = new Jugador(3, 2, "Caramelo", 1, 10, true, 500, 123L);
+    Jugador jugador = new Jugador(3, 2, "Caramelo", 1, 10, true, 500, 123L, 0);
 
     assertEquals(3, jugador.getJugadorId(), "El jugadorId debe ser 3");
     assertEquals(2, jugador.getNumJugador(), "El numJugador debe ser 2");
@@ -186,35 +186,32 @@ class JugadorTest {
     // Constructor completo inválido
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(1, 2, "", 1, 10, false, 100, 100L),
+        () -> new Jugador(1, 2, "", 1, 10, false, 100, 100L, 0),
         "Debe lanzar excepción si nombre está vacío");
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(1, 0, "Nombre", 1, 10, false, 100, 100L),
+        () -> new Jugador(1, 0, "Nombre", 1, 10, false, 100, 100L, 0),
         "Debe lanzar excepción si numJugador es menor que 1");
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(1, 5, "Nombre", 1, 10, false, 100, 100L),
+        () -> new Jugador(1, 5, "Nombre", 1, 10, false, 100, 100L, 0),
         "Debe lanzar excepción si numJugador es mayor que 4");
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(1, 2, "Nombre", 0, 10, false, 100, 100L),
+        () -> new Jugador(1, 2, "Nombre", 0, 10, false, 100, 100L, 0),
         "Debe lanzar excepción si posición es menor que 1");
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(1, 2, "Nombre", 8, 10, false, 100, 100L),
+        () -> new Jugador(1, 2, "Nombre", 8, 10, false, 100, 100L, 0),
         "Debe lanzar excepción si posición es mayor que 7");
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(1, 2, "Nombre", 1, 0, false, 100, 100L),
+        () -> new Jugador(1, 2, "Nombre", 1, 0, false, 100, 100L, 0),
         "Debe lanzar excepción si dinero es menor que 1");
+
     assertThrows(
         IllegalArgumentException.class,
-        () -> new Jugador(1, 2, "Nombre", 1, 10, false, -1, 100L),
-        "Debe lanzar excepción si dinero es negativo");
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> new Jugador(1, 2, "Nombre", 1, 10, false, 100, -1L),
+        () -> new Jugador(1, 2, "Nombre", 1, 10, false, 100, -1L, 0),
         "Debe lanzar excepción si partida es negativa");
 
     // Setters inválidos

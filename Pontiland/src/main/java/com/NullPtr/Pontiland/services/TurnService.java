@@ -1,6 +1,7 @@
 package com.NullPtr.Pontiland.services;
 
 import com.NullPtr.Pontiland.controllers.IHUDcontroller;
+import com.NullPtr.Pontiland.controllers.IMenuActions;
 import com.NullPtr.Pontiland.entities.Casilla;
 import com.NullPtr.Pontiland.entities.Jugador;
 import com.NullPtr.Pontiland.repository.ICasillaRepository;
@@ -20,12 +21,17 @@ public class TurnService implements ITurnService {
   private IHUDcontroller hudController;
   private IScene scene;
   private boolean terminarTurno = false;
-  private int tiradas = 1;
+  private int tiradas = 1; // usadas para dobles fuera de cárcel
   private ISubastaService subastaService;
+  private boolean irACarcel = false;
+  private IAdquisicionService adquisicionService;
+  private IMenuActions menuActions;
+  private boolean terminarPartida = false;
 
   private static Logger logger = LogManager.getLogger(TurnService.class);
 
-  private enum TurnState {
+  // FSM principal de turno
+  public enum TurnState {
     AWAIT_ROLL,
     MOVING,
     INTERACT,
@@ -33,7 +39,16 @@ public class TurnService implements ITurnService {
     NEXT_TURN
   }
 
+  public enum JailState {
+    CHECK_ROLLS,
+    DECIDE_ACTION,
+    ROLL,
+    PAY,
+    END_TURN
+  }
+
   private TurnState state = TurnState.AWAIT_ROLL;
+  private JailState jailState = JailState.CHECK_ROLLS;
   private Byte lastD1 = null;
   private Byte lastD2 = null;
   private int pendingMovement = 0;
@@ -48,7 +63,8 @@ public class TurnService implements ITurnService {
       ICasillaRepository casillaRepository,
       ICasillaService casillaService,
       IHUDcontroller hudController,
-      ISubastaService subastaService) {
+      ISubastaService subastaService,
+      IAdquisicionService adquisicionService) {
     this.casillaService = casillaService;
     this.casillaRepository = casillaRepository;
     this.diceService = diceService;
@@ -56,6 +72,7 @@ public class TurnService implements ITurnService {
     this.partidaRepository = partidaRepository;
     this.hudController = hudController;
     this.subastaService = subastaService;
+    this.adquisicionService = adquisicionService;
   }
 
   @Override
@@ -103,7 +120,7 @@ public class TurnService implements ITurnService {
     }
 
     try {
-      Casilla casillaLlegada = casillaRepository.casillaFromPosition(posicionAnterior);
+      Casilla casillaLlegada = casillaRepository.casillaFromPosition(nuevaPosicion);
 
       logger.debug(
           "El jugador {} se mueve a la posición {}",
@@ -135,6 +152,8 @@ public class TurnService implements ITurnService {
     this.enabled = enabled;
     if (enabled) {
       try {
+        state = TurnState.AWAIT_ROLL;
+        jailState = JailState.CHECK_ROLLS;
         // Actualizar indicador de turno activo al inicio del juego
         int activePlayerId = jugadorRepository.getActivePlayer();
         int activeNumJugador = jugadorRepository.getNumJugadorByPlayerId(activePlayerId);
@@ -163,9 +182,185 @@ public class TurnService implements ITurnService {
   public void update() {
     if (!enabled) return;
     try {
-      gameFSM();
+      int activePlayerId = jugadorRepository.getActivePlayer();
+      if (activePlayerId <= 0) {
+        return;
+      }
+
+      if (terminarPartida) {
+        java.util.List<com.NullPtr.Pontiland.entities.Jugador> ranking =
+            adquisicionService.obtenerRankingJugadoresDesc();
+        logger.info("Ranking de jugadores por capital (desc):");
+        for (com.NullPtr.Pontiland.entities.Jugador j : ranking) {
+          logger.info("{} -> capital={} (dinero+propiedades)", j.getNombreJugador(), j.getDinero());
+        }
+        finalizarPartida();
+      } else {
+        boolean encarcelado = jugadorRepository.getJugadorEstadoByID(activePlayerId);
+        if (encarcelado) {
+          jailFSM();
+        } else {
+          gameFSM();
+        }
+      }
+
     } catch (Exception e) {
       logger.fatal("Error en la máquina de estados en el turno de un jugador", e);
+    }
+  }
+
+  /**
+   * FSM separada para gestionar el flujo cuando el jugador está en cárcel.
+   *
+   * <p>- El hecho de estar o no encarcelado se verifica en update(), fuera de esta FSM. - Esta FSM
+   * solo se encarga de decidir entre lanzar/pagar y de contar intentos.
+   */
+  private void jailFSM() throws SQLException {
+    switch (jailState) {
+      case CHECK_ROLLS:
+        {
+          if (scene != null) scene.resetCamera();
+          tiradas = 1;
+          int activePlayerId = jugadorRepository.getActivePlayer();
+          int dbRolls = jugadorRepository.getTiradasCarcel(activePlayerId);
+          logger.debug(
+              "[JAIL] CHECK_ROLLS: playerId={}, tiradasCarcelBD={}", activePlayerId, dbRolls);
+          terminarTurno = false;
+          lanzamientoDoble = false;
+          updateHUDAndTokens();
+          if (dbRolls > 3) {
+            logger.debug("[JAIL] CHECK_ROLLS -> PAY (dbRolls >= 3)");
+            jailState = JailState.PAY;
+          } else {
+            if (hudController != null) {
+              logger.debug("[JAIL] CHECK_ROLLS -> mostrando panel decisión cárcel");
+              hudController.showJailDecision();
+            }
+            jailState = JailState.DECIDE_ACTION;
+          }
+          break;
+        }
+      case DECIDE_ACTION:
+        {
+          lastD1 = null;
+          lastD2 = null;
+          pendingMovement = 0;
+          lanzamientoDoble = false;
+          terminarTurno = false;
+          if (hudController != null) {
+            boolean pay = hudController.getJailPay();
+            boolean roll = false;
+            if (!pay) {
+              roll = hudController.getJailRoll();
+            }
+            if (pay) {
+              logger.debug("[JAIL] DECIDE_ACTION -> PAY (usuario eligió pagar)");
+              jailState = JailState.PAY;
+              hudController.hideJailDecision();
+            } else if (roll) {
+              logger.debug("[JAIL] DECIDE_ACTION -> ROLL (usuario eligió lanzar)");
+              jailState = JailState.ROLL;
+              hudController.hideJailDecision();
+            }
+          } else {
+            logger.debug("[JAIL] DECIDE_ACTION: hudController es null, no se puede leer flags");
+          }
+          break;
+        }
+      case ROLL:
+        {
+          terminarTurno = false;
+          lanzamientoDoble = false;
+          if (scene != null) scene.resetCamera();
+          if (diceService != null && !diceService.getCanInteract()) {
+            logger.debug("[JAIL] ROLL: habilitando interacción de dados (estaba deshabilitada)");
+            diceService.enableInteract(true);
+          }
+          Byte[] dados = diceService.getResultados();
+          if (dados == null) {
+            logger.debug("[JAIL] ROLL: resultados aún null (no se inicializaron)");
+            return;
+          }
+          boolean esDoble = false;
+          if (dados[0] != null && dados[1] != null) {
+            lastD1 = dados[0];
+            lastD2 = dados[1];
+            esDoble = lastD1.equals(lastD2);
+            logger.debug(
+                "[JAIL] ROLL: d1={}, d2={}, suma={}, doble={}",
+                lastD1,
+                lastD2,
+                pendingMovement,
+                esDoble);
+            dados[0] = null;
+            dados[1] = null;
+          } else {
+            logger.debug("[JAIL] ROLL: dados incompletos d1={}, d2={}", dados[0], dados[1]);
+          }
+          int activePlayerId = jugadorRepository.getActivePlayer();
+          if (lastD1 != null && lastD2 != null) {
+            if (esDoble) {
+              logger.debug("[JAIL] ROLL: se obtuvo doble -> liberar jugador {}", activePlayerId);
+              jugadorRepository.setJugadorLibre(activePlayerId);
+              jugadorRepository.resetTiradasCarcel(activePlayerId);
+              jugadorRepository.updateDinero(
+                  activePlayerId,
+                  jugadorRepository.getJugadorByID(activePlayerId).getDinero() - 200);
+              updateHUDAndTokens();
+              tiradas = 1;
+              jailState = JailState.END_TURN;
+            } else {
+              int prev = tiradas;
+              tiradas++;
+              logger.debug("[JAIL] ROLL: tiradas local {} -> {}", prev, tiradas);
+              if (tiradas > 3) {
+                logger.debug(
+                    "[JAIL] ROLL: llegó a 3 intentos locales -> incrementar BD y END_TURN");
+                jugadorRepository.incrementarTiradasCarcel(activePlayerId);
+                jailState = JailState.END_TURN;
+                lastD1 = null;
+                lastD2 = null;
+                tiradas = 1;
+              } else {
+                logger.debug("[JAIL] ROLL: menos de 3 intentos locales -> END_TURN");
+                jailState = JailState.ROLL;
+                lastD1 = null;
+                lastD2 = null;
+              }
+            }
+          }
+          break;
+        }
+      case PAY:
+        {
+          int activePlayerId = jugadorRepository.getActivePlayer();
+          jugadorRepository.setJugadorLibre(activePlayerId);
+          jugadorRepository.resetTiradasCarcel(activePlayerId);
+          jugadorRepository.updateDinero(
+              activePlayerId, jugadorRepository.getJugadorByID(activePlayerId).getDinero() - 200);
+          tiradas = 1;
+          if (hudController != null) hudController.hideJailDecision();
+          Jugador jugador = jugadorRepository.getJugadorByID(activePlayerId);
+          if (jugador.getDinero() < 0) {
+            adquisicionService.liquidarDeudaConBanco(jugador);
+            jugador = jugadorRepository.getJugadorByID(activePlayerId);
+            if (jugador.getDinero() < 0) {
+              terminarPartida = true;
+              return;
+            }
+          }
+          nextTurn();
+          updateHUDAndTokens();
+          jailState = JailState.CHECK_ROLLS;
+          break;
+        }
+      case END_TURN:
+        {
+          logger.debug("[JAIL] END_TURN: nextTurn() y reinicio a CHECK_ROLLS siguiente ciclo");
+          nextTurn();
+          jailState = JailState.CHECK_ROLLS;
+          break;
+        }
     }
   }
 
@@ -176,9 +371,6 @@ public class TurnService implements ITurnService {
         lanzamientoDoble = false;
         if (scene != null) scene.resetCamera();
 
-        // Actualizar visibilidad de botones de acción
-        updateActionButtons();
-
         Byte[] dados = diceService.getResultados();
         if (dados == null) return;
 
@@ -186,6 +378,8 @@ public class TurnService implements ITurnService {
           lastD1 = dados[0];
           lastD2 = dados[1];
           pendingMovement = datosToInt(dados[0]) + datosToInt(dados[1]);
+          // FIXME: Esto se usa para pruebas
+          // pendingMovement = 2;
           logger.debug("Dados lanzados: {} + {} = {}", lastD1, lastD2, pendingMovement);
           dados[0] = null;
           dados[1] = null;
@@ -214,7 +408,7 @@ public class TurnService implements ITurnService {
             logger.info("3 dobles seguidos, vas a la cárcel!");
             lastD1 = null;
             lastD2 = null;
-            moveToJail();
+            irACarcel = true;
             state = TurnState.END_TURN;
           } else {
             tiradas++;
@@ -231,7 +425,7 @@ public class TurnService implements ITurnService {
           state = TurnState.END_TURN;
         }
 
-        if (diceService.getCanInteract()) {
+        if (diceService.getCanInteract() && !irACarcel) {
           performCasillaInteraccion();
         }
         break;
@@ -239,7 +433,7 @@ public class TurnService implements ITurnService {
       case END_TURN:
         if (casillaService.getIrACarcel()) {
           logger.debug("La casilla envia a la cárcel después del movimiento");
-          moveToJail();
+          irACarcel = true;
         }
 
         if (terminarTurno) {
@@ -252,11 +446,27 @@ public class TurnService implements ITurnService {
 
       case NEXT_TURN:
         terminarTurno = false;
+        if (irACarcel) {
+          moveToJail();
+          irACarcel = false;
+        }
+        Jugador jugador = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+        if (jugador.getDinero() < 0) {
+          adquisicionService.liquidarDeudaConBanco(jugador);
+          jugador = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+          logger.info(
+              "Después de liquidar deudas, el jugador {} tiene dinero: {}",
+              jugador.getJugadorId(),
+              jugador.getDinero());
+          if (jugador.getDinero() < 0) {
+            terminarPartida = true;
+            return;
+          }
+        }
         if (!lanzamientoDoble) {
           tiradas = 1;
           nextTurn();
         }
-        // Actualizar HUD después de cambiar de turno para que el indicador refleje el nuevo jugador
         updateHUDAndTokens();
         state = TurnState.AWAIT_ROLL;
         break;
@@ -307,19 +517,6 @@ public class TurnService implements ITurnService {
     }
   }
 
-  private void updateActionButtons() {
-    try {
-      Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
-      boolean canRoll = diceService != null && diceService.getCanThrowDice();
-      boolean inJail = jugadorActual != null && jugadorActual.getEstado();
-
-      hudController.setRollDiceButtonVisible(canRoll);
-      hudController.setPayBailButtonVisible(inJail && canRoll);
-    } catch (SQLException e) {
-      logger.error("Error actualizando botones de acción", e);
-    }
-  }
-
   @Override
   public void buyProperty() {
     // TODO Auto-generated method stub
@@ -337,12 +534,13 @@ public class TurnService implements ITurnService {
       jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
       jugadorRepository.goToJail(
           jugadorRepository.getNumJugadorByPlayerId(jugadorActual.getJugadorId()));
-
+      // Reiniciar contadores de cárcel
+      jugadorRepository.resetTiradasCarcel(jugadorActual.getJugadorId());
+      tiradas = 0;
       logger.info(
           "El jugador {} ha sido enviado a la cárcel en la posición {}",
           jugadorActual.getJugadorId(),
           jailPosition);
-
       scene.replicateFichaPosition(jugadorActual.getJugadorId(), jailPosition - 1);
     } catch (SQLException e) {
       logger.error("Error al enviar al jugador a la cárcel", e);
@@ -366,12 +564,23 @@ public class TurnService implements ITurnService {
   }
 
   @Override
-  public void rollDice() {
-    if (diceService != null && diceService.getCanThrowDice()) {
-      diceService.lanzamientoDados();
-      // Ocultar botones al lanzar
-      hudController.setRollDiceButtonVisible(false);
-      hudController.setPayBailButtonVisible(false);
+  public void setMenuActions(IMenuActions menuActions) {
+    this.menuActions = menuActions;
+  }
+
+  @Override
+  public void finalizarPartida() {
+    state = TurnState.AWAIT_ROLL;
+    jailState = JailState.CHECK_ROLLS;
+    logger.info("Finalizando partida - deshabilitando turnos e inputs");
+    enabled = false;
+    if (diceService != null) {
+      diceService.enableInteract(false);
+    }
+    if (menuActions != null) {
+      menuActions.showFinDeJuego();
+    } else {
+      logger.warn("menuActions es null, no se puede mostrar pantalla de fin de juego");
     }
   }
 }

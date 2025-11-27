@@ -37,6 +37,9 @@ class DataServiceTest {
   /** PreparedStatement simulado. */
   @Mock PreparedStatement mockPreparedStatement;
 
+  /** ResultSet simulado. */
+  @Mock ResultSet mockResultSet;
+
   /** Carpeta real para almacenar archivos de prueba. */
   Path savesDirPath;
 
@@ -73,6 +76,11 @@ class DataServiceTest {
     // Configuración básica para la conexión simulada
     when(mockConnection.createStatement()).thenReturn(mockStatement);
     when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+
+    // Configurar el ResultSet mock para el método newDataBase
+    when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
+    when(mockResultSet.next()).thenReturn(true);
+    when(mockResultSet.getInt(1)).thenReturn(0); // Base de datos vacía
   }
 
   /** Limpia los archivos de prueba después de cada test. */
@@ -190,6 +198,13 @@ class DataServiceTest {
       DataService ds = spy(new DataService("jdbc:h2:mem:testdb"));
       doReturn(mockConnection).when(ds).createConnection();
 
+      // Configurar el mock para prepareStatement y ResultSet
+      when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+      when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
+      when(mockResultSet.next()).thenReturn(true);
+      when(mockResultSet.getInt(1)).thenReturn(0); // Base de datos vacía
+      when(mockConnection.createStatement()).thenReturn(mockStatement);
+
       assertDoesNotThrow(ds::newDataBase);
 
       verify(mockStatement, times(2)).execute(anyString());
@@ -201,12 +216,9 @@ class DataServiceTest {
     }
   }
 
-  /**
-   * Verifica que newDataBase() lance AssertionError cuando los recursos no existen. El código usa
-   * assert que lanza AssertionError en producción si los recursos son null.
-   */
+  /** Verifica que newDataBase() lance AssertionError cuando los recursos no existen. */
   @Test
-  void testNewDatabase_resourcesMissing() {
+  void testNewDatabase_resourcesMissing() throws Exception {
     try (MockedStatic<PropertiesReader> mockedProps = mockStatic(PropertiesReader.class)) {
       mockedProps
           .when(() -> PropertiesReader.getProperty("nuevaPartida.ddl"))
@@ -217,6 +229,13 @@ class DataServiceTest {
 
       DataService ds = spy(new DataService("jdbc:h2:mem:testdb"));
       doReturn(mockConnection).when(ds).createConnection();
+
+      // Configurar mocks para que pase la verificación inicial
+      when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+      when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
+      when(mockResultSet.next()).thenReturn(true);
+      when(mockResultSet.getInt(1)).thenReturn(0);
+      when(mockConnection.createStatement()).thenReturn(mockStatement);
 
       // El método lanza AssertionError cuando los recursos no existen
       assertThrows(AssertionError.class, ds::newDataBase);
@@ -247,6 +266,13 @@ class DataServiceTest {
 
       DataService ds = spy(new DataService("jdbc:h2:mem:testdb"));
       doReturn(mockConnection).when(ds).createConnection();
+
+      // Configurar mocks
+      when(mockConnection.prepareStatement(anyString())).thenReturn(mockPreparedStatement);
+      when(mockPreparedStatement.executeQuery()).thenReturn(mockResultSet);
+      when(mockResultSet.next()).thenReturn(true);
+      when(mockResultSet.getInt(1)).thenReturn(0);
+      when(mockConnection.createStatement()).thenReturn(mockStatement);
 
       // El método no lanza excepción, solo registra el error
       assertDoesNotThrow(ds::newDataBase);
