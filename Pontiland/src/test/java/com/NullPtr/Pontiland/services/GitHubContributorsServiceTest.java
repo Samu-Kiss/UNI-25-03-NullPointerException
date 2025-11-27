@@ -218,9 +218,14 @@ class GitHubContributorsServiceTest {
     when(response.body()).thenReturn(json);
     when(client.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
         .thenReturn(response);
+    java.util.List<GitHubContributorsService.Contributor> listLow =
+        service.fetchContributorsDetailed("a", "b", 0);
+    java.util.List<GitHubContributorsService.Contributor> listHigh =
+        service.fetchContributorsDetailed("a", "b", 200);
 
-    service.fetchContributorsDetailed("a", "b", 0);
-    service.fetchContributorsDetailed("a", "b", 200);
+    assertEquals(1, listLow.size());
+    assertEquals(1, listHigh.size());
+    assertEquals("x", listLow.get(0).login);
   }
 
   /**
