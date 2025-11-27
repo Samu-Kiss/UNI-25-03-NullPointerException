@@ -184,4 +184,4 @@ INSERT INTO ICONO(IconoID, IconoNombre) VALUES(3,'Maleta');
 INSERT INTO ICONO(IconoID, IconoNombre) VALUES(4,'Pescadito');
 INSERT INTO ICONO(IconoID, IconoNombre) VALUES(5,'Ignacito');
 INSERT INTO ICONO(IconoID, IconoNombre) VALUES(6,'Nave');
-INSERT INTO ICONO(IconoID, IconoNombre) VALUES(7,'Carnet');
+-- INSERT INTO ICONO(IconoID, IconoNombre) VALUES(7,'Carnet');
