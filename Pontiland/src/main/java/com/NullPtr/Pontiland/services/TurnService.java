@@ -114,7 +114,7 @@ public class TurnService implements ITurnService {
     }
 
     try {
-      Casilla casillaLlegada = casillaRepository.casillaFromPosition(posicionAnterior);
+      Casilla casillaLlegada = casillaRepository.casillaFromPosition(nuevaPosicion);
 
       logger.debug(
           "El jugador {} se mueve a la posición {}",
@@ -280,6 +280,9 @@ public class TurnService implements ITurnService {
               logger.debug("[JAIL] ROLL: se obtuvo doble -> liberar jugador {}", activePlayerId);
               jugadorRepository.setJugadorLibre(activePlayerId);
               jugadorRepository.resetTiradasCarcel(activePlayerId);
+              jugadorRepository.updateDinero(
+                  activePlayerId,
+                  jugadorRepository.getJugadorByID(activePlayerId).getDinero() - 200);
               updateHUDAndTokens();
               tiradas = 1;
               jailState = JailState.END_TURN;
@@ -310,6 +313,8 @@ public class TurnService implements ITurnService {
           int activePlayerId = jugadorRepository.getActivePlayer();
           jugadorRepository.setJugadorLibre(activePlayerId);
           jugadorRepository.resetTiradasCarcel(activePlayerId);
+          jugadorRepository.updateDinero(
+              activePlayerId, jugadorRepository.getJugadorByID(activePlayerId).getDinero() - 200);
           tiradas = 1;
           if (hudController != null) hudController.hideJailDecision();
           nextTurn();

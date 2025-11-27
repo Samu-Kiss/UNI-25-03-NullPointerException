@@ -94,9 +94,6 @@ public class Jugador {
       long partidaId,
       int tiradasCarcel) {
 
-    if (dinero < 0) {
-      throw new IllegalArgumentException("El dinero no puede ser negativo");
-    }
     if (nombreJugador == null || nombreJugador.isEmpty()) {
       throw new IllegalArgumentException("El nombre del jugador no puede estar vacío");
     }

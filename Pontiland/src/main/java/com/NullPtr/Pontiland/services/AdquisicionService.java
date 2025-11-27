@@ -35,10 +35,6 @@ public class AdquisicionService implements IAdquisicionService {
     int propiedadId = propiedad.getIdPropiedad();
     int precio = propiedad.getPrecioCompra();
 
-    if (jugador.getDinero() < precio) {
-      return false;
-    }
-
     Jugador jugadorPago;
     try {
       jugadorPago = propiedadRepository.propiedadHasOwner(propiedadId);
@@ -93,14 +89,14 @@ public class AdquisicionService implements IAdquisicionService {
       }
 
       try {
-        jugadorRepository.updateDinero(jugador.getJugadorId(), jugador.getDinero() - precioNivel);
 
-        // Bloqueo: si el receptor está encarcelado (true), NO se le acredita dinero.
-        boolean receptorEncarcelado =
-            jugadorRepository.getJugadorEstadoByID(jugadorPago.getJugadorId());
-        if (!receptorEncarcelado) {
-          jugadorRepository.updateDinero(
-              jugadorPago.getJugadorId(), jugadorPago.getDinero() + precioNivel);
+        if (!jugadorRepository.getJugadorEstadoByID(jugadorPago.getJugadorId())) {
+          if (jugador.getJugadorId() != jugadorPago.getJugadorId()) {
+            jugadorRepository.updateDinero(
+                jugador.getJugadorId(), jugador.getDinero() - precioNivel);
+            jugadorRepository.updateDinero(
+                jugadorPago.getJugadorId(), jugadorPago.getDinero() + precioNivel);
+          }
         } else {
           logger.debug(
               "Pago bloqueado porque el jugador receptor está en cárcel (ID={})",
@@ -207,7 +203,7 @@ public class AdquisicionService implements IAdquisicionService {
       int nuevoDinero = jugador.getDinero() + precioVenta;
       jugador.setDinero(nuevoDinero);
       jugadorRepository.updateDinero(jugador.getJugadorId(), nuevoDinero);
-      propiedadRepository.venderAdquisicion(propiedad.getIdPropiedad() ,jugador.getJugadorId());
+      propiedadRepository.venderAdquisicion(propiedad.getIdPropiedad(), jugador.getJugadorId());
     } catch (SQLException e) {
       logger.error(
           "Error al vender la propiedad con Id={} del jugador con Id={}",
