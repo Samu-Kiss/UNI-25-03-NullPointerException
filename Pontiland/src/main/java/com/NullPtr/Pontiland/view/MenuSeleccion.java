@@ -54,7 +54,7 @@ public class MenuSeleccion extends AbstractAppState {
 
   /** Nombres de los personajes disponibles. */
   private static final String[] CHARACTER_NAMES = {
-    "Kiwi", "Balon", "Maleta", "Pescadito", "Carnet", "Ignacito", "Nave"
+    "Kiwi", "Balon", "Maleta", "Pescadito", "Ignacito", "Nave", /*"Carnet",*/
   };
 
   /** Rutas de los sprites de billetes. */

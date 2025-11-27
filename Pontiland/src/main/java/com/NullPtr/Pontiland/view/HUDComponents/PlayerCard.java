@@ -26,7 +26,7 @@ public class PlayerCard {
 
   // Mapeo de iconoId (1-7) al nombre del sprite en graphics/sprites/Fichas/
   private static final String[] ICON_NAMES = {
-    "Kiwi", "Balon", "Maleta", "Pescadito", "Carnet", "Ignacito", "Nave"
+    "Kiwi", "Balon", "Maleta", "Pescadito", /*"Carnet",*/ "Ignacito", "Nave"
   };
 
   // Texto por defecto para el nombre del jugador
