@@ -176,6 +176,9 @@ public class TurnService implements ITurnService {
         lanzamientoDoble = false;
         if (scene != null) scene.resetCamera();
 
+        // Actualizar visibilidad de botones de acción
+        updateActionButtons();
+
         Byte[] dados = diceService.getResultados();
         if (dados == null) return;
 
@@ -304,6 +307,19 @@ public class TurnService implements ITurnService {
     }
   }
 
+  private void updateActionButtons() {
+    try {
+      Jugador jugadorActual = jugadorRepository.getJugadorByID(jugadorRepository.getActivePlayer());
+      boolean canRoll = diceService != null && diceService.getCanThrowDice();
+      boolean inJail = jugadorActual != null && jugadorActual.getEstado();
+
+      hudController.setRollDiceButtonVisible(canRoll);
+      hudController.setPayBailButtonVisible(inJail && canRoll);
+    } catch (SQLException e) {
+      logger.error("Error actualizando botones de acción", e);
+    }
+  }
+
   @Override
   public void buyProperty() {
     // TODO Auto-generated method stub
@@ -347,5 +363,15 @@ public class TurnService implements ITurnService {
   @Override
   public void exitAuction() {
     subastaService.salirSubasta();
+  }
+
+  @Override
+  public void rollDice() {
+    if (diceService != null && diceService.getCanThrowDice()) {
+      diceService.lanzamientoDados();
+      // Ocultar botones al lanzar
+      hudController.setRollDiceButtonVisible(false);
+      hudController.setPayBailButtonVisible(false);
+    }
   }
 }

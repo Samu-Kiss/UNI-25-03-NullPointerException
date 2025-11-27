@@ -49,4 +49,10 @@ public interface IHUDcontroller {
   void exitAuction();
 
   void setAuctionPlayerName(String playerName);
+
+  void rollDice();
+
+  void setRollDiceButtonVisible(boolean visible);
+
+  void setPayBailButtonVisible(boolean visible);
 }

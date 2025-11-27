@@ -181,4 +181,25 @@ public class HUDController implements IHUDcontroller {
   public void setAuctionPlayerName(String playerName) {
     if (hud != null) hud.setAuctionPlayerName(playerName);
   }
+
+  @Override
+  public void rollDice() {
+    if (turnService != null) {
+      turnService.rollDice();
+    }
+  }
+
+  @Override
+  public void setRollDiceButtonVisible(boolean visible) {
+    if (hud != null) {
+      hud.setRollDiceButtonVisible(visible);
+    }
+  }
+
+  @Override
+  public void setPayBailButtonVisible(boolean visible) {
+    if (hud != null) {
+      hud.setPayBailButtonVisible(visible);
+    }
+  }
 }

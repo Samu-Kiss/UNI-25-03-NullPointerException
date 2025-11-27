@@ -38,6 +38,9 @@ public class HUD extends AbstractAppState {
   private Container overlayPane;
 
   private Container playersBox; // contendrá varias PlayerCard apiladas
+  private Container playerActionsBox; // contendrá botones de acciones del jugador
+  private com.simsilica.lemur.Button rollDiceBtn;
+  private com.simsilica.lemur.Button payBailBtn;
 
   private List<PlayerCard> playerCards = new ArrayList<>();
   private PropertyCard propertyCard;
@@ -147,6 +150,9 @@ public class HUD extends AbstractAppState {
       pendingPlayers = null;
     }
 
+    // Player action buttons (below player cards)
+    buildPlayerActionButtons();
+
     // Right (PropertyCard)
     rightPane = new Container();
     rightPane.setBackground(new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0)));
@@ -208,6 +214,74 @@ public class HUD extends AbstractAppState {
     guiNode.attachChild(bottomPane);
     guiNode.attachChild(overlayPane);
     guiNode.attachChild(actionBar);
+  }
+
+  private void buildPlayerActionButtons() {
+    playerActionsBox = new Container();
+    playerActionsBox.setBackground(null);
+
+    Button renderer =
+        new Button(app.getAssetManager()).setDefaultFontSize(14f).setHoverScale(1.05f);
+
+    // Botón Lanzar Dados
+    rollDiceBtn = renderer.render(Button.Type.ACCENT, "Lanzar Dados", 0.45f, Button.Variant.MAIN);
+    rollDiceBtn.addClickCommands(ignored -> onRollDiceClicked());
+    playerActionsBox.addChild(rollDiceBtn);
+
+    // Espaciador
+    Container spacer = new Container();
+    spacer.setBackground(null);
+    spacer.setPreferredSize(new Vector3f(0, 8f, 0));
+    playerActionsBox.addChild(spacer);
+
+    // Botón Pagar Fianza
+    payBailBtn = renderer.render(Button.Type.POSITIVE, "Pagar Fianza", 0.45f, Button.Variant.MAIN);
+    payBailBtn.addClickCommands(ignored -> onPayBailClicked());
+    playerActionsBox.addChild(payBailBtn);
+
+    // Ocultar ambos por defecto
+    rollDiceBtn.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+    payBailBtn.setCullHint(com.jme3.scene.Spatial.CullHint.Always);
+
+    leftPane.addChild(playerActionsBox);
+  }
+
+  private void onRollDiceClicked() {
+    if (hudController != null) {
+      hudController.rollDice();
+    }
+  }
+
+  private void onPayBailClicked() {
+    logger.info("Función de pagar fianza está en desarrollo");
+  }
+
+  /**
+   * Muestra u oculta el botón de lanzar dados.
+   *
+   * @param visible true para mostrar, false para ocultar
+   */
+  public void setRollDiceButtonVisible(boolean visible) {
+    if (rollDiceBtn != null) {
+      rollDiceBtn.setCullHint(
+          visible
+              ? com.jme3.scene.Spatial.CullHint.Inherit
+              : com.jme3.scene.Spatial.CullHint.Always);
+    }
+  }
+
+  /**
+   * Muestra u oculta el botón de pagar fianza.
+   *
+   * @param visible true para mostrar, false para ocultar
+   */
+  public void setPayBailButtonVisible(boolean visible) {
+    if (payBailBtn != null) {
+      payBailBtn.setCullHint(
+          visible
+              ? com.jme3.scene.Spatial.CullHint.Inherit
+              : com.jme3.scene.Spatial.CullHint.Always);
+    }
   }
 
   private void layoutComponents() {
